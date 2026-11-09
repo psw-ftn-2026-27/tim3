@@ -1,0 +1,23 @@
+<div class="card stack">
+  <h1>Slike</h1>
+
+  <app-image-picker
+    [file]="selected()"
+    [pending]="pending()"
+    (fileChange)="select($event)"
+    (send)="send()"
+  />
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (address()) {
+    @if (imageMissing()) {
+      <p class="error">Slika nije pronađena</p>
+    } @else {
+      <p>Slika je uspešno poslata.</p>
+      <img class="saved" [src]="address()" alt="Sačuvana slika" (error)="imageMissing.set(true)" />
+    }
+  }
+</div>
