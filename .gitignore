@@ -12,6 +12,9 @@ coverage/
 !.github/scripts/coverage/
 *.tsbuildinfo
 
+# Uploaded images in local development (Media:StoragePath)
+backend/media-storage/
+
 # Visual Studio
 .vs/
 *.user

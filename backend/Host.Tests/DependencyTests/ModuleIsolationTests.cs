@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Host.Tests.DependencyTests;
 
-// Another module is reachable only through its Contracts project, and Identity is reachable by no module at all.
+// Another module is reachable only through its Contracts project, and Identity and Media are reachable by no module at all.
 public class ModuleIsolationTests : BaseArchitectureTests
 {
     [Theory]
@@ -28,6 +28,16 @@ public class ModuleIsolationTests : BaseArchitectureTests
         foreach (var assembly in Layers.Select(layer => $"{module}.{layer}"))
         {
             AssertNoDependency(assembly, "Identity");
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ModuleNames))]
+    public void Module_does_not_depend_on_media(string module)
+    {
+        foreach (var assembly in Layers.Select(layer => $"{module}.{layer}"))
+        {
+            AssertNoDependency(assembly, "Media");
         }
     }
 }
