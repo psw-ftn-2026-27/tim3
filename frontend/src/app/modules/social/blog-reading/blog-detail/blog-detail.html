@@ -15,7 +15,17 @@
 
       <p>{{ blog.description }}</p>
 
+      @if (blog.images.length) {
+        <div class="images">
+          @for (image of blog.images; track $index) {
+            <img class="blog-image" [src]="image" alt="Slika bloga" />
+          }
+        </div>
+      }
+
       <p class="meta">Status: {{ blog.status }}</p>
+
+      <p class="meta">Poslednja izmena: {{ lastModified(blog.lastModifiedAt) }}</p>
 
       <app-blog-comments
         [comments]="blog.comments"

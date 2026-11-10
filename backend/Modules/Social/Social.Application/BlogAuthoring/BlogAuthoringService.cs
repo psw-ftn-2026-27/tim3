@@ -28,6 +28,14 @@ public sealed class BlogAuthoringService
         return _mapper.Map<BlogDto>(blog);
     }
 
+    public async Task UpdateAsync(Guid blogId, Guid authorId, UpdateBlogDto dto)
+    {
+        var blog = await GetOwnedBlogAsync(blogId, authorId);
+
+        blog.Update(dto.Title, dto.Description, dto.Images);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     public async Task PublishAsync(Guid blogId, Guid authorId)
     {
         var blog = await GetOwnedBlogAsync(blogId, authorId);

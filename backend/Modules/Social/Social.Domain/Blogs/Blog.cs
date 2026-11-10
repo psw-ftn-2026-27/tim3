@@ -9,6 +9,7 @@ public sealed class Blog : AggregateRoot
     public string Title { get; private set; }
     public string Description { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public DateTime LastModifiedAt { get; private set; }
     public List<string> Images { get; private set; }
     public BlogStatus Status { get; private set; }
     private readonly List<Comment> _comments = [];
@@ -37,8 +38,30 @@ public sealed class Blog : AggregateRoot
         Title = title;
         Description = description;
         CreatedAt = DateTime.UtcNow;
+        LastModifiedAt = CreatedAt;
         Images = images ?? [];
         Status = BlogStatus.Draft;
+    }
+
+    public void Update(string title, string description, List<string>? images)
+    {
+        if (Status == BlogStatus.Closed)
+        {
+            throw new DomainException("An archived blog cannot be edited.");
+        }
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            throw new DomainException("A blog requires a title.");
+        }
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            throw new DomainException("A blog requires a description.");
+        }
+
+        Title = title;
+        Description = description;
+        Images = images ?? [];
+        LastModifiedAt = DateTime.UtcNow;
     }
 
     public void Publish()
