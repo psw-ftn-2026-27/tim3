@@ -52,4 +52,8 @@ export class BlogDetail {
       this.error.set(serverMessage(failure, 'Could not delete the comment.'));
     }
   }
+
+  protected lastModified(iso: string): string {
+    return new Date(iso).toLocaleString('sr-RS');
+  }
 }

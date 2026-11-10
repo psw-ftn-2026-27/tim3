@@ -1,3 +1,15 @@
 .meta {
   margin: 0;
 }
+
+.images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.blog-image {
+  width: 240px;
+  max-width: 100%;
+  height: auto;
+}
