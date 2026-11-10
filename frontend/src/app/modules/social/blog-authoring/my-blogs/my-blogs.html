@@ -28,6 +28,9 @@
             <td>{{ blog.status }}</td>
             <td>{{ blog.comments.length }}</td>
             <td>
+              @if (blog.status !== 'Closed') {
+                <a class="button" [routerLink]="['/social', blog.id, 'edit']">Edit</a>
+              }
               @if (blog.status === 'Draft') {
                 <button
                   class="button button--primary"

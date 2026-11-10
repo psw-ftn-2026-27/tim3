@@ -58,6 +58,54 @@ public class BlogTests
     }
 
     [Fact]
+    public void Author_edits_blog_content_and_last_modified_date_moves()
+    {
+        var blog = CreateBlog();
+
+        blog.Update("Novi naslov", "Nov opis obilaska.", ["https://example.com/nova.jpg"]);
+
+        blog.Title.Should().Be("Novi naslov");
+        blog.Description.Should().Be("Nov opis obilaska.");
+        blog.Images.Should().ContainSingle().Which.Should().Be("https://example.com/nova.jpg");
+        blog.LastModifiedAt.Should().BeOnOrAfter(blog.CreatedAt);
+        blog.LastModifiedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public void Author_edits_blog_to_have_no_images()
+    {
+        var blog = CreateBlog();
+
+        blog.Update("Novi naslov", "Nov opis obilaska.", null);
+
+        blog.Images.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Edited_blog_requires_a_title(string title)
+    {
+        var blog = CreateBlog();
+
+        var update = () => blog.Update(title, "Nov opis obilaska.", []);
+
+        update.Should().Throw<DomainException>();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Edited_blog_requires_a_description(string description)
+    {
+        var blog = CreateBlog();
+
+        var update = () => blog.Update("Novi naslov", description, []);
+
+        update.Should().Throw<DomainException>();
+    }
+
+    [Fact]
     public void Draft_blog_is_published()
     {
         var blog = CreateBlog();
