@@ -2,3 +2,13 @@
   margin-inline: auto;
   max-width: 32rem;
 }
+
+.image-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.image-url {
+  overflow-wrap: anywhere;
+}
