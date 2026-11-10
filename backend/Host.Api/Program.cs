@@ -7,6 +7,8 @@ using Games.Infrastructure;
 using Host.Api;
 using Identity.Api;
 using Identity.Infrastructure;
+using Media.Api;
+using Media.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Payment.Api;
@@ -22,6 +24,7 @@ builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecu
 builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
     .AddIdentityControllers()
+    .AddMediaControllers()
     .AddExplorationControllers()
     .AddGamesControllers()
     .AddSocialControllers()
@@ -42,6 +45,7 @@ builder.Services.AddAuthorization();
 
 builder.Services
     .AddIdentityModule(builder.Configuration)
+    .AddMediaModule(builder.Configuration)
     .AddExplorationModule(builder.Configuration)
     .AddGamesModule(builder.Configuration)
     .AddSocialModule(builder.Configuration)
