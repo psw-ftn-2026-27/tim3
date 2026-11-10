@@ -21,4 +21,17 @@ public class ImageFileTests
 
         creation.Should().Throw<DomainException>();
     }
+
+    [Theory]
+    [InlineData(1, 1, 1)]
+    [InlineData(5 * 1024 * 1024, 100, 100)]
+    [InlineData(1024, 4000, 4000)]
+    public void Image_at_the_size_and_dimension_limits_is_accepted(int contentLength, int width, int height)
+    {
+        var content = new byte[contentLength];
+
+        var creation = () => new ImageFile(content, ImageFormat.Png, width, height);
+
+        creation.Should().NotThrow();
+    }
 }
