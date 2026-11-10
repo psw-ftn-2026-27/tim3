@@ -27,7 +27,7 @@ internal sealed class BlogReadRepository : IBlogReadRepository
     public async Task<PageResult<BlogDto>> GetPublishedAsync(int page, int pageSize)
     {
         var published = _dbContext.Blogs
-            .Where(blog => blog.Status == BlogStatus.Published)
+            .Where(blog => blog.Status == BlogStatus.Published || blog.Status == BlogStatus.Closed)
             .OrderByDescending(blog => blog.CreatedAt);
 
         var totalCount = await published.CountAsync();

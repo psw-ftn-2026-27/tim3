@@ -151,4 +151,77 @@ public class BlogAuthoringCommandTests : BaseIntegrationTest
         var stored = assertContext.Blogs.Single(blog => blog.Id == BlogSeed.FortressImpressions.Id);
         stored.Status.Should().Be(BlogStatus.Draft);
     }
+
+    [Fact]
+    public async Task Author_archives_their_own_published_blog()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+
+        var response = await client.PostAsync($"/api/social/blogs/{BlogSeed.PublishedRiverbank.Id}/archive", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var assertContext = Factory.CreateContext<SocialDbContext>();
+        var stored = assertContext.Blogs.Single(blog => blog.Id == BlogSeed.PublishedRiverbank.Id);
+        stored.Status.Should().Be(BlogStatus.Closed);
+    }
+
+    [Fact]
+    public async Task Explorer_cannot_archive_another_authors_blog()
+    {
+        var client = Factory.CreateClientFor(Guid.NewGuid(), "explorer");
+
+        var response = await client.PostAsync($"/api/social/blogs/{BlogSeed.PublishedRiverbank.Id}/archive", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        using var assertContext = Factory.CreateContext<SocialDbContext>();
+        var stored = assertContext.Blogs.Single(blog => blog.Id == BlogSeed.PublishedRiverbank.Id);
+        stored.Status.Should().Be(BlogStatus.Published);
+    }
+
+    [Fact]
+    public async Task A_blog_that_is_not_published_cannot_be_archived()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+
+        var response = await client.PostAsync($"/api/social/blogs/{BlogSeed.FortressImpressions.Id}/archive", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var assertContext = Factory.CreateContext<SocialDbContext>();
+        var stored = assertContext.Blogs.Single(blog => blog.Id == BlogSeed.FortressImpressions.Id);
+        stored.Status.Should().Be(BlogStatus.Draft);
+    }
+
+    [Fact]
+    public async Task Anonymous_user_cannot_archive_a_blog()
+    {
+        var client = Factory.CreateClient();
+
+        var response = await client.PostAsync($"/api/social/blogs/{BlogSeed.PublishedRiverbank.Id}/archive", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Administrator_cannot_archive_a_blog()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+
+        var response = await client.PostAsync($"/api/social/blogs/{BlogSeed.PublishedRiverbank.Id}/archive", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task Author_cannot_edit_an_archived_blog()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+        var request = new UpdateBlogDto("Izmenjen naslov", "Izmenjen opis obilaska.", []);
+
+        var response = await client.PutAsJsonAsync($"/api/social/blogs/{BlogSeed.ArchivedFestival.Id}", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var assertContext = Factory.CreateContext<SocialDbContext>();
+        var stored = assertContext.Blogs.Single(blog => blog.Id == BlogSeed.ArchivedFestival.Id);
+        stored.Title.Should().Be("Dani festivala");
+    }
 }

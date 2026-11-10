@@ -126,6 +126,37 @@ public class BlogTests
     }
 
     [Fact]
+    public void Published_blog_is_archived()
+    {
+        var blog = CreatePublishedBlog();
+
+        blog.Archive();
+
+        blog.Status.Should().Be(BlogStatus.Closed);
+    }
+
+    [Fact]
+    public void A_blog_that_is_not_published_cannot_be_archived()
+    {
+        var blog = CreateBlog();
+
+        var archiving = () => blog.Archive();
+
+        archiving.Should().Throw<DomainException>();
+    }
+
+    [Fact]
+    public void Archived_blog_cannot_be_edited()
+    {
+        var blog = CreatePublishedBlog();
+        blog.Archive();
+
+        var update = () => blog.Update("Novi naslov", "Nov opis obilaska.", []);
+
+        update.Should().Throw<DomainException>();
+    }
+
+    [Fact]
     public void User_comments_on_a_published_blog()
     {
         var blog = CreatePublishedBlog();

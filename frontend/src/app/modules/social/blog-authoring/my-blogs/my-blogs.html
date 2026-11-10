@@ -41,6 +41,16 @@
                   Publish
                 </button>
               }
+              @if (blog.status === 'Published') {
+                <button
+                  class="button button--primary"
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="archive(blog.id)"
+                >
+                  Archive
+                </button>
+              }
             </td>
           </tr>
         } @empty {
