@@ -40,11 +40,13 @@
       </div>
 
       <div class="field">
-        <label for="new-image">Add image address</label>
-        <div class="image-row">
-          <input id="new-image" type="text" [formField]="imageForm.url" />
-          <button class="button" type="button" (click)="addImage()">Add</button>
-        </div>
+        <span class="field-label">Add image</span>
+        <app-image-picker
+          [file]="selected()"
+          [pending]="uploading()"
+          (fileChange)="pickImage($event)"
+          (send)="uploadImage()"
+        />
       </div>
 
       @if (error()) {
