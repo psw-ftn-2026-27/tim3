@@ -22,6 +22,28 @@
       }
     </div>
 
+    <div class="field">
+      <span class="field-label">Images</span>
+      @for (image of images(); track $index) {
+        <div class="image-row">
+          <span class="image-url">{{ image }}</span>
+          <button class="button" type="button" (click)="removeImage($index)">x</button>
+        </div>
+      } @empty {
+        <p class="meta">No images.</p>
+      }
+    </div>
+
+    <div class="field">
+      <span class="field-label">Add image</span>
+      <app-image-picker
+        [file]="selected()"
+        [pending]="uploading()"
+        (fileChange)="pickImage($event)"
+        (send)="uploadImage()"
+      />
+    </div>
+
     @if (error()) {
       <p class="error">{{ error() }}</p>
     }
