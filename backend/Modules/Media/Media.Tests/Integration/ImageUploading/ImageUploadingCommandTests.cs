@@ -92,6 +92,19 @@ public class ImageUploadingCommandTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Request_without_a_file_is_rejected_and_nothing_is_stored()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+        using var form = new MultipartFormDataContent { { new StringContent("no file here"), "description" } };
+        var storedBefore = StoredImageCount();
+
+        var response = await client.PostAsync("/api/media/images", form);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        StoredImageCount().Should().Be(storedBefore);
+    }
+
+    [Fact]
     public async Task Anonymous_user_cannot_upload_an_image()
     {
         var client = Factory.CreateClient();
