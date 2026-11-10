@@ -44,6 +44,14 @@ public sealed class BlogAuthoringService
         await _unitOfWork.SaveChangesAsync();
     }
 
+    public async Task ArchiveAsync(Guid blogId, Guid authorId)
+    {
+        var blog = await GetOwnedBlogAsync(blogId, authorId);
+
+        blog.Archive();
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     private async Task<Blog> GetOwnedBlogAsync(Guid blogId, Guid authorId)
     {
         var blog = await _blogRepository.GetByIdAsync(blogId);
