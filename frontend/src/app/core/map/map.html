@@ -1,0 +1,21 @@
+<div class="card stack">
+  <h1>Mapa</h1>
+
+  <app-location-map
+    [locations]="locations"
+    [showRoute]="showRoute()"
+    (routeLength)="routeLength.set($event)"
+  />
+
+  @if (showRoute()) {
+    <p>Dužina putanje: {{ routeLength().toFixed(2) }} km</p>
+  }
+
+  <button class="button" type="button" (click)="toggleRoute()">
+    @if (showRoute()) {
+      Sakrij putanju
+    } @else {
+      Prikaži putanju
+    }
+  </button>
+</div>
