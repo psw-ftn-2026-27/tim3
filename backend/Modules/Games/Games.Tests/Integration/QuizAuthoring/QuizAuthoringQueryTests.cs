@@ -34,7 +34,6 @@ public class QuizAuthoringQueryTests : BaseIntegrationTest
 
         quiz!.Id.Should().Be(QuizSeed.FortressQuiz.Id);
         quiz.Status.Should().Be(QuizStatus.Draft);
-        quiz.Location.Should().Be(new LocationDto(QuizSeed.FortressQuiz.Location!.Latitude, QuizSeed.FortressQuiz.Location.Longitude));
         var question = quiz.Questions.Should().ContainSingle().Subject;
         question.Id.Should().Be(QuizSeed.FortressQuiz.Questions.Single().Id);
         question.Answers.Should().Equal(QuizSeed.FortressQuiz.Questions.Single().Answers

@@ -1,6 +1,6 @@
 import { httpResource } from '@angular/common/http';
 import { Component, effect, inject, input, signal } from '@angular/core';
-import { FormField, form, required } from '@angular/forms/signals';
+import { FormField, form, min, required } from '@angular/forms/signals';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { AnswerDto, QuestionDto, QuizDto } from '../../api/games-api-types';
 import { QuizAuthoring } from '../quiz-authoring';
@@ -21,14 +21,11 @@ export class EditQuiz {
   protected readonly quiz = httpResource<QuizDto>(() => `/api/games/quizzes/${this.id()}/edit`);
 
   protected readonly detailsForm = form(
-    signal({
-      title: '',
-      description: '',
-      latitude: null as number | null,
-      longitude: null as number | null,
-    }),
+    signal({ title: '', description: '', experiencePoints: 10 }),
     (path) => {
       required(path.title, { message: 'Title is required.' });
+      required(path.experiencePoints, { message: 'Experience points are required.' });
+      min(path.experiencePoints, 1, { message: 'Experience points must be at least 1.' });
     },
   );
 
@@ -52,8 +49,7 @@ export class EditQuiz {
         this.detailsForm().reset({
           title: quiz.title,
           description: quiz.description,
-          latitude: quiz.location?.latitude ?? null,
-          longitude: quiz.location?.longitude ?? null,
+          experiencePoints: quiz.experiencePoints,
         });
       }
     });
@@ -63,14 +59,11 @@ export class EditQuiz {
     event.preventDefault();
     this.pending.set(true);
     this.detailsError.set(null);
-    const latitude = this.detailsForm.latitude().value();
-    const longitude = this.detailsForm.longitude().value();
     try {
       await this.quizAuthoring.updateDetails(this.id(), {
         title: this.detailsForm.title().value(),
         description: this.detailsForm.description().value(),
-        location:
-          latitude !== null && longitude !== null ? { latitude, longitude } : null,
+        experiencePoints: this.detailsForm.experiencePoints().value(),
       });
       this.quiz.reload();
     } catch (failure) {

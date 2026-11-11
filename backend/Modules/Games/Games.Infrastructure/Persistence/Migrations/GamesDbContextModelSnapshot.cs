@@ -55,6 +55,9 @@ namespace Games.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("ExperiencePoints")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -103,30 +106,6 @@ namespace Games.Infrastructure.Persistence.Migrations
                         });
 
                     b.Navigation("Answers");
-                });
-
-            modelBuilder.Entity("Games.Domain.Quizzes.Quiz", b =>
-                {
-                    b.OwnsOne("Games.Domain.Quizzes.Location", "Location", b1 =>
-                        {
-                            b1.Property<Guid>("QuizId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<double>("Latitude")
-                                .HasColumnType("double precision");
-
-                            b1.Property<double>("Longitude")
-                                .HasColumnType("double precision");
-
-                            b1.HasKey("QuizId");
-
-                            b1.ToTable("Quizzes", "games");
-
-                            b1.WithOwner()
-                                .HasForeignKey("QuizId");
-                        });
-
-                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("Games.Domain.Quizzes.Quiz", b =>

@@ -18,13 +18,13 @@
     </div>
 
     <div class="field">
-      <label for="latitude">Landmark latitude</label>
-      <input id="latitude" type="number" step="any" [formField]="form.latitude" />
-    </div>
-
-    <div class="field">
-      <label for="longitude">Landmark longitude</label>
-      <input id="longitude" type="number" step="any" [formField]="form.longitude" />
+      <label for="experience-points">Experience points (XP)</label>
+      <input id="experience-points" type="number" [formField]="form.experiencePoints" />
+      @if (form.experiencePoints().touched()) {
+        @for (message of form.experiencePoints().errors(); track $index) {
+          <p class="error">{{ message.message }}</p>
+        }
+      }
     </div>
 
     @if (error()) {

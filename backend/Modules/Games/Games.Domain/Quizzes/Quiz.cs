@@ -10,7 +10,7 @@ public sealed class Quiz : AggregateRoot
     public Guid AuthorId { get; private set; }
     public string Title { get; private set; }
     public string Description { get; private set; }
-    public Location? Location { get; private set; }
+    public int ExperiencePoints { get; private set; }
     public QuizStatus Status { get; private set; }
     public IReadOnlyList<Question> Questions => _questions;
 
@@ -20,25 +20,27 @@ public sealed class Quiz : AggregateRoot
         Description = null!;
     }
 
-    public Quiz(Guid authorId, string title, string description, Location? location)
+    public Quiz(Guid authorId, string title, string description, int experiencePoints)
         : base(Guid.NewGuid())
     {
         EnsureTitle(title);
+        EnsureExperiencePoints(experiencePoints);
 
         AuthorId = authorId;
         Title = title;
         Description = description;
-        Location = location;
+        ExperiencePoints = experiencePoints;
         Status = QuizStatus.Draft;
     }
 
-    public void UpdateDetails(string title, string description, Location? location)
+    public void UpdateDetails(string title, string description, int experiencePoints)
     {
         EnsureTitle(title);
+        EnsureExperiencePoints(experiencePoints);
 
         Title = title;
         Description = description;
-        Location = location;
+        ExperiencePoints = experiencePoints;
     }
 
     public void AddQuestion(string text, List<Answer> answers)
@@ -71,6 +73,14 @@ public sealed class Quiz : AggregateRoot
         if (string.IsNullOrWhiteSpace(title))
         {
             throw new DomainException("A quiz requires a title.");
+        }
+    }
+
+    private static void EnsureExperiencePoints(int experiencePoints)
+    {
+        if (experiencePoints <= 0)
+        {
+            throw new DomainException("A quiz must award a positive number of experience points.");
         }
     }
 }

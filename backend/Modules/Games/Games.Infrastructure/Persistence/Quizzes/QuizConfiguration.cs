@@ -17,8 +17,6 @@ internal static class QuizConfiguration
         builder.Property(quiz => quiz.Title).HasMaxLength(200);
         builder.Property(quiz => quiz.Status).HasConversion<string>().HasMaxLength(20);
 
-        builder.OwnsOne(quiz => quiz.Location);
-
         builder.HasMany(quiz => quiz.Questions)
             .WithOne()
             .IsRequired()

@@ -7,6 +7,6 @@ public sealed record QuizDto(
     Guid AuthorId,
     string Title,
     string Description,
-    LocationDto? Location,
+    int ExperiencePoints,
     QuizStatus Status,
     List<QuestionDto> Questions);

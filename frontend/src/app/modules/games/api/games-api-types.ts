@@ -1,10 +1,5 @@
 export type QuizStatus = 'Draft';
 
-export interface LocationDto {
-  latitude: number;
-  longitude: number;
-}
-
 export interface AnswerDto {
   text: string;
   isCorrect: boolean;
@@ -21,7 +16,7 @@ export interface QuizDto {
   authorId: string;
   title: string;
   description: string;
-  location: LocationDto | null;
+  experiencePoints: number;
   status: QuizStatus;
   questions: QuestionDto[];
 }
@@ -29,13 +24,13 @@ export interface QuizDto {
 export interface CreateQuizDto {
   title: string;
   description: string;
-  location: LocationDto | null;
+  experiencePoints: number;
 }
 
 export interface UpdateQuizDetailsDto {
   title: string;
   description: string;
-  location: LocationDto | null;
+  experiencePoints: number;
 }
 
 export interface CreateQuestionDto {

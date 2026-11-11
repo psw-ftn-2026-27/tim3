@@ -23,8 +23,7 @@ namespace Games.Infrastructure.Persistence.Migrations
                     AuthorId = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
-                    Location_Latitude = table.Column<double>(type: "double precision", nullable: true),
-                    Location_Longitude = table.Column<double>(type: "double precision", nullable: true),
+                    ExperiencePoints = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false)
                 },
                 constraints: table =>

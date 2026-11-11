@@ -9,7 +9,7 @@ namespace Games.Tests.Unit.Quizzes;
 public class QuizTests
 {
     private static Quiz CreateQuiz() =>
-        new(WellKnownUsers.Explorer, "Petrovaradinska tvrđava", "Pitanja o tvrđavi.", new Location(45.2517, 19.8629));
+        new(WellKnownUsers.Explorer, "Petrovaradinska tvrđava", "Pitanja o tvrđavi.", 50);
 
     private static Quiz CreateQuizWithQuestion()
     {
@@ -23,7 +23,17 @@ public class QuizTests
     [InlineData("   ")]
     public void New_quiz_requires_a_title(string title)
     {
-        var creation = () => new Quiz(WellKnownUsers.Explorer, title, "Pitanja o tvrđavi.", null);
+        var creation = () => new Quiz(WellKnownUsers.Explorer, title, "Pitanja o tvrđavi.", 50);
+
+        creation.Should().Throw<DomainException>();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-10)]
+    public void New_quiz_requires_positive_experience_points(int experiencePoints)
+    {
+        var creation = () => new Quiz(WellKnownUsers.Explorer, "Petrovaradinska tvrđava", "Pitanja o tvrđavi.", experiencePoints);
 
         creation.Should().Throw<DomainException>();
     }
@@ -35,7 +45,19 @@ public class QuizTests
     {
         var quiz = CreateQuiz();
 
-        var update = () => quiz.UpdateDetails(title, "Nov opis.", null);
+        var update = () => quiz.UpdateDetails(title, "Nov opis.", 50);
+
+        update.Should().Throw<DomainException>();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-10)]
+    public void Edited_quiz_requires_positive_experience_points(int experiencePoints)
+    {
+        var quiz = CreateQuiz();
+
+        var update = () => quiz.UpdateDetails("Petrovaradinska tvrđava", "Nov opis.", experiencePoints);
 
         update.Should().Throw<DomainException>();
     }
@@ -89,17 +111,5 @@ public class QuizTests
         var addition = () => quiz.AddQuestion("Koji je tačan?", [new Answer(text, true), new Answer("Drugi", false)]);
 
         addition.Should().Throw<DomainException>();
-    }
-
-    [Theory]
-    [InlineData(90.1, 0)]
-    [InlineData(-90.1, 0)]
-    [InlineData(0, 180.1)]
-    [InlineData(0, -180.1)]
-    public void Location_outside_the_allowed_bounds_is_rejected(double latitude, double longitude)
-    {
-        var creation = () => new Quiz(WellKnownUsers.Explorer, "Petrovaradinska tvrđava", "", new Location(latitude, longitude));
-
-        creation.Should().Throw<DomainException>();
     }
 }
