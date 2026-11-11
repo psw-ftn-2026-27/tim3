@@ -1,6 +1,6 @@
 # Modul Identity
 
-Modul Identity je platformski modul zadužen za registraciju korisnika, prijavu i izdavanje JWT-a (JSON Web Token). Sastoji se od dva projekta. Projekat `Identity` sadrži sam modul, a projekat `Identity.Tests` njegove integracione testove. Studenti ovaj modul koriste kroz njegove krajnje tačke, ali ga ne menjaju i ne referenciraju iz svojih modula.
+Modul Identity je platformski modul zadužen za registraciju korisnika, prijavu i izdavanje JWT-a (JSON Web Token). Sastoji se od tri projekta. Projekat `Identity` sadrži sam modul, projekat `Identity.Contracts` njegov kontrakt prema drugim modulima, a projekat `Identity.Tests` njegove integracione testove. Studenti ovaj modul koriste kroz njegove krajnje tačke i kroz kontrakt, ali ga ne menjaju i iz svojih modula referenciraju samo projekat `Identity.Contracts`.
 
 ## Problem koji rešava
 
@@ -37,6 +37,12 @@ Ovde su i DTO klase koje krajnje tačke primaju i vraćaju. Klase `RegisterDto` 
 Sadrži pristup bazi i uključivanje modula u aplikaciju. Klasa `IdentityModuleDbContext` nasleđuje gotov kontekst biblioteke ASP.NET Core Identity i smešta njegove tabele u šemu `identity`, po pravilu da svaki modul ima svoju šemu. Direktorijum `Migrations` sadrži migracije te šeme.
 
 Metoda `AddIdentityModule` registruje sve delove modula i jedino je mesto koje `Host.Api` poziva pored metode `AddIdentityControllers`. Klasa `IdentityModuleInitializer` se izvršava pri pokretanju aplikacije. Ona primenjuje migracije i upisuje uloge `administrator` i `explorer` ako već ne postoje, pa aplikacija posle pokretanja uvek ima spremnu šemu i uloge.
+
+## Projekat Identity.Contracts
+
+Drugim modulima ponekad treba nešto o korisniku osim identifikatora: ime koje se prikazuje uz zahtev za praćenje ili pretraga korisnika. Taj podatak poseduje Identity, pa ga nudi kroz kontrakt, po istom pravilu kao i funkcionalni moduli. Projekat `Identity.Contracts` ne referencira ništa i sadrži interfejs `IIdentityApi` sa tri upita: pretragu korisnika po delu korisničkog imena (po stranama, uz izostavljanje jednog korisnika), ime za prikaz za listu identifikatora i proveru da li korisnik postoji. Tipovi `UserDisplayName` i `UserSearchResult` sadrže samo identifikator i ime za prikaz.
+
+Korisničko ime je adresa elektronske pošte, pa je ime za prikaz njen deo pre znaka `@`. Puna adresa, lozinka i uloge nikada ne napuštaju modul. Interfejs implementira interna klasa `IdentityApi` u direktorijumu `Infrastructure`, a registruje ga metoda `AddIdentityModule`. Arhitekturni testovi i dalje zabranjuju svakom modulu da referencira projekat `Identity`, a proveravaju i da `Identity.Contracts` ne zavisi ni od čega.
 
 ## Projekat Identity.Tests
 

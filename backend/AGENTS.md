@@ -29,6 +29,8 @@ backend/
   Modules/
     Identity/
       Identity/                    single project, platform-owned, see below [platform]
+      Identity.Contracts/          IIdentityApi, the only part other modules
+                                   may reference                             [platform]
       Identity.Tests/                                                        [platform]
     <Name>/
       <Name>.Api/                  API controllers, speaking Application DTOs
@@ -59,7 +61,9 @@ The compiler enforces the layering instead of a reviewer having to spot it.
   `<FrameworkReference Include="Microsoft.AspNetCore.App" />`.
 - `Infrastructure` references `Application`, `Domain`, and `Shared.Infrastructure`.
 - A module may reference another module's `Contracts` project and nothing else from it.
-- No module references `Identity`. Other modules carry a `UserId` as a plain ID.
+- No module references the `Identity` project. Other modules carry a `UserId` as a plain ID,
+  and a module that needs to show or find users references `Identity.Contracts` from its
+  `Application` project, like any other module's `Contracts`.
 - `Host.Api` references every module's `Infrastructure` (for DI) and `Api` (for controller
   discovery), plus the `Identity` project.
 
@@ -86,6 +90,12 @@ Identity is a deliberate exception to the module structure: one platform-owned p
 that students use but never modify or reference. It holds ASP.NET Core Identity on the
 `identity` schema, register/login endpoints issuing JWTs, and role seeding at startup
 (`administrator`, `explorer`); the details live in the project itself.
+
+Its only surface toward other modules is `Identity.Contracts`: `IIdentityApi` searches
+users, returns display names by ID, and tells whether a user exists. It is implemented
+inside `Identity` and registered by `AddIdentityModule`. The user name is the e-mail
+address, so a display name is the part before the `@`; the full address, password and
+roles never leave Identity.
 
 What matters outside it: token validation is configured in `Host.Api`; role checks are
 `[Authorize(Roles = ...)]` attributes on controllers or actions. Controllers read the
