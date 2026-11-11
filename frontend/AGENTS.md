@@ -118,7 +118,7 @@ construct means adding a lesson, so treat it as a platform decision.
 - Forms: Signal Forms (`form()`, `FormField`, validators from
   `@angular/forms/signals`). No Reactive Forms, no template-driven forms.
 - Routing: `router-outlet`, `routerLink`, `routerLinkActive` (with `ariaCurrentWhenActive`,
-  only in the main nav), `loadChildren`, route parameters bound as
+  only in the app shell: the main nav and the module strip), `loadChildren`, route parameters bound as
   signal inputs via `withComponentInputBinding`; `inject(Router)` only for navigation
   after a command.
 - No RxJS in student code. `Observable` appears only as the return type of `HttpClient`
