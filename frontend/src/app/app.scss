@@ -1,23 +1,44 @@
 header {
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border);
   margin-bottom: var(--space-5);
 }
 
 nav {
+  align-items: center;
   display: flex;
   gap: var(--space-4);
+  min-height: 3.75rem;
   padding-block: var(--space-3);
 }
 
 nav a {
-  color: var(--color-text-muted);
-  font-weight: 500;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  position: relative;
   text-decoration: none;
 }
 
-nav a:hover {
-  color: var(--color-accent);
+// A line under the link draws from left to right on hover and keyboard focus.
+nav a::after {
+  background: var(--color-border);
+  bottom: calc(-1 * var(--space-1));
+  content: '';
+  height: 3px;
+  left: 0;
+  position: absolute;
+  transition: width 300ms ease-out;
+  width: 0;
+}
+
+nav a:hover::after,
+nav a:focus-visible::after {
+  width: 100%;
+}
+
+nav a:focus-visible {
+  outline: none;
 }
 
 .nav-user {
@@ -30,4 +51,18 @@ nav a:hover {
 .nav-user span {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+}
+
+// Logout does not lift like other buttons; its background only fades.
+.nav-user .button {
+  font-size: var(--font-size-sm);
+  padding: var(--space-1) var(--space-3);
+  transition: background-color 200ms ease-out;
+}
+
+.nav-user .button:hover,
+.nav-user .button:focus-visible {
+  background: var(--color-bg);
+  box-shadow: none;
+  transform: none;
 }
