@@ -1,12 +1,26 @@
 :root {
-  --color-bg: #f7f7f8;
-  --color-surface: #ffffff;
-  --color-border: #e2e2e6;
-  --color-text: #1c1c1f;
-  --color-text-muted: #5c5c66;
-  --color-accent: #2f6df6;
-  --color-accent-text: #ffffff;
-  --color-danger: #c02626;
+  --color-bg: #ced5f1;
+  --color-surface: #f4f6fc;
+  --color-border: #432534;
+  --color-text: #432534;
+  --color-text-muted: #5a3f4d;
+  --color-accent: #dd7596;
+  --color-accent-text: #432534;
+  --color-danger: #a12b3b;
+  --color-danger-bg: #fbe1e6;
+  --color-success: #13505b;
+  --color-success-bg: #d3e6e8;
+  --color-warning: #7a4e12;
+  --color-warning-bg: #f8e6c4;
+  --color-disabled-bg: #e3e1ec;
+  --color-disabled-text: #5a3f4d;
+  --color-table-header: #e5d9df;
+
+  // Module tones, used only by the strip under the main nav.
+  --color-exploration: #13505b;
+  --color-games: #dd7596;
+  --color-social: #e5d9df;
+  --color-payment: #e0e3ea;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -15,9 +29,13 @@
   --space-5: 1.5rem;
   --space-6: 2rem;
 
-  --radius: 0.5rem;
+  --radius: 0.125rem;
+  --border: 2px solid var(--color-border);
+  --shadow: 4px 4px 0 var(--color-border);
+  --transition: 120ms ease-out;
 
-  --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-family: system-ui, 'Segoe UI', -apple-system, sans-serif;
+  --font-family-heading: Georgia, 'Times New Roman', serif;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
   --font-size-lg: 1.25rem;
