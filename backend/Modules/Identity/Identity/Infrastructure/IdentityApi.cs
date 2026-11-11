@@ -5,6 +5,8 @@ namespace Identity.Infrastructure;
 
 internal sealed class IdentityApi : IIdentityApi
 {
+    private const string ExplorerRole = "explorer";
+
     private readonly IdentityModuleDbContext _dbContext;
 
     public IdentityApi(IdentityModuleDbContext dbContext)
@@ -14,9 +16,19 @@ internal sealed class IdentityApi : IIdentityApi
 
     public async Task<UserSearchResult> SearchUsersAsync(string text, Guid excludedUserId, int page, int pageSize)
     {
+        // Only explorers take part in the social features, and only the display name (the part
+        // of the address before the @) is matched, so a search never reveals e-mail domains.
         var normalizedText = text.Trim().ToUpperInvariant();
+        var explorerRoleIds = _dbContext.Roles
+            .Where(role => role.Name == ExplorerRole)
+            .Select(role => role.Id);
         var matching = _dbContext.Users
-            .Where(user => user.Id != excludedUserId && user.NormalizedUserName!.Contains(normalizedText));
+            .Where(user => user.Id != excludedUserId)
+            .Where(user => _dbContext.UserRoles.Any(userRole =>
+                userRole.UserId == user.Id && explorerRoleIds.Contains(userRole.RoleId)))
+            .Where(user => user.NormalizedUserName!
+                .Substring(0, user.NormalizedUserName.IndexOf("@"))
+                .Contains(normalizedText));
 
         var totalCount = await matching.CountAsync();
         var users = await matching

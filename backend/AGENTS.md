@@ -92,7 +92,7 @@ that students use but never modify or reference. It holds ASP.NET Core Identity 
 (`administrator`, `explorer`); the details live in the project itself.
 
 Its only surface toward other modules is `Identity.Contracts`: `IIdentityApi` searches
-users, returns display names by ID, and tells whether a user exists. It is implemented
+explorers by display name, returns display names by ID, and tells whether a user exists. It is implemented
 inside `Identity` and registered by `AddIdentityModule`. The user name is the e-mail
 address, so a display name is the part before the `@`; the full address, password and
 roles never leave Identity.

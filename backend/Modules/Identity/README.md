@@ -40,7 +40,7 @@ Metoda `AddIdentityModule` registruje sve delove modula i jedino je mesto koje `
 
 ## Projekat Identity.Contracts
 
-Drugim modulima ponekad treba nešto o korisniku osim identifikatora: ime koje se prikazuje uz zahtev za praćenje ili pretraga korisnika. Taj podatak poseduje Identity, pa ga nudi kroz kontrakt, po istom pravilu kao i funkcionalni moduli. Projekat `Identity.Contracts` ne referencira ništa i sadrži interfejs `IIdentityApi` sa tri upita: pretragu korisnika po delu korisničkog imena (po stranama, uz izostavljanje jednog korisnika), ime za prikaz za listu identifikatora i proveru da li korisnik postoji. Tipovi `UserDisplayName` i `UserSearchResult` sadrže samo identifikator i ime za prikaz.
+Drugim modulima ponekad treba nešto o korisniku osim identifikatora: ime koje se prikazuje uz zahtev za praćenje ili pretraga korisnika. Taj podatak poseduje Identity, pa ga nudi kroz kontrakt, po istom pravilu kao i funkcionalni moduli. Projekat `Identity.Contracts` ne referencira ništa i sadrži interfejs `IIdentityApi` sa tri upita: pretragu korisnika sa ulogom `explorer` po delu imena za prikaz (po stranama, uz izostavljanje jednog korisnika), ime za prikaz za listu identifikatora i proveru da li korisnik postoji. Tipovi `UserDisplayName` i `UserSearchResult` sadrže samo identifikator i ime za prikaz.
 
 Korisničko ime je adresa elektronske pošte, pa je ime za prikaz njen deo pre znaka `@`. Puna adresa, lozinka i uloge nikada ne napuštaju modul. Interfejs implementira interna klasa `IdentityApi` u direktorijumu `Infrastructure`, a registruje ga metoda `AddIdentityModule`. Arhitekturni testovi i dalje zabranjuju svakom modulu da referencira projekat `Identity`, a proveravaju i da `Identity.Contracts` ne zavisi ni od čega.
 
