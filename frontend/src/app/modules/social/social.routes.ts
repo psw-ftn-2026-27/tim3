@@ -4,11 +4,15 @@ import { EditBlog } from './blog-authoring/edit-blog/edit-blog';
 import { MyBlogs } from './blog-authoring/my-blogs/my-blogs';
 import { BlogDetail } from './blog-reading/blog-detail/blog-detail';
 import { BlogList } from './blog-reading/blog-list/blog-list';
+import { ClubList } from './club-management/club-list/club-list';
+import { CreateClub } from './club-management/create-club/create-club';
 
 export const socialRoutes: Routes = [
   { path: '', component: BlogList },
   { path: 'mine', component: MyBlogs },
   { path: 'create', component: CreateBlog },
+  { path: 'clubs', component: ClubList },
+  { path: 'clubs/create', component: CreateClub },
   { path: ':id/edit', component: EditBlog },
   { path: ':id', component: BlogDetail },
 ];

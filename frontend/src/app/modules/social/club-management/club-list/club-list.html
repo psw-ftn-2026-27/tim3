@@ -1,0 +1,94 @@
+<div class="stack">
+  <h1>Clubs</h1>
+
+  @if (isExplorer()) {
+    <p><a routerLink="/social/clubs/create">Create club</a></p>
+  }
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (clubs.isLoading()) {
+    <p>Loading clubs...</p>
+  } @else if (clubs.error()) {
+    <p class="error">Could not load the clubs. Log in and try again.</p>
+  } @else {
+    <div class="grid">
+      @for (club of clubs.value()?.items ?? []; track club.id) {
+        <app-club-card
+          [club]="club"
+          [canManage]="club.ownerId === auth.user()?.id"
+          [pending]="pending()"
+          (editClub)="select($event)"
+          (deleteClub)="remove($event)"
+        />
+      } @empty {
+        <p>There are no clubs yet.</p>
+      }
+    </div>
+  }
+
+  @if (selectedClubId()) {
+    <form class="card stack" (submit)="update($event)">
+      <h2>Edit club</h2>
+
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" type="text" [formField]="form.name" />
+        @if (form.name().touched()) {
+          @for (message of form.name().errors(); track $index) {
+            <p class="error">{{ message.message }}</p>
+          }
+        }
+      </div>
+
+      <div class="field">
+        <label for="description">Description</label>
+        <textarea id="description" rows="6" [formField]="form.description"></textarea>
+        @if (form.description().touched()) {
+          @for (message of form.description().errors(); track $index) {
+            <p class="error">{{ message.message }}</p>
+          }
+        }
+      </div>
+
+      <app-image-picker
+        [file]="selectedImage()"
+        [pending]="pending()"
+        (fileChange)="selectImage($event)"
+        (send)="sendImage()"
+      />
+
+      @if (imageError()) {
+        <p class="error">{{ imageError() }}</p>
+      }
+
+      <ul class="images">
+        @for (image of form.images().value(); track $index) {
+          <li>
+            <img class="thumbnail" [src]="image" alt="Added image" />
+            <button class="button" type="button" (click)="removeImage($index)">Remove</button>
+          </li>
+        } @empty {
+          <li class="meta">No images added yet.</li>
+        }
+      </ul>
+
+      @if (formError()) {
+        <p class="error">{{ formError() }}</p>
+      }
+
+      <div class="actions">
+        <button
+          class="button button--primary"
+          type="submit"
+          [disabled]="!form().valid() || pending()"
+        >
+          Save
+        </button>
+        <button class="button" type="button" (click)="cancelEdit()">Cancel</button>
+      </div>
+    </form>
+  }
+</div>
