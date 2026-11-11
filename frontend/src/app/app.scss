@@ -37,6 +37,15 @@ nav a:focus-visible::after {
   width: 100%;
 }
 
+// The link of the open section stays bold and underlined.
+nav a.active {
+  font-weight: 700;
+}
+
+nav a.active::after {
+  width: 100%;
+}
+
 nav a:focus-visible {
   outline: none;
 }
