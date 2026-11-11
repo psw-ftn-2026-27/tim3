@@ -1,5 +1,38 @@
 @if (auth.isLoggedIn()) {
-  <h1>Explorer</h1>
+  <div class="home">
+    <section class="hero">
+      <h1>Welcome, adventurer!</h1>
+      <p class="lead">Pick up where your next adventure begins.</p>
+    </section>
+
+    <section>
+      <h2>Explore</h2>
+      <div class="grid">
+        <a class="card stack" routerLink="/exploration">
+          <h3>Tours</h3>
+          <p class="meta">Browse guided tours and follow their stories.</p>
+        </a>
+        <a class="card stack" routerLink="/games">
+          <h3>Games</h3>
+          <p class="meta">Play quizzes and hunt for hidden locations.</p>
+        </a>
+        <a class="card stack" routerLink="/social">
+          <h3>Community</h3>
+          <p class="meta">Visit clubs, blogs, and leaderboards.</p>
+        </a>
+      </div>
+    </section>
+
+    @if (isExplorer()) {
+      <section class="card stack tours">
+        <h2>Your tours</h2>
+        <div class="tour-links">
+          <a class="button" routerLink="/exploration/mine">My tours</a>
+          <a class="button button--primary" routerLink="/exploration/create">+ Create tour</a>
+        </div>
+      </section>
+    }
+  </div>
 } @else {
   <div class="home">
     <section class="hero">

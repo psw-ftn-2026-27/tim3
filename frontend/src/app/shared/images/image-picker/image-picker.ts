@@ -3,6 +3,8 @@ import { Component, computed, input, output, signal } from '@angular/core';
 const MAX_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+let nextInputNumber = 0;
+
 @Component({
   selector: 'app-image-picker',
   styleUrl: './image-picker.scss',
@@ -15,6 +17,7 @@ export class ImagePicker {
   readonly fileChange = output<File | null>();
   readonly send = output<void>();
 
+  protected readonly inputId = `image-picker-${nextInputNumber++}`;
   protected readonly error = signal<string | null>(null);
 
   protected readonly previewUrl = computed(() => {
@@ -30,12 +33,12 @@ export class ImagePicker {
       return;
     }
     if (!ALLOWED_TYPES.includes(file.type)) {
-      this.error.set('Format nije podržan. Izaberite JPEG, PNG ili WebP sliku.');
+      this.error.set('Unsupported format. Choose a JPEG, PNG or WebP image.');
       this.fileChange.emit(null);
       return;
     }
     if (file.size > MAX_SIZE_BYTES) {
-      this.error.set('Slika je prevelika. Najveća dozvoljena veličina je 5 MB.');
+      this.error.set('The image is too large. The maximum size is 5 MB.');
       this.fileChange.emit(null);
       return;
     }
