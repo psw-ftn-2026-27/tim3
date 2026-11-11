@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../auth/auth';
 
@@ -10,4 +10,7 @@ import { Auth } from '../auth/auth';
 })
 export class Home {
   protected readonly auth = inject(Auth);
+  protected readonly isExplorer = computed(
+    () => this.auth.user()?.roles.includes('explorer') ?? false,
+  );
 }

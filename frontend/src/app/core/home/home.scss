@@ -48,7 +48,22 @@ a.card h3 {
   margin: 0;
 }
 
-.call .button {
+.call .button,
+.tours .button {
   display: inline-block;
   text-decoration: none;
+}
+
+.tours {
+  padding: var(--space-6);
+}
+
+.tours h2 {
+  margin: 0;
+}
+
+.tour-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
 }
