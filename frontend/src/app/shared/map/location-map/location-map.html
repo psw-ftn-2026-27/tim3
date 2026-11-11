@@ -1,1 +1,4 @@
-<!-- Prazno: Leaflet crta mapu direktno u element komponente. -->
+<!-- Leaflet crta mapu direktno u element komponente; šablon dodaje samo poruku preko mape. -->
+@if (notAlongStreets()) {
+  <p class="map-message">Putanja nije po ulicama: prikazane su prave linije.</p>
+}

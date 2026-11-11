@@ -2,3 +2,9 @@
   margin-inline: auto;
   max-width: 48rem;
 }
+
+.route-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
