@@ -1,0 +1,54 @@
+.home > * + * {
+  margin-top: calc(var(--space-6) * 2);
+}
+
+.hero {
+  padding-block: calc(var(--space-6) * 2) var(--space-6);
+}
+
+.hero h1 {
+  font-size: calc(var(--font-size-xl) * 1.5);
+  margin: 0 0 var(--space-4);
+}
+
+.lead {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-lg);
+  margin: 0;
+}
+
+h2 {
+  margin: 0 0 var(--space-5);
+}
+
+a.card {
+  color: var(--color-text);
+  padding: var(--space-6) var(--space-5);
+  text-decoration: none;
+}
+
+a.card:hover {
+  border-color: var(--color-accent);
+}
+
+a.card h3 {
+  margin: 0;
+}
+
+.call {
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.call h2 {
+  margin: 0;
+}
+
+.call p {
+  margin: 0;
+}
+
+.call .button {
+  display: inline-block;
+  text-decoration: none;
+}
