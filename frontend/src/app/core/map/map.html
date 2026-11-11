@@ -3,19 +3,38 @@
 
   <app-location-map
     [locations]="locations"
-    [showRoute]="showRoute()"
+    [route]="route()"
     (routeLength)="routeLength.set($event)"
   />
 
-  @if (showRoute()) {
-    <p>Dužina putanje: {{ routeLength().toFixed(2) }} km</p>
+  @if (route() !== 'none' && routeLength() !== null) {
+    <p>Dužina putanje: {{ routeLength()?.toFixed(2) }} km</p>
   }
 
-  <button class="button" type="button" (click)="toggleRoute()">
-    @if (showRoute()) {
-      Sakrij putanju
-    } @else {
-      Prikaži putanju
-    }
-  </button>
+  <div class="route-kinds">
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="route() === 'none'"
+      (click)="select('none')"
+    >
+      Bez putanje
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="route() === 'straight'"
+      (click)="select('straight')"
+    >
+      Prave linije
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="route() === 'streets'"
+      (click)="select('streets')"
+    >
+      Po ulicama
+    </button>
+  </div>
 </div>

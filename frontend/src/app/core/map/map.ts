@@ -1,5 +1,5 @@
 import { Component, signal } from '@angular/core';
-import { LocationMap, MapLocation } from '../../shared/map/location-map/location-map';
+import { LocationMap, MapLocation, RouteKind } from '../../shared/map/location-map/location-map';
 
 @Component({
   imports: [LocationMap],
@@ -16,10 +16,15 @@ export class MapPage {
     { latitude: 45.2461, longitude: 19.8517 },
   ];
 
-  protected readonly showRoute = signal(false);
-  protected readonly routeLength = signal(0);
+  protected readonly route = signal<RouteKind>('none');
+  // null dok mapa ne javi dužinu za izabranu vrstu prikaza (na primer dok čeka putanju po ulicama).
+  protected readonly routeLength = signal<number | null>(null);
 
-  protected toggleRoute(): void {
-    this.showRoute.update((shown) => !shown);
+  protected select(route: RouteKind): void {
+    if (route === this.route()) {
+      return;
+    }
+    this.route.set(route);
+    this.routeLength.set(null);
   }
 }

@@ -19,6 +19,7 @@ public abstract class BaseArchitectureTests
             .Append(Assembly.Load("Identity"))
             .Append(Assembly.Load("Identity.Contracts"))
             .Append(Assembly.Load("Media"))
+            .Append(Assembly.Load("Maps"))
             .Append(Assembly.Load("Host.Api"))
             .Concat(SharedProjects.Select(Assembly.Load))
             .ToArray())
