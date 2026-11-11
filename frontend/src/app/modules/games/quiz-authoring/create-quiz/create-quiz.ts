@@ -1,0 +1,52 @@
+import { Component, inject, signal } from '@angular/core';
+import { FormField, form, required } from '@angular/forms/signals';
+import { Router } from '@angular/router';
+import { serverMessage } from '../../../../shared/util/server-message';
+import { QuizAuthoring } from '../quiz-authoring';
+
+@Component({
+  imports: [FormField],
+  selector: 'app-create-quiz',
+  styleUrl: './create-quiz.scss',
+  templateUrl: './create-quiz.html',
+})
+export class CreateQuiz {
+  private readonly quizAuthoring = inject(QuizAuthoring);
+  private readonly router = inject(Router);
+
+  protected readonly form = form(
+    signal({
+      title: '',
+      description: '',
+      latitude: null as number | null,
+      longitude: null as number | null,
+    }),
+    (path) => {
+      required(path.title, { message: 'Title is required.' });
+    },
+  );
+
+  protected readonly pending = signal(false);
+  protected readonly error = signal<string | null>(null);
+
+  protected async submit(event: Event): Promise<void> {
+    event.preventDefault();
+    this.pending.set(true);
+    this.error.set(null);
+    const latitude = this.form.latitude().value();
+    const longitude = this.form.longitude().value();
+    try {
+      const id = await this.quizAuthoring.create({
+        title: this.form.title().value(),
+        description: this.form.description().value(),
+        location:
+          latitude !== null && longitude !== null ? { latitude, longitude } : null,
+      });
+      await this.router.navigate(['/games/quizzes', id]);
+    } catch (failure) {
+      this.error.set(serverMessage(failure, 'Could not create the quiz.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+}

@@ -1,0 +1,124 @@
+<div class="stack">
+  @if (quiz.isLoading()) {
+    <p>Loading quiz...</p>
+  } @else if (quiz.error()) {
+    <p class="error">This quiz does not exist or you are not logged in.</p>
+  } @else if (quiz.value(); as current) {
+    <h1>{{ current.title }}</h1>
+    <p class="meta">Status: {{ current.status }}</p>
+
+    <form class="card stack" (submit)="saveDetails($event)">
+      <h2>Quiz details</h2>
+
+      @if (detailsError()) {
+        <p class="error">{{ detailsError() }}</p>
+      }
+
+      <div class="field">
+        <label for="title">Title</label>
+        <input id="title" type="text" [formField]="detailsForm.title" />
+        @if (detailsForm.title().touched()) {
+          @for (message of detailsForm.title().errors(); track $index) {
+            <p class="error">{{ message.message }}</p>
+          }
+        }
+      </div>
+
+      <div class="field">
+        <label for="description">Short description</label>
+        <textarea id="description" rows="3" [formField]="detailsForm.description"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="latitude">Landmark latitude</label>
+        <input id="latitude" type="number" step="any" [formField]="detailsForm.latitude" />
+      </div>
+
+      <div class="field">
+        <label for="longitude">Landmark longitude</label>
+        <input id="longitude" type="number" step="any" [formField]="detailsForm.longitude" />
+      </div>
+
+      <button
+        class="button button--primary"
+        type="submit"
+        [disabled]="!detailsForm().valid() || pending()"
+      >
+        Save
+      </button>
+    </form>
+
+    <h2>Questions</h2>
+
+    <ol class="questions">
+      @for (question of current.questions; track question.id) {
+        <li class="card stack">
+          <p>{{ question.text }}</p>
+          <ul>
+            @for (answer of question.answers; track $index) {
+              <li>
+                {{ answer.text }}
+                @if (answer.isCorrect) {
+                  <span class="meta">(correct)</span>
+                }
+              </li>
+            }
+          </ul>
+          <div class="actions">
+            <button
+              class="button"
+              type="button"
+              [disabled]="pending()"
+              (click)="selectQuestion(question)"
+            >
+              Edit
+            </button>
+            <button
+              class="button"
+              type="button"
+              [disabled]="pending()"
+              (click)="removeQuestion(question.id)"
+            >
+              Remove
+            </button>
+          </div>
+        </li>
+      } @empty {
+        <li class="meta">The quiz has no questions yet.</li>
+      }
+    </ol>
+
+    <form class="card stack" (submit)="saveQuestion($event)">
+      <h2>{{ selectedQuestionId() ? 'Edit question' : 'Add question' }}</h2>
+
+      @if (questionError()) {
+        <p class="error">{{ questionError() }}</p>
+      }
+
+      <div class="field">
+        <label for="question-text">Question</label>
+        <textarea id="question-text" rows="2" [formField]="questionForm.text"></textarea>
+      </div>
+
+      @for (answer of questionForm.answers; track $index) {
+        <div class="answer">
+          <div class="field">
+            <label [for]="'answer-' + $index">Answer {{ $index + 1 }}</label>
+            <input [id]="'answer-' + $index" type="text" [formField]="answer.text" />
+          </div>
+          <label class="correct">
+            <input type="checkbox" [formField]="answer.isCorrect" />
+            Correct
+          </label>
+        </div>
+      }
+
+      <div class="actions">
+        <button class="button button--primary" type="submit" [disabled]="pending()">Save</button>
+        @if (selectedQuestionId()) {
+          <button class="button" type="button" (click)="cancelQuestionEdit()">Cancel</button>
+        }
+      </div>
+    </form>
+  }
+</div>
