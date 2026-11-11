@@ -85,14 +85,17 @@ nav a:focus-visible {
 }
 
 // The strip under the nav is the only element whose colour depends on the module.
-// routerLinkActive adds the class "active" to the strip of the open module.
+// It is hidden until the nav link of its module is active (routerLinkActive adds "active").
 .module-strip {
   border-top: var(--border);
   display: none;
   padding-block: var(--space-3);
 }
 
-.module-strip.active {
+header:has(nav a.active[href^='/exploration']) .module-strip.exploration,
+header:has(nav a.active[href^='/games']) .module-strip.games,
+header:has(nav a.active[href^='/social']) .module-strip.social,
+header:has(nav a.active[href^='/payment']) .module-strip.payment {
   display: block;
 }
 
@@ -123,6 +126,5 @@ nav a:focus-visible {
   font-weight: 800;
   letter-spacing: 0.06em;
   padding: var(--space-1) var(--space-3);
-  text-decoration: none;
   text-transform: uppercase;
 }
