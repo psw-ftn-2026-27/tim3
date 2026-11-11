@@ -1,16 +1,16 @@
 <div class="stack">
   <input
-    id="image"
     class="file-input"
     type="file"
     accept="image/jpeg,image/png,image/webp"
+    [id]="inputId"
     (change)="select($event)"
   />
-  <label class="button" for="image">Izaberi sliku</label>
+  <label class="button" [for]="inputId">Choose image</label>
 
   @if (previewUrl()) {
-    <img class="thumbnail" [src]="previewUrl()" alt="Izabrana slika" />
-    <p class="meta">Izabrana slika: {{ file()?.name }}</p>
+    <img class="thumbnail" [src]="previewUrl()" alt="Selected image" />
+    <p class="meta">Selected image: {{ file()?.name }}</p>
   }
 
   <button
@@ -19,7 +19,7 @@
     [disabled]="file() === null || pending()"
     (click)="send.emit()"
   >
-    Pošalji
+    Upload
   </button>
 
   @if (error()) {

@@ -37,7 +37,7 @@ export class Images {
       this.address.set(saved.address);
       this.selected.set(null);
     } catch (failure) {
-      this.error.set(serverMessage(failure, 'Sliku nije moguće poslati.'));
+      this.error.set(serverMessage(failure, 'Could not upload the image.'));
     } finally {
       this.pending.set(false);
     }
