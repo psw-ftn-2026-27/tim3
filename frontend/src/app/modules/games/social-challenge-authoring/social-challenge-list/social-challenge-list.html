@@ -1,0 +1,64 @@
+<div class="stack">
+  <h1>Društveni izazovi</h1>
+
+  @if (isAdministrator()) {
+    <p><a class="button button--primary" routerLink="/games/challenges/create">Novi izazov</a></p>
+  }
+
+  @if (challenges.isLoading()) {
+    <p>Učitavanje izazova...</p>
+  } @else if (challenges.error()) {
+    <p class="error">Izazovi ne mogu da se učitaju. Prijavite se kao administrator i pokušajte ponovo.</p>
+  } @else {
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Naziv</th>
+          <th scope="col">Doba dana</th>
+          <th scope="col">Broj ljudi</th>
+          <th scope="col">Opseg (m)</th>
+          <th scope="col">XP</th>
+          <th scope="col">Stanje</th>
+          <th scope="col">Akcije</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (challenge of challenges.value()?.items ?? []; track challenge.id) {
+          <tr>
+            <td>{{ challenge.name }}</td>
+            <td>
+              {{ challenge.activePeriodStart.slice(0, 5) }} – {{ challenge.activePeriodEnd.slice(0, 5) }}
+            </td>
+            <td>{{ challenge.peopleRequired }}</td>
+            <td>{{ challenge.gatheringRadius }}</td>
+            <td>{{ challenge.experienceGained }}</td>
+            <td>{{ challenge.status }}</td>
+            <td>
+              @if (challenge.status === 'Draft') {
+                <a class="button" [routerLink]="['/games/challenges', challenge.id, 'edit']">Izmeni</a>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7">Još nema izazova.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="paging">
+      <button class="button" type="button" [disabled]="page() === 1" (click)="previousPage()">
+        Prethodna
+      </button>
+      <button
+        class="button"
+        type="button"
+        [disabled]="!hasNextPage(challenges.value()?.totalCount)"
+        (click)="nextPage()"
+      >
+        Sledeća
+      </button>
+    </div>
+  }
+</div>
