@@ -21,3 +21,9 @@
   transform: translateX(-50%);
   z-index: 1000;
 }
+
+// Poruka o granici broja pinova stoji na sredini mape.
+.map-message--center {
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
