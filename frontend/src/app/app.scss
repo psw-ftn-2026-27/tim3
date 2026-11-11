@@ -16,38 +16,41 @@ nav a {
   color: var(--color-text);
   font-size: var(--font-size-sm);
   font-weight: 600;
-  position: relative;
   text-decoration: none;
 }
 
-// A line under the link draws from left to right on hover and keyboard focus.
-nav a::after {
-  background: var(--color-border);
-  bottom: calc(-1 * var(--space-1));
-  content: '';
-  height: 3px;
-  left: 0;
-  position: absolute;
-  transition: width 300ms ease-out;
-  width: 0;
-}
-
-nav a:hover::after,
-nav a:focus-visible::after {
-  width: 100%;
-}
-
-// The link of the open section stays bold and underlined.
+// The link of the open section is bold.
 nav a.active {
   font-weight: 700;
 }
 
-nav a.active::after {
-  width: 100%;
-}
-
+// Focus is shown by the shared line below, so the outline ring is not needed.
 nav a:focus-visible {
   outline: none;
+}
+
+.nav-links {
+  align-items: center;
+  display: flex;
+  gap: var(--space-4);
+  position: relative;
+}
+
+// One line for all links. app.ts sets its left and width from the link under the mouse.
+// It only grows when it appears, and slides (left and width) when it moves between links.
+.nav-indicator {
+  background: var(--color-border);
+  bottom: calc(-1 * var(--space-1));
+  height: 3px;
+  pointer-events: none;
+  position: absolute;
+  transition: width 300ms ease-out;
+}
+
+.nav-indicator.sliding {
+  transition:
+    left 300ms ease-out,
+    width 300ms ease-out;
 }
 
 .nav-user {
