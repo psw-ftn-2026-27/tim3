@@ -1,6 +1,7 @@
 import { httpResource } from '@angular/common/http';
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { marked } from 'marked';
 import { Auth } from '../../../../core/auth/auth';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { BlogDto } from '../../api/social-api-types';
@@ -20,6 +21,11 @@ export class BlogDetail {
   readonly id = input.required<string>();
 
   protected readonly detail = httpResource<BlogDto>(() => `/api/social/blogs/${this.id()}`);
+
+  protected readonly descriptionHtml = computed(() => {
+    const blog = this.detail.value();
+    return blog ? (marked.parse(blog.description) as string) : '';
+  });
 
   protected readonly error = signal<string | null>(null);
 
