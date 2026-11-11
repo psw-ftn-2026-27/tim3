@@ -2,6 +2,7 @@ using Games.Application.QuizAuthoring;
 using Games.Application.Quizzes;
 using Games.Domain.Quizzes;
 using Microsoft.EntityFrameworkCore;
+using Shared.Domain;
 
 namespace Games.Infrastructure.Persistence.Quizzes;
 
@@ -19,9 +20,19 @@ internal sealed class QuizReadRepository : IQuizReadRepository
         return ProjectToDtos(_dbContext.Quizzes.Where(quiz => quiz.Id == id)).FirstOrDefaultAsync();
     }
 
-    public Task<List<QuizDto>> GetByAuthorAsync(Guid authorId)
+    public async Task<PageResult<QuizDto>> GetAllAsync(int page, int pageSize)
     {
-        return ProjectToDtos(_dbContext.Quizzes.Where(quiz => quiz.AuthorId == authorId)).ToListAsync();
+        var quizzes = _dbContext.Quizzes
+            .OrderBy(quiz => quiz.Title)
+            .ThenBy(quiz => quiz.Id);
+
+        var totalCount = await quizzes.CountAsync();
+        var items = await ProjectToDtos(quizzes)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PageResult<QuizDto>(items, totalCount);
     }
 
     private static IQueryable<QuizDto> ProjectToDtos(IQueryable<Quiz> quizzes)

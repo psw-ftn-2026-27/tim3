@@ -1,8 +1,33 @@
-form.card {
-  max-width: 32rem;
+// Forms on the left stay in view while the question list on the right grows.
+.layout {
+  align-items: start;
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+}
+
+.layout__side {
+  position: sticky;
+  top: var(--space-4);
+}
+
+// On a narrow screen the forms stack above the question list.
+@media (max-width: 52rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .layout__side {
+    position: static;
+  }
+}
+
+.selected {
+  outline: 2px solid var(--color-accent);
 }
 
 .questions {
+  margin: 0;
   list-style: none;
   padding: 0;
 }

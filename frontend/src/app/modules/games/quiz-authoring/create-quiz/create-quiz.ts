@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormField, form, min, required } from '@angular/forms/signals';
+import { FormField, form, max, min, required } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { QuizAuthoring } from '../quiz-authoring';
@@ -20,6 +20,7 @@ export class CreateQuiz {
       required(path.title, { message: 'Title is required.' });
       required(path.experiencePoints, { message: 'Experience points are required.' });
       min(path.experiencePoints, 1, { message: 'Experience points must be at least 1.' });
+      max(path.experiencePoints, 5000, { message: 'Experience points must be at most 5000.' });
     },
   );
 

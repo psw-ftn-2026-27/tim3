@@ -1,4 +1,5 @@
 using Games.Application.Quizzes;
+using Shared.Domain;
 using Shared.Domain.Exceptions;
 
 namespace Games.Application.QuizAuthoring;
@@ -12,15 +13,18 @@ public sealed class QuizAuthoringQueries
         _quizReadRepository = quizReadRepository;
     }
 
-    public Task<List<QuizDto>> GetByAuthorAsync(Guid authorId)
+    public Task<PageResult<QuizDto>> GetAllAsync(int page, int pageSize)
     {
-        return _quizReadRepository.GetByAuthorAsync(authorId);
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        return _quizReadRepository.GetAllAsync(page, pageSize);
     }
 
-    public async Task<QuizDto> GetByIdAsync(Guid quizId, Guid authorId)
+    public async Task<QuizDto> GetByIdAsync(Guid quizId)
     {
         var quiz = await _quizReadRepository.GetByIdAsync(quizId);
-        if (quiz is null || quiz.AuthorId != authorId)
+        if (quiz is null)
         {
             throw new NotFoundException($"Quiz {quizId} does not exist.");
         }

@@ -1,6 +1,6 @@
 import { httpResource } from '@angular/common/http';
-import { Component, effect, inject, input, signal } from '@angular/core';
-import { FormField, form, min, required } from '@angular/forms/signals';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { FormField, form, max, min, required } from '@angular/forms/signals';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { AnswerDto, QuestionDto, QuizDto } from '../../api/games-api-types';
 import { QuizAuthoring } from '../quiz-authoring';
@@ -20,12 +20,16 @@ export class EditQuiz {
 
   protected readonly quiz = httpResource<QuizDto>(() => `/api/games/quizzes/${this.id()}/edit`);
 
+  // A quiz can be changed only as a draft; any other status shows the page read-only.
+  protected readonly isDraft = computed(() => this.quiz.value()?.status === 'Draft');
+
   protected readonly detailsForm = form(
     signal({ title: '', description: '', experiencePoints: 10 }),
     (path) => {
       required(path.title, { message: 'Title is required.' });
       required(path.experiencePoints, { message: 'Experience points are required.' });
       min(path.experiencePoints, 1, { message: 'Experience points must be at least 1.' });
+      max(path.experiencePoints, 5000, { message: 'Experience points must be at most 5000.' });
     },
   );
 

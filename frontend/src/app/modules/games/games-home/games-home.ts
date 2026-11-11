@@ -1,15 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
   imports: [RouterLink],
   selector: 'app-games-home',
-  template: `
-    <div class="stack">
-      <h1>Games</h1>
-      <p><a routerLink="/games/mine">My quizzes</a></p>
-      <p><a routerLink="/games/create">New quiz</a></p>
-    </div>
-  `,
+  styleUrl: './games-home.scss',
+  templateUrl: './games-home.html',
 })
-export class GamesHome {}
+export class GamesHome {
+  // The tab the user is looking at; it starts on quizzes on every visit.
+  protected readonly tab = signal<'quizzes' | 'social'>('quizzes');
+}

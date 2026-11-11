@@ -2,12 +2,13 @@ using Games.Application.QuizAuthoring;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Api;
+using Shared.Domain;
 
 namespace Games.Api;
 
 [ApiController]
 [Route("api/games/quizzes")]
-[Authorize(Roles = "explorer")]
+[Authorize(Roles = "administrator")]
 public sealed class QuizAuthoringController : ControllerBase
 {
     private readonly QuizAuthoringService _authoringService;
@@ -30,40 +31,40 @@ public sealed class QuizAuthoringController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult> UpdateDetails(Guid id, UpdateQuizDetailsDto dto)
     {
-        await _authoringService.UpdateDetailsAsync(id, User.GetUserId(), dto);
+        await _authoringService.UpdateDetailsAsync(id, dto);
         return NoContent();
     }
 
     [HttpPost("{id:guid}/questions")]
     public async Task<ActionResult> AddQuestion(Guid id, CreateQuestionDto dto)
     {
-        await _authoringService.AddQuestionAsync(id, User.GetUserId(), dto);
+        await _authoringService.AddQuestionAsync(id, dto);
         return NoContent();
     }
 
     [HttpPut("{id:guid}/questions/{questionId:guid}")]
     public async Task<ActionResult> UpdateQuestion(Guid id, Guid questionId, UpdateQuestionDto dto)
     {
-        await _authoringService.UpdateQuestionAsync(id, questionId, User.GetUserId(), dto);
+        await _authoringService.UpdateQuestionAsync(id, questionId, dto);
         return NoContent();
     }
 
     [HttpDelete("{id:guid}/questions/{questionId:guid}")]
     public async Task<ActionResult> RemoveQuestion(Guid id, Guid questionId)
     {
-        await _authoringService.RemoveQuestionAsync(id, questionId, User.GetUserId());
+        await _authoringService.RemoveQuestionAsync(id, questionId);
         return NoContent();
     }
 
-    [HttpGet("mine")]
-    public async Task<ActionResult<List<QuizDto>>> GetMine()
+    [HttpGet]
+    public async Task<ActionResult<PageResult<QuizDto>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        return await _authoringQueries.GetByAuthorAsync(User.GetUserId());
+        return await _authoringQueries.GetAllAsync(page, pageSize);
     }
 
     [HttpGet("{id:guid}/edit")]
     public async Task<ActionResult<QuizDto>> GetForEdit(Guid id)
     {
-        return await _authoringQueries.GetByIdAsync(id, User.GetUserId());
+        return await _authoringQueries.GetByIdAsync(id);
     }
 }

@@ -5,6 +5,9 @@ namespace Games.Domain.Quizzes;
 
 public sealed class Quiz : AggregateRoot
 {
+    public const int MinExperiencePoints = 1;
+    public const int MaxExperiencePoints = 5000;
+
     private readonly List<Question> _questions = [];
 
     public Guid AuthorId { get; private set; }
@@ -35,6 +38,7 @@ public sealed class Quiz : AggregateRoot
 
     public void UpdateDetails(string title, string description, int experiencePoints)
     {
+        EnsureDraft();
         EnsureTitle(title);
         EnsureExperiencePoints(experiencePoints);
 
@@ -45,16 +49,19 @@ public sealed class Quiz : AggregateRoot
 
     public void AddQuestion(string text, List<Answer> answers)
     {
+        EnsureDraft();
         _questions.Add(new Question(text, answers));
     }
 
     public void UpdateQuestion(Guid questionId, string text, List<Answer> answers)
     {
+        EnsureDraft();
         GetQuestion(questionId).Update(text, answers);
     }
 
     public void RemoveQuestion(Guid questionId)
     {
+        EnsureDraft();
         _questions.Remove(GetQuestion(questionId));
     }
 
@@ -68,6 +75,14 @@ public sealed class Quiz : AggregateRoot
         return question;
     }
 
+    private void EnsureDraft()
+    {
+        if (Status != QuizStatus.Draft)
+        {
+            throw new DomainException("A quiz can be changed only while it is a draft.");
+        }
+    }
+
     private static void EnsureTitle(string title)
     {
         if (string.IsNullOrWhiteSpace(title))
@@ -78,9 +93,9 @@ public sealed class Quiz : AggregateRoot
 
     private static void EnsureExperiencePoints(int experiencePoints)
     {
-        if (experiencePoints <= 0)
+        if (experiencePoints < MinExperiencePoints || experiencePoints > MaxExperiencePoints)
         {
-            throw new DomainException("A quiz must award a positive number of experience points.");
+            throw new DomainException($"A quiz must award between {MinExperiencePoints} and {MaxExperiencePoints} experience points.");
         }
     }
 }

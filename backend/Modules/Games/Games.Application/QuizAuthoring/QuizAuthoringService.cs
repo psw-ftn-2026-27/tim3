@@ -25,42 +25,42 @@ public sealed class QuizAuthoringService
         return quiz.Id;
     }
 
-    public async Task UpdateDetailsAsync(Guid quizId, Guid authorId, UpdateQuizDetailsDto dto)
+    public async Task UpdateDetailsAsync(Guid quizId, UpdateQuizDetailsDto dto)
     {
-        var quiz = await GetOwnedQuizAsync(quizId, authorId);
+        var quiz = await GetQuizAsync(quizId);
 
         quiz.UpdateDetails(dto.Title, dto.Description, dto.ExperiencePoints);
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task AddQuestionAsync(Guid quizId, Guid authorId, CreateQuestionDto dto)
+    public async Task AddQuestionAsync(Guid quizId, CreateQuestionDto dto)
     {
-        var quiz = await GetOwnedQuizAsync(quizId, authorId);
+        var quiz = await GetQuizAsync(quizId);
 
         quiz.AddQuestion(dto.Text, ToAnswers(dto.Answers));
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task UpdateQuestionAsync(Guid quizId, Guid questionId, Guid authorId, UpdateQuestionDto dto)
+    public async Task UpdateQuestionAsync(Guid quizId, Guid questionId, UpdateQuestionDto dto)
     {
-        var quiz = await GetOwnedQuizAsync(quizId, authorId);
+        var quiz = await GetQuizAsync(quizId);
 
         quiz.UpdateQuestion(questionId, dto.Text, ToAnswers(dto.Answers));
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task RemoveQuestionAsync(Guid quizId, Guid questionId, Guid authorId)
+    public async Task RemoveQuestionAsync(Guid quizId, Guid questionId)
     {
-        var quiz = await GetOwnedQuizAsync(quizId, authorId);
+        var quiz = await GetQuizAsync(quizId);
 
         quiz.RemoveQuestion(questionId);
         await _unitOfWork.SaveChangesAsync();
     }
 
-    private async Task<Quiz> GetOwnedQuizAsync(Guid quizId, Guid authorId)
+    private async Task<Quiz> GetQuizAsync(Guid quizId)
     {
         var quiz = await _quizRepository.GetByIdAsync(quizId);
-        if (quiz is null || quiz.AuthorId != authorId)
+        if (quiz is null)
         {
             throw new NotFoundException($"Quiz {quizId} does not exist.");
         }

@@ -9,7 +9,7 @@ namespace Games.Tests.Unit.Quizzes;
 public class QuizTests
 {
     private static Quiz CreateQuiz() =>
-        new(WellKnownUsers.Explorer, "Petrovaradinska tvrđava", "Pitanja o tvrđavi.", 50);
+        new(WellKnownUsers.Administrator, "Petrovaradinska tvrđava", "Pitanja o tvrđavi.", 50);
 
     private static Quiz CreateQuizWithQuestion()
     {
@@ -23,7 +23,7 @@ public class QuizTests
     [InlineData("   ")]
     public void New_quiz_requires_a_title(string title)
     {
-        var creation = () => new Quiz(WellKnownUsers.Explorer, title, "Pitanja o tvrđavi.", 50);
+        var creation = () => new Quiz(WellKnownUsers.Administrator, title, "Pitanja o tvrđavi.", 50);
 
         creation.Should().Throw<DomainException>();
     }
@@ -31,9 +31,10 @@ public class QuizTests
     [Theory]
     [InlineData(0)]
     [InlineData(-10)]
-    public void New_quiz_requires_positive_experience_points(int experiencePoints)
+    [InlineData(5001)]
+    public void New_quiz_requires_experience_points_from_one_to_five_thousand(int experiencePoints)
     {
-        var creation = () => new Quiz(WellKnownUsers.Explorer, "Petrovaradinska tvrđava", "Pitanja o tvrđavi.", experiencePoints);
+        var creation = () => new Quiz(WellKnownUsers.Administrator, "Petrovaradinska tvrđava", "Pitanja o tvrđavi.", experiencePoints);
 
         creation.Should().Throw<DomainException>();
     }
@@ -53,7 +54,8 @@ public class QuizTests
     [Theory]
     [InlineData(0)]
     [InlineData(-10)]
-    public void Edited_quiz_requires_positive_experience_points(int experiencePoints)
+    [InlineData(5001)]
+    public void Edited_quiz_requires_experience_points_from_one_to_five_thousand(int experiencePoints)
     {
         var quiz = CreateQuiz();
 
