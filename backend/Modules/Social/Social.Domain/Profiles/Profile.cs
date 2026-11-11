@@ -113,6 +113,36 @@ public sealed class Profile : AggregateRoot
         request.Reject(now);
     }
 
+    public void Unfollow(Guid followedId)
+    {
+        StopFollowing(followedId);
+    }
+
+    // Called on the follower's profile when the followed user removes them from their followers.
+    public void RemoveAsFollowerOf(Guid removerId)
+    {
+        StopFollowing(removerId);
+    }
+
+    public void RememberRemovedFollower(Guid followerId)
+    {
+        if (!RemovedFollowers.Contains(followerId))
+        {
+            RemovedFollowers.Add(followerId);
+        }
+    }
+
+    // P3: only the two sides of a following can end it, so the following has to exist here.
+    private void StopFollowing(Guid followedId)
+    {
+        if (!Follows(followedId))
+        {
+            throw new DomainException("This following does not exist.");
+        }
+
+        Following.Remove(followedId);
+    }
+
     private FollowRequest GetSentRequest(Guid requestId)
     {
         var request = _sentRequests.FirstOrDefault(request => request.Id == requestId);

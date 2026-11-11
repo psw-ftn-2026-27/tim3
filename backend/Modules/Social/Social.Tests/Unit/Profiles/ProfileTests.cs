@@ -147,6 +147,28 @@ public class ProfileTests
             request.RecipientId == Recipient && request.Status == FollowRequestStatus.Pending);
     }
 
+    [Fact]
+    public void Unfollowing_a_user_ends_only_that_following_and_the_other_followings_remain()
+    {
+        var profile = new Profile(Sender);
+        profile.SendFollowRequest(Recipient, true, Now);
+        profile.SendFollowRequest(WellKnownUsers.Administrator, true, Now);
+
+        profile.Unfollow(Recipient);
+
+        profile.Following.Should().BeEquivalentTo([WellKnownUsers.Administrator]);
+    }
+
+    [Fact]
+    public void User_cannot_unfollow_a_user_they_do_not_follow()
+    {
+        var sender = CreateSenderWithPendingRequest();
+
+        var unfollowing = () => sender.Unfollow(Recipient);
+
+        unfollowing.Should().Throw<DomainException>();
+    }
+
     [Theory]
     [InlineData(PendingUser, RelationKind.Pending, true, false)]
     [InlineData(FollowedUser, RelationKind.Following, false, false)]
