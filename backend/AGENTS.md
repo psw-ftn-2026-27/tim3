@@ -311,7 +311,13 @@ mirror the application layer's use-case groups, with `<Group>CommandTests` and
 uses the real register and login endpoints.
 
 **Test doubles.** Only for an out-of-process dependency whose effects other systems see
-and that has no test instance. Never for the database or the module's own classes.
+and that has no test instance. Never for the database or the module's own classes. Load
+counts as an effect: a shared public service with a usage limit (Maps' OSRM server, one
+request per second) is replaced too, because every test run would spend other users'
+capacity. The double is a hand-written fake class in the module's test project,
+implementing the module's own port interface, and the module's factory subclass swaps it
+in from `ConfigureWebHost` with `ConfigureTestServices` (`RemoveAll`, then register the
+fake). `Maps.Tests` (`FakeRoutingService`, `MapsApiFactory`) is the reference.
 
 Architecture tests in `Host.Tests` use ArchUnitNET and encode the reference rules above.
 The module list in `BaseArchitectureTests` is the only place they change when a module
@@ -360,5 +366,6 @@ already on the target branch.
 
 ## Still open, ask before choosing
 
-- **Mocking library.** Chosen when the first dependency that warrants a test double
-  (see Testing) appears.
+- **Mocking library.** The first test double (Maps) is a hand-written fake, which covers
+  a port with one method and two outcomes. A library is chosen only when a port appears
+  that a hand-written fake cannot cover simply.

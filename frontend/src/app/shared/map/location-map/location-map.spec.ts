@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import * as L from 'leaflet';
 import { LocationMap, MapLocation, RouteKind } from './location-map';
 
 // Jedan stepen geografske dužine na ekvatoru, mereno po površini Zemlje (poluprečnik 6371 km).
@@ -14,6 +15,7 @@ describe('LocationMap', () => {
   let httpTesting: HttpTestingController;
   let lengths: number[];
   let notAlongStreets: number;
+  let addedLines: ReturnType<typeof vi.spyOn>;
 
   function show(locations: MapLocation[], route: RouteKind): void {
     fixture.componentRef.setInput('locations', locations);
@@ -25,6 +27,13 @@ describe('LocationMap', () => {
     return fixture.nativeElement.querySelectorAll(selector).length;
   }
 
+  // Tačke poslednje linije dodate na mapu. jsdom ne raspoređuje elemente, pa Leaflet seče SVG
+  // putanju na prazan prikaz i tačke se ne mogu pročitati iz nje, nego iz same linije.
+  function lastRoutePoints(): L.LatLng[] {
+    const lines = addedLines.mock.contexts as L.Polyline[];
+    return lines[lines.length - 1].getLatLngs() as L.LatLng[];
+  }
+
   function walkingRouteRequests(): number {
     return httpTesting.match((request) => request.url.startsWith(WALKING_ROUTES_URL)).length;
   }
@@ -34,6 +43,7 @@ describe('LocationMap', () => {
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     httpTesting = TestBed.inject(HttpTestingController);
+    addedLines = vi.spyOn(L.Polyline.prototype, 'onAdd');
     fixture = TestBed.createComponent(LocationMap);
     lengths = [];
     notAlongStreets = 0;
@@ -42,6 +52,7 @@ describe('LocationMap', () => {
   });
 
   afterEach(() => {
+    addedLines.mockRestore();
     httpTesting.verify();
   });
 
@@ -117,6 +128,20 @@ describe('LocationMap', () => {
     expect(lengths.at(-1)).toBeCloseTo(4 * ONE_DEGREE_KM, 6);
   });
 
+  it('bez izabrane vrste prikaza ne crta putanju, ne javlja dužinu i ne šalje zahtev', () => {
+    fixture.componentRef.setInput('locations', [
+      { latitude: 0, longitude: 0 },
+      { latitude: 0, longitude: 1 },
+    ]);
+    fixture.detectChanges();
+    TestBed.tick();
+
+    expect(count('.map-pin')).toBe(2);
+    expect(count('.map-route')).toBe(0);
+    expect(lengths).toEqual([]);
+    expect(walkingRouteRequests()).toBe(0);
+  });
+
   it('traži putanju od servera samo kada je izabran prikaz po ulicama', () => {
     const locations = [
       { latitude: 45.25, longitude: 19.84 },
@@ -164,6 +189,11 @@ describe('LocationMap', () => {
     await fixture.whenStable();
 
     expect(count('.map-route')).toBe(1);
+    expect(lastRoutePoints().map((point) => [point.lat, point.lng])).toEqual([
+      [0, 0],
+      [0.5, 0.5],
+      [0, 1],
+    ]);
     expect(lengths.at(-1)).toBe(150);
     expect(notAlongStreets).toBe(0);
     expect(fixture.nativeElement.textContent).not.toContain(MESSAGE);

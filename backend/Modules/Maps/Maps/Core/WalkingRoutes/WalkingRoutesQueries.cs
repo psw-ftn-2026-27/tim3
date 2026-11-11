@@ -13,7 +13,9 @@ public sealed class WalkingRoutesQueries
 
     public async Task<WalkingRouteDto> GetAsync(IReadOnlyList<LocationDto> locations)
     {
-        return await _routing.FindWalkingRouteAsync(locations)
+        var route = new RouteLocations(locations);
+
+        return await _routing.FindWalkingRouteAsync(route)
             ?? throw new NotFoundException("No walking route connects the given locations.");
     }
 }

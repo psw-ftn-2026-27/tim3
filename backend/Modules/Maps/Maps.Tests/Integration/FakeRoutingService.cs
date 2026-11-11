@@ -11,9 +11,9 @@ public sealed class FakeRoutingService : IRoutingService
         [new LocationDto(45.2671, 19.8335), new LocationDto(45.2600, 19.8400), new LocationDto(45.2551, 19.8451)],
         2.35);
 
-    public Task<WalkingRouteDto?> FindWalkingRouteAsync(IReadOnlyList<LocationDto> locations)
+    public Task<WalkingRouteDto?> FindWalkingRouteAsync(RouteLocations route)
     {
-        var route = locations.Contains(Unreachable) ? null : Route;
-        return Task.FromResult(route);
+        var found = route.Locations.Contains(Unreachable) ? null : Route;
+        return Task.FromResult(found);
     }
 }

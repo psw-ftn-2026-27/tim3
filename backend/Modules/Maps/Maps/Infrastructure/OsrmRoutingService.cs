@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net;
 using System.Net.Http.Json;
 using Maps.Core;
 using Maps.Core.WalkingRoutes;
@@ -18,27 +19,34 @@ internal sealed class OsrmRoutingService : IRoutingService
         _http.DefaultRequestHeaders.UserAgent.ParseAdd("Explorer/1.0");
     }
 
-    public async Task<WalkingRouteDto?> FindWalkingRouteAsync(IReadOnlyList<LocationDto> locations)
+    public async Task<WalkingRouteDto?> FindWalkingRouteAsync(RouteLocations route)
     {
-        var coordinates = string.Join(";", locations.Select(ToOsrmCoordinate));
+        var coordinates = string.Join(";", route.Locations.Select(ToOsrmCoordinate));
 
         using var response = await _http.GetAsync($"{coordinates}?overview=full&geometries=geojson");
-        if (!response.IsSuccessStatusCode)
+        if (response.StatusCode == HttpStatusCode.BadRequest)
         {
-            return null;
+            // OSRM javlja da puta nema statusom 400 i kodom NoRoute (nema puta) ili NoSegment
+            // (lokacija je predaleko od ijedne staze). Svaki drugi neuspeh je greška servisa.
+            var error = await response.Content.ReadFromJsonAsync<OsrmResponse>();
+            if (error?.Code is "NoRoute" or "NoSegment")
+            {
+                return null;
+            }
         }
+        response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadFromJsonAsync<OsrmResponse>();
-        var route = body?.Routes?.FirstOrDefault();
-        if (body?.Code != "Ok" || route is null)
+        var found = body?.Routes?.FirstOrDefault();
+        if (body?.Code != "Ok" || found is null)
         {
             return null;
         }
 
-        var points = route.Geometry.Coordinates
+        var points = found.Geometry.Coordinates
             .Select(coordinate => new LocationDto(coordinate[1], coordinate[0]))
             .ToList();
-        return new WalkingRouteDto(points, route.Distance / MetresPerKilometre);
+        return new WalkingRouteDto(points, found.Distance / MetresPerKilometre);
     }
 
     private static string ToOsrmCoordinate(LocationDto location) =>

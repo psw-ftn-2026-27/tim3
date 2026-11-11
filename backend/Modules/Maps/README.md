@@ -13,9 +13,10 @@ Zato servis poziva jedan modul. On primi lokacije redom obilaska, pita servis za
 Modul vraća putanju samo kada važi sledeće:
 
 - zahtev šalje prijavljen korisnik, bilo koje uloge;
+- zahtev nosi bar dve lokacije;
 - servis za pronalaženje puta odgovori i nađe pešački put za svaki deo putanje.
 
-Kada servis ne odgovori, odbije zahtev (na primer zbog prekoračenja, HTTP 429) ili ne nađe put za bilo koji deo, upit završava greškom. Modul nikada ne vraća praznu ili delimičnu putanju.
+Kada servis ne nađe put za bilo koji deo, ne odgovori ili odbije zahtev (na primer zbog prekoračenja, HTTP 429), upit završava greškom. Modul nikada ne vraća praznu ili delimičnu putanju.
 
 Spoljni servis je javni OSRM server `https://routing.openstreetmap.de` sa pešačkim profilom, bez naloga i ključa. Njegovi uslovi korišćenja dozvoljavaju najviše jedan zahtev u sekundi i traže atribuciju OpenStreetMap-a, koju već prikazuje deljena mapa. Zato modul sve lokacije šalje u jednom zahtevu, nikada po jedan zahtev za svaki deo puta.
 
@@ -23,7 +24,7 @@ OSRM server prihvata samo vezu preko TLS 1.3. Na macOS-u .NET TLS 1.3 podržava 
 
 ## Krajnja tačka
 
-- `GET /api/maps/walking-routes?locations[0].latitude=45.2671&locations[0].longitude=19.8335&locations[1].latitude=45.2551&locations[1].longitude=19.8451` prima lokacije redom obilaska i vraća `{ "points": [{ "latitude": ..., "longitude": ... }], "lengthInKilometres": ... }`. Kada servis ne nađe put ili ga odbije, vraća odgovor sa statusnim kodom 404. Kada servis uopšte ne odgovori, vraća odgovor sa statusnim kodom 500.
+- `GET /api/maps/walking-routes?locations[0].latitude=45.2671&locations[0].longitude=19.8335&locations[1].latitude=45.2551&locations[1].longitude=19.8451` prima lokacije redom obilaska i vraća `{ "points": [{ "latitude": ..., "longitude": ... }], "lengthInKilometres": ... }`. Kada zahtev nosi manje od dve lokacije, vraća odgovor sa statusnim kodom 400. Kada servis ne nađe put, vraća odgovor sa statusnim kodom 404. Kada servis ne odgovori ili odbije zahtev, vraća odgovor sa statusnim kodom 500.
 
 ## Kako modul koristi putanju
 
@@ -37,8 +38,8 @@ Modul nikada ne referencira projekat `Maps` i ne poziva njegove klase. Arhitekto
 
 Kao i Media, modul ima jedan projekat sa direktorijumima `Api`, `Core` i `Infrastructure`, umesto pet projekata. Nema bazu podataka i ništa ne čuva: svaka putanja se traži iznova od spoljnog servisa.
 
-- `Core` sadrži grupu slučajeva korišćenja `WalkingRoutes` (klasa `WalkingRoutesQueries` i DTO strukture `LocationDto` i `WalkingRouteDto`) i interfejs `IRoutingService` za spoljni servis za pronalaženje puta.
-- `Infrastructure` sadrži adapter `OsrmRoutingService`, koji kroz `HttpClient` šalje sve lokacije OSRM serveru u jednom zahtevu i njegov odgovor prevodi u `WalkingRouteDto`, a metre u kilometre.
+- `Core` sadrži vrednosni objekat `RouteLocations`, koji u konstruktoru proverava da putanja ima bar dve lokacije, grupu slučajeva korišćenja `WalkingRoutes` (klasa `WalkingRoutesQueries` i DTO strukture `LocationDto` i `WalkingRouteDto`) i interfejs `IRoutingService` za spoljni servis za pronalaženje puta.
+- `Infrastructure` sadrži adapter `OsrmRoutingService`, koji kroz `HttpClient` šalje sve lokacije OSRM serveru u jednom zahtevu i njegov odgovor prevodi u `WalkingRouteDto`, a metre u kilometre. Samo OSRM-ov odgovor da puta nema (kod `NoRoute` ili `NoSegment`) prevodi u „put nije nađen"; svaki drugi neuspeh servisa ostaje izuzetak.
 - `Api` sadrži kontroler `WalkingRoutesController`.
 
 Javni OSRM server je spoljna zavisnost bez testne instance, pa ga integracioni testovi ne pozivaju. `MapsApiFactory` umesto pravog adaptera registruje ručno napisanu lažnu klasu `FakeRoutingService` iz `Maps.Tests`, koja vraća unapred zadatu putanju, a za jednu zadatu lokaciju javlja da put ne postoji.

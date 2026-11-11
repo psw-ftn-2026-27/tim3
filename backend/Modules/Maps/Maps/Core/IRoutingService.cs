@@ -4,5 +4,5 @@ namespace Maps.Core;
 
 public interface IRoutingService
 {
-    Task<WalkingRouteDto?> FindWalkingRouteAsync(IReadOnlyList<LocationDto> locations);
+    Task<WalkingRouteDto?> FindWalkingRouteAsync(RouteLocations route);
 }

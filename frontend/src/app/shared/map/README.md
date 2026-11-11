@@ -9,7 +9,7 @@ Komponenta `LocationMap` (`app-location-map`) je deljena prikazna komponenta pla
   - `'none'`: samo pinovi, bez putanje i bez dužine;
   - `'straight'`: putanja spaja susedne lokacije pravim linijama, redom kojim su predate;
   - `'streets'`: putanja prati pešačke ulice i staze između susednih lokacija, redom kojim su predate.
-- `routeLength` je izlaz sa dužinom iscrtane putanje u kilometrima, kao brojem. Javlja se svaki put kada se putanja iscrta, pa i posle svake promene lokacija. Za prave linije to je dužina vazdušnom linijom, a za putanju po ulicama dužina po ulicama koju vrati server. Sa manje od dve lokacije linija se ne crta, a dužina je 0, za svaku vrstu prikaza.
+- `routeLength` je izlaz sa dužinom iscrtane putanje u kilometrima, kao brojem. Javlja se svaki put kada se putanja iscrta, pa i posle svake promene lokacija. Za prave linije to je dužina vazdušnom linijom, a za putanju po ulicama dužina po ulicama koju vrati server. Sa manje od dve lokacije linija se ne crta, a dužina je 0, i za prave linije i za putanju po ulicama. Bez putanje (`'none'`) dužina se ne javlja.
 - `routeNotAlongStreets` je izlaz bez vrednosti. Javlja se kada je izabrana putanja po ulicama, a ona ne može da se dobije (vidi ispod).
 
 Mapa uvek obuhvata sve pinove. Bez ijedne lokacije prikazuje Novi Sad. Podloga je OpenStreetMap, sa navodom autora u uglu mape. Visina mape je 24rem.
@@ -58,6 +58,8 @@ Stranica odlučuje šta radi sa dužinom: prikazuje je, šalje je svom serveru i
 ```
 
 Komponenta sama pita server za pešačku putanju (`GET /api/maps/walking-routes`, modul Maps), samo dok je izabrana putanja po ulicama i ima bar dve lokacije. Dok čeka odgovor, prikazuje samo pinove i ne javlja dužinu. Kada odgovor stigne, crta liniju iz tačaka koje je vratio server i javlja dužinu po ulicama.
+
+Isto važi i kada stranica promeni lokacije ili vrstu prikaza: dok čeka nov odgovor, komponenta ne javlja ništa, pa bi stranica i dalje prikazivala dužinu prethodne putanje ispod mape bez linije. Zato stranica briše svoju dužinu svaki put kada menja lokacije ili vrstu prikaza, na primer `routeLength.set(null)` uz signal tipa `number | null`, i prikazuje je samo kada nije `null`. Tako radi i stranica `/map`.
 
 Kada server ne nađe put, ne odgovori ili odbije zahtev (na primer kada korisnik nije prijavljen), komponenta:
 
