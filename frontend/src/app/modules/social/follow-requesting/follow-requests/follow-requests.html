@@ -1,0 +1,145 @@
+<div class="stack">
+  <p><a routerLink="/social">Back to blogs</a></p>
+
+  <h1>Follow requests</h1>
+
+  <h2>Sent requests</h2>
+
+  @if (sent.isLoading()) {
+    <p>Loading sent requests...</p>
+  } @else if (sent.error()) {
+    <p class="error">Could not load sent requests. Log in and try again.</p>
+  } @else {
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Username</th>
+          <th scope="col">Sent</th>
+          <th scope="col">Status</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (request of sent.value()?.items ?? []; track request.id) {
+          <tr>
+            <td>{{ request.recipientDisplayName }}</td>
+            <td>{{ date(request.sentAt) }}</td>
+            <td>{{ request.status }}</td>
+            <td>
+              @if (request.status === 'Pending') {
+                <button
+                  class="button"
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="cancel(request)"
+                >
+                  Cancel
+                </button>
+              }
+            </td>
+          </tr>
+          @if (rowError()?.requestId === request.id) {
+            <tr>
+              <td colspan="4"><p class="error">{{ rowError()?.message }}</p></td>
+            </tr>
+          }
+        } @empty {
+          <tr>
+            <td colspan="4">You have not sent any follow requests.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="paging">
+      <button
+        class="button"
+        type="button"
+        [disabled]="sentPage() === 1 || pending()"
+        (click)="changeSentPage(-1)"
+      >
+        Previous
+      </button>
+      <button
+        class="button"
+        type="button"
+        [disabled]="!hasNextSentPage() || pending()"
+        (click)="changeSentPage(1)"
+      >
+        Next
+      </button>
+    </div>
+  }
+
+  <h2>Incoming requests</h2>
+
+  @if (incoming.isLoading()) {
+    <p>Loading incoming requests...</p>
+  } @else if (incoming.error()) {
+    <p class="error">Could not load incoming requests. Log in and try again.</p>
+  } @else {
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Username</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (request of incoming.value()?.items ?? []; track request.id) {
+          <tr>
+            <td>{{ request.senderDisplayName }}</td>
+            <td>
+              <div class="actions">
+                <button
+                  class="button button--primary"
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="accept(request)"
+                >
+                  Accept
+                </button>
+                <button
+                  class="button"
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="reject(request)"
+                >
+                  Reject
+                </button>
+              </div>
+            </td>
+          </tr>
+          @if (rowError()?.requestId === request.id) {
+            <tr>
+              <td colspan="2"><p class="error">{{ rowError()?.message }}</p></td>
+            </tr>
+          }
+        } @empty {
+          <tr>
+            <td colspan="2">You have no pending incoming requests.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="paging">
+      <button
+        class="button"
+        type="button"
+        [disabled]="incomingPage() === 1 || pending()"
+        (click)="changeIncomingPage(-1)"
+      >
+        Previous
+      </button>
+      <button
+        class="button"
+        type="button"
+        [disabled]="!hasNextIncomingPage() || pending()"
+        (click)="changeIncomingPage(1)"
+      >
+        Next
+      </button>
+    </div>
+  }
+</div>

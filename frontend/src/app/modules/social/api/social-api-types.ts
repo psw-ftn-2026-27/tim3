@@ -58,3 +58,38 @@ export interface UpdateClubDto {
   description: string;
   images: string[];
 }
+
+export type RelationKind = 'CanFollow' | 'Pending' | 'Following' | 'BlockedUntil' | 'Self';
+
+export type FollowRequestStatus = 'Pending' | 'Accepted' | 'Rejected';
+
+export interface RelationDto {
+  kind: RelationKind;
+  requestId: string | null;
+  availableFrom: string | null;
+}
+
+export interface FoundUserDto {
+  userId: string;
+  displayName: string;
+  relation: RelationDto;
+}
+
+export interface SentFollowRequestDto {
+  id: string;
+  recipientId: string;
+  recipientDisplayName: string;
+  sentAt: string;
+  status: FollowRequestStatus;
+}
+
+export interface IncomingFollowRequestDto {
+  id: string;
+  senderId: string;
+  senderDisplayName: string;
+  sentAt: string;
+}
+
+export interface SendFollowRequestDto {
+  recipientId: string;
+}

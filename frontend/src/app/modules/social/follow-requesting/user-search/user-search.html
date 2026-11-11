@@ -1,0 +1,104 @@
+<div class="stack">
+  <p><a routerLink="/social">Back to blogs</a></p>
+
+  <h1>Find users</h1>
+
+  <form class="search" (submit)="search($event)">
+    <div class="field">
+      <label for="text">Username</label>
+      <input id="text" type="search" [formField]="form.text" />
+    </div>
+    <button class="button button--primary" type="submit" [disabled]="!form().valid()">
+      Search
+    </button>
+  </form>
+
+  @if (searchedText() === null) {
+    <p>You have not searched yet.</p>
+  } @else if (users.isLoading()) {
+    <p>Loading users...</p>
+  } @else if (users.error()) {
+    <p class="error">Could not load users. Log in and try again.</p>
+  } @else {
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Username</th>
+          <th scope="col">Relation</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of users.value()?.items ?? []; track user.userId) {
+          <tr>
+            <td>{{ user.displayName }}</td>
+            <td>
+              @switch (user.relation.kind) {
+                @case ('CanFollow') {
+                  <button
+                    class="button button--primary"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="follow(user)"
+                  >
+                    Follow
+                  </button>
+                }
+                @case ('Pending') {
+                  <span class="relation">
+                    Pending
+                    @if (user.relation.requestId; as requestId) {
+                      <button
+                        class="button"
+                        type="button"
+                        [disabled]="pending()"
+                        (click)="cancel(user, requestId)"
+                      >
+                        Cancel
+                      </button>
+                    }
+                  </span>
+                }
+                @case ('Following') {
+                  Following
+                }
+                @case ('BlockedUntil') {
+                  @if (user.relation.availableFrom; as availableFrom) {
+                    Can send from {{ date(availableFrom) }}
+                  }
+                }
+              }
+            </td>
+          </tr>
+          @if (rowError()?.userId === user.userId) {
+            <tr>
+              <td colspan="2"><p class="error">{{ rowError()?.message }}</p></td>
+            </tr>
+          }
+        } @empty {
+          <tr>
+            <td colspan="2">No users match the search.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="paging">
+      <button
+        class="button"
+        type="button"
+        [disabled]="page() === 1 || pending()"
+        (click)="previousPage()"
+      >
+        Previous
+      </button>
+      <button
+        class="button"
+        type="button"
+        [disabled]="!hasNextPage() || pending()"
+        (click)="nextPage()"
+      >
+        Next
+      </button>
+    </div>
+  }
+</div>
