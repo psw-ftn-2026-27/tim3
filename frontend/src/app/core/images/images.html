@@ -1,5 +1,5 @@
 <div class="card stack">
-  <h1>Slike</h1>
+  <h1>Images</h1>
 
   <app-image-picker
     [file]="selected()"
@@ -14,10 +14,10 @@
 
   @if (address()) {
     @if (imageMissing()) {
-      <p class="error">Slika nije pronađena</p>
+      <p class="error">Image not found.</p>
     } @else {
-      <p>Slika je uspešno poslata.</p>
-      <img class="saved" [src]="address()" alt="Sačuvana slika" (error)="imageMissing.set(true)" />
+      <p>Image uploaded successfully.</p>
+      <img class="saved" [src]="address()" alt="Uploaded image" (error)="imageMissing.set(true)" />
     }
   }
 </div>
