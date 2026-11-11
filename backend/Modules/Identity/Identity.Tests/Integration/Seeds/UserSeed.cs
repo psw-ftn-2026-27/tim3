@@ -42,5 +42,31 @@ public static class UserSeed
 
     public static readonly IdentityUserRole<Guid> SecondExplorerRole = new() { UserId = WellKnownUsers.SecondExplorer, RoleId = RoleSeed.Explorer.Id };
 
-    public static object[] All => [Explorer, ExplorerRole, SecondExplorer, SecondExplorerRole];
+    public static readonly ApplicationUser ThirdExplorer = new()
+    {
+        Id = WellKnownUsers.ThirdExplorer,
+        UserName = "third.explorer@test.com",
+        NormalizedUserName = "THIRD.EXPLORER@TEST.COM",
+        Email = "third.explorer@test.com",
+        NormalizedEmail = "THIRD.EXPLORER@TEST.COM",
+        PasswordHash = Hasher.HashPassword(null!, Password),
+        SecurityStamp = "2a7d9e4c-6b1f-4c8a-9e3d-5f0b8c1a7d26"
+    };
+
+    public static readonly IdentityUserRole<Guid> ThirdExplorerRole = new() { UserId = WellKnownUsers.ThirdExplorer, RoleId = RoleSeed.Explorer.Id };
+
+    public static readonly ApplicationUser FourthExplorer = new()
+    {
+        Id = WellKnownUsers.FourthExplorer,
+        UserName = "fourth.explorer@test.com",
+        NormalizedUserName = "FOURTH.EXPLORER@TEST.COM",
+        Email = "fourth.explorer@test.com",
+        NormalizedEmail = "FOURTH.EXPLORER@TEST.COM",
+        PasswordHash = Hasher.HashPassword(null!, Password),
+        SecurityStamp = "b4e1c7f9-3a2d-4f6b-8c5e-1d9a0e7b3f42"
+    };
+
+    public static readonly IdentityUserRole<Guid> FourthExplorerRole = new() { UserId = WellKnownUsers.FourthExplorer, RoleId = RoleSeed.Explorer.Id };
+
+    public static object[] All => [Explorer, ExplorerRole, SecondExplorer, SecondExplorerRole, ThirdExplorer, ThirdExplorerRole, FourthExplorer, FourthExplorerRole];
 }
