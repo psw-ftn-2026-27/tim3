@@ -49,19 +49,23 @@ public sealed class Profile : AggregateRoot
             return new Relation(RelationKind.Pending, pending.Id, null);
         }
 
-        var latestRejection = _sentRequests
-            .Where(request => request.RecipientId == otherUserId && request.Status == FollowRequestStatus.Rejected)
-            .MaxBy(request => request.RespondedAt);
-        if (latestRejection is not null)
+        var availableFrom = SendingAvailableFrom(otherUserId);
+        if (availableFrom is not null && now < availableFrom)
         {
-            var availableFrom = latestRejection.RespondedAt!.Value.AddDays(DaysBlockedAfterRejection);
-            if (now < availableFrom)
-            {
-                return new Relation(RelationKind.BlockedUntil, null, availableFrom);
-            }
+            return new Relation(RelationKind.BlockedUntil, null, availableFrom);
         }
 
         return new Relation(RelationKind.CanFollow, null, null);
+    }
+
+    // P8: a new request to a recipient is possible seven days after their latest rejection.
+    private DateTime? SendingAvailableFrom(Guid recipientId)
+    {
+        var latestRejection = _sentRequests
+            .Where(request => request.RecipientId == recipientId && request.Status == FollowRequestStatus.Rejected)
+            .MaxBy(request => request.RespondedAt);
+
+        return latestRejection?.RespondedAt!.Value.AddDays(DaysBlockedAfterRejection);
     }
 
     public void SendFollowRequest(Guid recipientId, bool recipientAcceptsImmediately, DateTime now)
