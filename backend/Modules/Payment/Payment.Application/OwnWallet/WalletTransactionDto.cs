@@ -1,0 +1,5 @@
+using Payment.Domain.Wallets;
+
+namespace Payment.Application.OwnWallet;
+
+public sealed record WalletTransactionDto(Guid Id, int Amount, DateTime OccurredAt, WalletTransactionKind Kind);
