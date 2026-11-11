@@ -16,12 +16,4 @@ export class FollowRequesting {
   async cancel(id: string): Promise<void> {
     await firstValueFrom(this.http.delete<void>(`${BASE_URL}/${id}`));
   }
-
-  async accept(id: string): Promise<void> {
-    await firstValueFrom(this.http.post<void>(`${BASE_URL}/${id}/accept`, {}));
-  }
-
-  async reject(id: string): Promise<void> {
-    await firstValueFrom(this.http.post<void>(`${BASE_URL}/${id}/reject`, {}));
-  }
 }

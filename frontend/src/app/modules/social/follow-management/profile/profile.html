@@ -1,0 +1,322 @@
+<div class="stack">
+  <p><a routerLink="/social">Back to blogs</a></p>
+
+  <h1>My profile</h1>
+
+  <div class="sections">
+    <button
+      class="button"
+      type="button"
+      [disabled]="pending()"
+      (click)="toggle('followers')"
+    >
+      @if (summary.value(); as counts) {
+        Followers: {{ counts.followerCount }}
+      } @else {
+        Followers
+      }
+    </button>
+    <button
+      class="button"
+      type="button"
+      [disabled]="pending()"
+      (click)="toggle('following')"
+    >
+      @if (summary.value(); as counts) {
+        Following: {{ counts.followingCount }}
+      } @else {
+        Following
+      }
+    </button>
+    <button
+      class="button"
+      type="button"
+      [disabled]="pending()"
+      (click)="toggle('sent')"
+    >
+      Sent requests
+    </button>
+    <button
+      class="button"
+      type="button"
+      [disabled]="pending()"
+      (click)="toggle('incoming')"
+    >
+      Incoming requests
+    </button>
+  </div>
+
+  @switch (section()) {
+    @case ('followers') {
+      <h2>Followers</h2>
+
+      @if (followers.isLoading()) {
+        <p>Loading followers...</p>
+      } @else if (followers.error()) {
+        <p class="error">Could not load followers. Log in and try again.</p>
+      } @else {
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Username</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of followers.value()?.items ?? []; track user.userId) {
+              <tr>
+                <td>{{ user.displayName }}</td>
+                <td>
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="remove(user)"
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
+              @if (rowError()?.rowId === user.userId) {
+                <tr>
+                  <td colspan="2"><p class="error">{{ rowError()?.message }}</p></td>
+                </tr>
+              }
+            } @empty {
+              <tr>
+                <td colspan="2">You have no followers.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="paging">
+          <button
+            class="button"
+            type="button"
+            [disabled]="page() === 1 || pending()"
+            (click)="previousPage()"
+          >
+            Previous
+          </button>
+          <button
+            class="button"
+            type="button"
+            [disabled]="!hasNextPage(followers.value()?.totalCount) || pending()"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+        </div>
+      }
+    }
+
+    @case ('following') {
+      <h2>Following</h2>
+
+      @if (following.isLoading()) {
+        <p>Loading followed users...</p>
+      } @else if (following.error()) {
+        <p class="error">Could not load followed users. Log in and try again.</p>
+      } @else {
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Username</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of following.value()?.items ?? []; track user.userId) {
+              <tr>
+                <td>{{ user.displayName }}</td>
+                <td>
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="unfollow(user)"
+                  >
+                    Unfollow
+                  </button>
+                </td>
+              </tr>
+              @if (rowError()?.rowId === user.userId) {
+                <tr>
+                  <td colspan="2"><p class="error">{{ rowError()?.message }}</p></td>
+                </tr>
+              }
+            } @empty {
+              <tr>
+                <td colspan="2">You are not following anyone.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="paging">
+          <button
+            class="button"
+            type="button"
+            [disabled]="page() === 1 || pending()"
+            (click)="previousPage()"
+          >
+            Previous
+          </button>
+          <button
+            class="button"
+            type="button"
+            [disabled]="!hasNextPage(following.value()?.totalCount) || pending()"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+        </div>
+      }
+    }
+
+    @case ('sent') {
+      <h2>Sent requests</h2>
+
+      @if (sent.isLoading()) {
+        <p>Loading sent requests...</p>
+      } @else if (sent.error()) {
+        <p class="error">Could not load sent requests. Log in and try again.</p>
+      } @else {
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Username</th>
+              <th scope="col">Sent</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (request of sent.value()?.items ?? []; track request.id) {
+              <tr>
+                <td>{{ request.recipientDisplayName }}</td>
+                <td>{{ date(request.sentAt) }}</td>
+                <td>{{ request.status }}</td>
+                <td>
+                  @if (request.status === 'Pending') {
+                    <button
+                      class="button"
+                      type="button"
+                      [disabled]="pending()"
+                      (click)="cancel(request)"
+                    >
+                      Cancel
+                    </button>
+                  }
+                </td>
+              </tr>
+              @if (rowError()?.rowId === request.id) {
+                <tr>
+                  <td colspan="4"><p class="error">{{ rowError()?.message }}</p></td>
+                </tr>
+              }
+            } @empty {
+              <tr>
+                <td colspan="4">You have not sent any follow requests.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="paging">
+          <button
+            class="button"
+            type="button"
+            [disabled]="page() === 1 || pending()"
+            (click)="previousPage()"
+          >
+            Previous
+          </button>
+          <button
+            class="button"
+            type="button"
+            [disabled]="!hasNextPage(sent.value()?.totalCount) || pending()"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+        </div>
+      }
+    }
+
+    @case ('incoming') {
+      <h2>Incoming requests</h2>
+
+      @if (incoming.isLoading()) {
+        <p>Loading incoming requests...</p>
+      } @else if (incoming.error()) {
+        <p class="error">Could not load incoming requests. Log in and try again.</p>
+      } @else {
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Username</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (request of incoming.value()?.items ?? []; track request.id) {
+              <tr>
+                <td>{{ request.senderDisplayName }}</td>
+                <td>
+                  <div class="actions">
+                    <button
+                      class="button button--primary"
+                      type="button"
+                      [disabled]="pending()"
+                      (click)="accept(request)"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      class="button"
+                      type="button"
+                      [disabled]="pending()"
+                      (click)="reject(request)"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              @if (rowError()?.rowId === request.id) {
+                <tr>
+                  <td colspan="2"><p class="error">{{ rowError()?.message }}</p></td>
+                </tr>
+              }
+            } @empty {
+              <tr>
+                <td colspan="2">You have no pending incoming requests.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="paging">
+          <button
+            class="button"
+            type="button"
+            [disabled]="page() === 1 || pending()"
+            (click)="previousPage()"
+          >
+            Previous
+          </button>
+          <button
+            class="button"
+            type="button"
+            [disabled]="!hasNextPage(incoming.value()?.totalCount) || pending()"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+        </div>
+      }
+    }
+  }
+</div>

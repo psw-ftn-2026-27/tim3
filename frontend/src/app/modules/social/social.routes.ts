@@ -6,7 +6,7 @@ import { BlogDetail } from './blog-reading/blog-detail/blog-detail';
 import { BlogList } from './blog-reading/blog-list/blog-list';
 import { ClubList } from './club-management/club-list/club-list';
 import { CreateClub } from './club-management/create-club/create-club';
-import { FollowRequests } from './follow-requesting/follow-requests/follow-requests';
+import { Profile } from './follow-management/profile/profile';
 import { UserSearch } from './follow-requesting/user-search/user-search';
 
 export const socialRoutes: Routes = [
@@ -16,7 +16,7 @@ export const socialRoutes: Routes = [
   { path: 'clubs', component: ClubList },
   { path: 'clubs/create', component: CreateClub },
   { path: 'users', component: UserSearch },
-  { path: 'follow-requests', component: FollowRequests },
+  { path: 'profile', component: Profile },
   { path: ':id/edit', component: EditBlog },
   { path: ':id', component: BlogDetail },
 ];
