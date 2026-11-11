@@ -1,0 +1,15 @@
+.search,
+.relation,
+.paging {
+  align-items: flex-end;
+  display: flex;
+  gap: var(--space-3);
+}
+
+.relation {
+  align-items: center;
+}
+
+.search .field {
+  flex: 1;
+}
