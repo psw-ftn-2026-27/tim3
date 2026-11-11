@@ -30,12 +30,11 @@
   color: var(--color-accent-text);
 }
 
+// A disabled button keeps its own look, only faded, and does not lift.
 .button:disabled {
-  background: var(--color-disabled-bg);
-  border: 2px dashed var(--color-text-muted);
   box-shadow: none;
-  color: var(--color-disabled-text);
   cursor: not-allowed;
+  opacity: 0.55;
   transform: none;
 }
 
