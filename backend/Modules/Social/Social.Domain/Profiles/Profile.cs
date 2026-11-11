@@ -49,19 +49,23 @@ public sealed class Profile : AggregateRoot
             return new Relation(RelationKind.Pending, pending.Id, null);
         }
 
-        var latestRejection = _sentRequests
-            .Where(request => request.RecipientId == otherUserId && request.Status == FollowRequestStatus.Rejected)
-            .MaxBy(request => request.RespondedAt);
-        if (latestRejection is not null)
+        var availableFrom = SendingAvailableFrom(otherUserId);
+        if (availableFrom is not null && now < availableFrom)
         {
-            var availableFrom = latestRejection.RespondedAt!.Value.AddDays(DaysBlockedAfterRejection);
-            if (now < availableFrom)
-            {
-                return new Relation(RelationKind.BlockedUntil, null, availableFrom);
-            }
+            return new Relation(RelationKind.BlockedUntil, null, availableFrom);
         }
 
         return new Relation(RelationKind.CanFollow, null, null);
+    }
+
+    // P8: a new request to a recipient is possible seven days after their latest rejection.
+    private DateTime? SendingAvailableFrom(Guid recipientId)
+    {
+        var latestRejection = _sentRequests
+            .Where(request => request.RecipientId == recipientId && request.Status == FollowRequestStatus.Rejected)
+            .MaxBy(request => request.RespondedAt);
+
+        return latestRejection?.RespondedAt!.Value.AddDays(DaysBlockedAfterRejection);
     }
 
     public void SendFollowRequest(Guid recipientId, bool recipientAcceptsImmediately, DateTime now)
@@ -111,6 +115,36 @@ public sealed class Profile : AggregateRoot
         EnsurePending(request);
 
         request.Reject(now);
+    }
+
+    public void Unfollow(Guid followedId)
+    {
+        StopFollowing(followedId);
+    }
+
+    // Called on the follower's profile when the followed user removes them from their followers.
+    public void RemoveAsFollowerOf(Guid removerId)
+    {
+        StopFollowing(removerId);
+    }
+
+    public void RememberRemovedFollower(Guid followerId)
+    {
+        if (!RemovedFollowers.Contains(followerId))
+        {
+            RemovedFollowers.Add(followerId);
+        }
+    }
+
+    // P3: only the two sides of a following can end it, so the following has to exist here.
+    private void StopFollowing(Guid followedId)
+    {
+        if (!Follows(followedId))
+        {
+            throw new DomainException("This following does not exist.");
+        }
+
+        Following.Remove(followedId);
     }
 
     private FollowRequest GetSentRequest(Guid requestId)

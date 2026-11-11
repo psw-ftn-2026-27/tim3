@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Shared.Domain;
+using Social.Application.FollowManagement;
 using Social.Application.FollowRequesting;
 using Social.Application.Profiles;
 using Social.Domain.Profiles;
@@ -49,5 +50,49 @@ internal sealed class ProfileReadRepository : IProfileReadRepository
             .ToListAsync();
 
         return new PageResult<IncomingFollowRequestRowDto>(items, totalCount);
+    }
+
+    public async Task<ProfileSummaryDto> GetSummaryAsync(Guid userId)
+    {
+        var followerCount = await _dbContext.Profiles
+            .CountAsync(profile => profile.Following.Contains(userId));
+        var followingCount = await _dbContext.Profiles
+            .Where(profile => profile.UserId == userId)
+            .Select(profile => profile.Following.Count)
+            .FirstOrDefaultAsync();
+
+        return new ProfileSummaryDto(followerCount, followingCount);
+    }
+
+    public async Task<PageResult<Guid>> GetFollowerIdsAsync(Guid userId, int page, int pageSize)
+    {
+        var followers = _dbContext.Profiles
+            .Where(profile => profile.Following.Contains(userId))
+            .Select(profile => profile.UserId)
+            .OrderBy(followerId => followerId);
+
+        var totalCount = await followers.CountAsync();
+        var items = await followers
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PageResult<Guid>(items, totalCount);
+    }
+
+    public async Task<PageResult<Guid>> GetFollowingIdsAsync(Guid userId, int page, int pageSize)
+    {
+        var following = _dbContext.Profiles
+            .Where(profile => profile.UserId == userId)
+            .SelectMany(profile => profile.Following)
+            .OrderBy(followedId => followedId);
+
+        var totalCount = await following.CountAsync();
+        var items = await following
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PageResult<Guid>(items, totalCount);
     }
 }

@@ -93,3 +93,13 @@ export interface IncomingFollowRequestDto {
 export interface SendFollowRequestDto {
   recipientId: string;
 }
+
+export interface ProfileSummaryDto {
+  followerCount: number;
+  followingCount: number;
+}
+
+export interface ConnectedUserDto {
+  userId: string;
+  displayName: string;
+}
