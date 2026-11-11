@@ -14,8 +14,14 @@ internal sealed class OsrmRoutingService : IRoutingService
     private readonly HttpClient _http;
 
     public OsrmRoutingService()
+        : this(new HttpClientHandler())
     {
-        _http = new HttpClient { BaseAddress = new Uri(BaseAddress), Timeout = TimeSpan.FromSeconds(10) };
+    }
+
+    // Jedinični testovi predaju lažni handler sa unapred zadatim odgovorom OSRM-a, pa ne idu na mrežu.
+    internal OsrmRoutingService(HttpMessageHandler handler)
+    {
+        _http = new HttpClient(handler) { BaseAddress = new Uri(BaseAddress), Timeout = TimeSpan.FromSeconds(10) };
         _http.DefaultRequestHeaders.UserAgent.ParseAdd("Explorer/1.0");
     }
 
