@@ -79,6 +79,20 @@
   outline: none;
 }
 
+// A field shows its error state while its error message is visible.
+.field:has(.error) input,
+.field:has(.error) select,
+.field:has(.error) textarea {
+  border-color: var(--color-danger);
+  box-shadow: 3px 3px 0 var(--color-danger);
+}
+
+.field:has(.error) input:focus,
+.field:has(.error) select:focus,
+.field:has(.error) textarea:focus {
+  box-shadow: 5px 5px 0 var(--color-danger);
+}
+
 .field input:disabled,
 .field select:disabled,
 .field textarea:disabled {

@@ -76,6 +76,12 @@ nav a:focus-visible {
   transform: none;
 }
 
+// Keyboard focus also gets an outline, because the background change alone is too faint.
+.nav-user .button:focus-visible {
+  outline: var(--border);
+  outline-offset: 2px;
+}
+
 // The strip under the nav is the only element whose colour depends on the module.
 // routerLinkActive adds the class "active" to the strip of the open module.
 .module-strip {
