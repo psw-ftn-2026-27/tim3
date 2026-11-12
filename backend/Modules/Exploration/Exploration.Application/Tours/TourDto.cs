@@ -11,4 +11,5 @@ public sealed record TourDto(
     List<string> Tags,
     TourStatus Status,
     DateTime? PublishedAt,
+    DateTime? ArchivedAt,
     List<TransportTimeDto> TransportTimes);

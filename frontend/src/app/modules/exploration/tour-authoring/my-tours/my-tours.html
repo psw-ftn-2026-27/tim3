@@ -27,7 +27,13 @@
           <tr>
             <td>{{ tour.name }}</td>
             <td>{{ tour.difficulty }}</td>
-            <td>{{ tour.status }}</td>
+            <td>
+              {{ tour.status }}
+              @if (tour.archivedAt) {
+                <br />
+                <span class="meta">{{ archivedAt(tour.archivedAt) }}</span>
+              }
+            </td>
             <td>
               @for (time of tour.transportTimes; track time.transport) {
                 <span class="time">{{ time.transport }} {{ time.minutes }} min</span>
@@ -36,7 +42,16 @@
               }
             </td>
             <td class="actions">
-              <button class="button" type="button" (click)="select(tour.id)">Add time</button>
+              @if (tour.status !== 'Archived') {
+                <button
+                  class="button"
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="select(tour.id)"
+                >
+                  Add time
+                </button>
+              }
               @if (tour.status === 'Draft') {
                 <button
                   class="button button--primary"
@@ -45,6 +60,26 @@
                   (click)="publish(tour.id)"
                 >
                   Publish
+                </button>
+              }
+              @if (tour.status === 'Published') {
+                <button
+                  class="button"
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="archive(tour.id)"
+                >
+                  Archive
+                </button>
+              }
+              @if (tour.status === 'Archived') {
+                <button
+                  class="button"
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="reactivate(tour.id)"
+                >
+                  Reactivate
                 </button>
               }
             </td>

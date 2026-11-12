@@ -27,6 +27,16 @@ public class TourBrowsingQueryTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Archived_tour_is_not_listed_among_published_tours()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+
+        var tours = await client.GetFromJsonAsync<PageResult<TourDto>>("/api/exploration/tours/published", JsonOptions);
+
+        tours!.Items.Should().NotContain(tour => tour.Id == TourSeed.ArchivedHomesteads.Id);
+    }
+
+    [Fact]
     public async Task Published_tours_are_listed_page_by_page()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
