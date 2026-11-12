@@ -1,0 +1,32 @@
+using Microsoft.EntityFrameworkCore;
+using Payment.Application.Wallets;
+using Payment.Domain.Wallets;
+
+namespace Payment.Infrastructure.Persistence.Wallets;
+
+internal sealed class WalletRepository : IWalletRepository
+{
+    private readonly PaymentDbContext _dbContext;
+
+    public WalletRepository(PaymentDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public Task<bool> ExistsForUserAsync(Guid userId)
+    {
+        return _dbContext.Wallets.AnyAsync(wallet => wallet.UserId == userId);
+    }
+
+    public Task<Wallet?> GetByUserIdAsync(Guid userId)
+    {
+        return _dbContext.Wallets
+            .Include(wallet => wallet.Transactions)
+            .SingleOrDefaultAsync(wallet => wallet.UserId == userId);
+    }
+
+    public void Add(Wallet wallet)
+    {
+        _dbContext.Wallets.Add(wallet);
+    }
+}
