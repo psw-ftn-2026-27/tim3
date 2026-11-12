@@ -1,0 +1,59 @@
+// Forms on the left stay in view while the question list on the right grows.
+.layout {
+  align-items: start;
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+}
+
+.layout__side {
+  position: sticky;
+  top: var(--space-4);
+}
+
+// On a narrow screen the forms stack above the question list.
+@media (max-width: 52rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .layout__side {
+    position: static;
+  }
+}
+
+.selected {
+  outline: 2px solid var(--color-accent);
+}
+
+.questions {
+  margin: 0;
+  list-style: none;
+  padding: 0;
+}
+
+.questions > li + li {
+  margin-top: var(--space-2);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.answer {
+  align-items: end;
+  display: flex;
+  gap: var(--space-3);
+}
+
+.answer .field {
+  flex: 1;
+}
+
+.correct {
+  align-items: center;
+  display: flex;
+  gap: var(--space-1);
+  padding-bottom: var(--space-2);
+}

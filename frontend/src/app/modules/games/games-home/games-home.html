@@ -1,0 +1,36 @@
+<div class="stack">
+  <h1>Games</h1>
+
+  <div class="tabs">
+    <button
+      class="tab"
+      type="button"
+      [class.tab--active]="tab() === 'quizzes'"
+      (click)="tab.set('quizzes')"
+    >
+      Quizzes
+    </button>
+    <button
+      class="tab"
+      type="button"
+      [class.tab--active]="tab() === 'social'"
+      (click)="tab.set('social')"
+    >
+      Social challenges
+    </button>
+  </div>
+
+  @switch (tab()) {
+    @case ('quizzes') {
+      <div class="card stack">
+        <p><a routerLink="/games/quizzes">All quizzes</a></p>
+        <p><a routerLink="/games/quizzes/create">New quiz</a></p>
+      </div>
+    }
+    @case ('social') {
+      <div class="card stack">
+        <p class="meta">Social challenges are coming soon.</p>
+      </div>
+    }
+  }
+</div>
