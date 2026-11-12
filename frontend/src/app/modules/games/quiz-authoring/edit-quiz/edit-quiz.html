@@ -1,4 +1,8 @@
 <div class="stack">
+  @if (published()) {
+    <p>Quiz successfully published.</p>
+  }
+
   @if (quiz.isLoading()) {
     <p>Loading quiz...</p>
   } @else if (quiz.error()) {
@@ -6,6 +10,17 @@
   } @else if (quiz.value(); as current) {
     <h1>{{ current.title }}</h1>
     <p class="meta">Status: {{ current.status }}</p>
+
+    @if (isDraft()) {
+      <div class="actions">
+        <button class="button button--primary" type="button" [disabled]="pending()" (click)="publish()">
+          Publish
+        </button>
+      </div>
+      @if (publishError()) {
+        <p class="error">{{ publishError() }}</p>
+      }
+    }
 
     <div class="layout">
       <div class="layout__side stack">

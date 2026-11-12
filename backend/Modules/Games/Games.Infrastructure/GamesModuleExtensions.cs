@@ -1,5 +1,6 @@
 using Games.Application;
 using Games.Application.QuizAuthoring;
+using Games.Application.QuizLifecycle;
 using Games.Application.Quizzes;
 using Games.Infrastructure.Persistence;
 using Games.Infrastructure.Persistence.Quizzes;
@@ -23,6 +24,7 @@ public static class GamesModuleExtensions
 
         services.AddScoped<QuizAuthoringService>();
         services.AddScoped<QuizAuthoringQueries>();
+        services.AddScoped<QuizLifecycleService>();
 
         return services;
     }

@@ -43,6 +43,8 @@ export class EditQuiz {
   protected readonly pending = signal(false);
   protected readonly detailsError = signal<string | null>(null);
   protected readonly questionError = signal<string | null>(null);
+  protected readonly publishError = signal<string | null>(null);
+  protected readonly published = signal(false);
 
   private prefilled = false;
 
@@ -132,6 +134,20 @@ export class EditQuiz {
       this.quiz.reload();
     } catch (failure) {
       this.questionError.set(serverMessage(failure, 'Could not remove the question.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected async publish(): Promise<void> {
+    this.pending.set(true);
+    this.publishError.set(null);
+    try {
+      await this.quizAuthoring.publish(this.id());
+      this.published.set(true);
+      this.quiz.reload();
+    } catch (failure) {
+      this.publishError.set(serverMessage(failure, 'Could not publish the quiz.'));
     } finally {
       this.pending.set(false);
     }

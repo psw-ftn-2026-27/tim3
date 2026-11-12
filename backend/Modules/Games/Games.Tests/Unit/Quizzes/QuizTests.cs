@@ -18,6 +18,22 @@ public class QuizTests
         return quiz;
     }
 
+    private static Quiz CreateQuizWithThreeQuestions(string description)
+    {
+        var quiz = new Quiz(WellKnownUsers.Administrator, "Petrovaradinska tvrđava", description, 50);
+        quiz.AddQuestion("Koliko je stara Sahat kula?", [new Answer("Oko 300 godina", true), new Answer("Oko 50 godina", false)]);
+        quiz.AddQuestion("Na kojoj reci je tvrđava?", [new Answer("Dunav", true), new Answer("Sava", false)]);
+        quiz.AddQuestion("Kako se zove tvrđavski festival?", [new Answer("Exit", true), new Answer("Zmajevi", false)]);
+        return quiz;
+    }
+
+    private static Quiz CreatePublishedQuiz()
+    {
+        var quiz = CreateQuizWithThreeQuestions("Pitanja o tvrđavi.");
+        quiz.Publish();
+        return quiz;
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
@@ -174,5 +190,96 @@ public class QuizTests
         var addition = () => quiz.AddQuestion("Koji je tačan?", [new Answer(text, true), new Answer("Drugi", false)]);
 
         addition.Should().Throw<DomainException>();
+    }
+
+    [Fact]
+    public void Quiz_with_three_questions_and_instructions_is_published()
+    {
+        var quiz = CreateQuizWithThreeQuestions("Pitanja o tvrđavi.");
+
+        quiz.Publish();
+
+        quiz.Status.Should().Be(QuizStatus.Published);
+    }
+
+    [Fact]
+    public void Quiz_with_two_questions_is_not_published()
+    {
+        var quiz = CreateQuizWithThreeQuestions("Pitanja o tvrđavi.");
+        quiz.RemoveQuestion(quiz.Questions[0].Id);
+
+        var publication = () => quiz.Publish();
+
+        publication.Should().Throw<DomainException>();
+        quiz.Status.Should().Be(QuizStatus.Draft);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Quiz_without_instructions_is_not_published(string description)
+    {
+        var quiz = CreateQuizWithThreeQuestions(description);
+
+        var publication = () => quiz.Publish();
+
+        publication.Should().Throw<DomainException>();
+        quiz.Status.Should().Be(QuizStatus.Draft);
+    }
+
+    [Fact]
+    public void Published_quiz_cannot_be_published_again()
+    {
+        var quiz = CreatePublishedQuiz();
+
+        var publication = () => quiz.Publish();
+
+        publication.Should().Throw<DomainException>();
+    }
+
+    [Fact]
+    public void Details_of_a_published_quiz_cannot_be_changed()
+    {
+        var quiz = CreatePublishedQuiz();
+
+        var update = () => quiz.UpdateDetails("Nov naziv", "Nov opis.", 40);
+
+        update.Should().Throw<DomainException>();
+        quiz.Title.Should().Be("Petrovaradinska tvrđava");
+    }
+
+    [Fact]
+    public void Question_cannot_be_added_to_a_published_quiz()
+    {
+        var quiz = CreatePublishedQuiz();
+
+        var addition = () => quiz.AddQuestion("Novo pitanje?", [new Answer("Da", true), new Answer("Ne", false)]);
+
+        addition.Should().Throw<DomainException>();
+        quiz.Questions.Should().HaveCount(3);
+    }
+
+    [Fact]
+    public void Question_of_a_published_quiz_cannot_be_edited()
+    {
+        var quiz = CreatePublishedQuiz();
+        var question = quiz.Questions[0];
+
+        var update = () => quiz.UpdateQuestion(question.Id, "Izmenjeno pitanje?", [new Answer("Da", true), new Answer("Ne", false)]);
+
+        update.Should().Throw<DomainException>();
+        question.Text.Should().Be("Koliko je stara Sahat kula?");
+    }
+
+    [Fact]
+    public void Question_cannot_be_removed_from_a_published_quiz()
+    {
+        var quiz = CreatePublishedQuiz();
+        var questionId = quiz.Questions[0].Id;
+
+        var removal = () => quiz.RemoveQuestion(questionId);
+
+        removal.Should().Throw<DomainException>();
+        quiz.Questions.Should().Contain(question => question.Id == questionId);
     }
 }

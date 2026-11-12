@@ -7,6 +7,7 @@ public sealed class Quiz : AggregateRoot
 {
     public const int MinExperiencePoints = 1;
     public const int MaxExperiencePoints = 5000;
+    public const int MinQuestionsToPublish = 3;
 
     private readonly List<Question> _questions = [];
 
@@ -63,6 +64,21 @@ public sealed class Quiz : AggregateRoot
     {
         EnsureDraft();
         _questions.Remove(GetQuestion(questionId));
+    }
+
+    public void Publish()
+    {
+        EnsureDraft();
+        if (_questions.Count < MinQuestionsToPublish)
+        {
+            throw new DomainException($"A quiz requires at least {MinQuestionsToPublish} questions to be published.");
+        }
+        if (string.IsNullOrWhiteSpace(Description))
+        {
+            throw new DomainException("A quiz requires instructions to be published.");
+        }
+
+        Status = QuizStatus.Published;
     }
 
     private Question GetQuestion(Guid questionId)
