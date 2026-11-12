@@ -1,0 +1,7 @@
+<!-- Leaflet crta mapu direktno u element komponente; šablon dodaje samo poruke preko mape. -->
+@if (notAlongStreets()) {
+  <p class="map-message">Putanja nije po ulicama: prikazane su prave linije.</p>
+}
+@if (limitReached()) {
+  <p class="map-message map-message--center">Uneli ste najveći dozvoljen broj pinova.</p>
+}

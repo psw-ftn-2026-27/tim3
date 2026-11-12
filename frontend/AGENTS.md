@@ -115,9 +115,13 @@ construct means adding a lesson, so treat it as a platform decision.
   signals, and a fresh one is created on every visit); `HttpClient` with
   `firstValueFrom` in the group's service for writes. Functional interceptors
   (`HttpInterceptorFn`, `withInterceptors`) in `core/`.
+- `httpResource()` outside a page is allowed only in platform components under `shared/`
+  (currently `LocationMap`, for the street route), because the fallback logic then lives
+  in one place. Feature modules keep their resources in pages.
 - Forms: Signal Forms (`form()`, `FormField`, validators from
   `@angular/forms/signals`). No Reactive Forms, no template-driven forms.
-- Routing: `router-outlet`, `routerLink`, `loadChildren`, route parameters bound as
+- Routing: `router-outlet`, `routerLink`, `routerLinkActive` (with `ariaCurrentWhenActive`,
+  only in the main nav), `loadChildren`, route parameters bound as
   signal inputs via `withComponentInputBinding`; `inject(Router)` only for navigation
   after a command.
 - No RxJS in student code. `Observable` appears only as the return type of `HttpClient`

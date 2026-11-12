@@ -1,0 +1,21 @@
+@if (lastPage() > 1 || page() > 1) {
+  <nav class="pagination" [attr.aria-label]="label()">
+    <button
+      class="button"
+      type="button"
+      [disabled]="disabled() || page() <= 1"
+      (click)="pageChange.emit(page() - 1)"
+    >
+      Prethodna
+    </button>
+    <span>Strana {{ page() }} od {{ lastPage() || 1 }}</span>
+    <button
+      class="button"
+      type="button"
+      [disabled]="disabled() || page() >= lastPage()"
+      (click)="pageChange.emit(page() + 1)"
+    >
+      Sledeća
+    </button>
+  </nav>
+}

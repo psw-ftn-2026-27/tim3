@@ -1,0 +1,84 @@
+<div class="stack">
+  <h3>Istorija transakcija</h3>
+
+  @if (transactions().length === 0) {
+    <p>Još nema transakcija.</p>
+  } @else {
+    <div class="table-wrapper">
+      <table class="table" aria-label="Istorija transakcija">
+        <thead>
+          <tr>
+            <th scope="col">Vrsta</th>
+            <th scope="col">Iznos</th>
+            <th scope="col">Datum</th>
+            @if (recipient() !== null) {
+              <th scope="col">Radnja</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (transaction of transactions(); track transaction.id) {
+            <tr>
+              <td>{{ transaction.kind === 'Deposit' ? 'Uplata' : 'Storno uplate' }}</td>
+              <td>{{ transaction.amount > 0 ? '+' : '' }}{{ transaction.amount }} EC</td>
+              <td>
+                <time [attr.datetime]="transaction.occurredAt">{{
+                  date(transaction.occurredAt)
+                }}</time>
+              </td>
+              @if (recipient() !== null) {
+                <td>
+                  @if (transaction.kind === 'Deposit') {
+                    <button
+                      class="button"
+                      type="button"
+                      [attr.aria-expanded]="reversalId() === transaction.id"
+                      [disabled]="disabled()"
+                      (click)="openReversal($event, transaction.id)"
+                    >
+                      Storniraj
+                    </button>
+                  }
+                </td>
+              }
+            </tr>
+            @if (recipient() !== null && reversalId() === transaction.id) {
+              <tr>
+                <td colspan="4">
+                  <div class="stack">
+                    <p>
+                      Storniraj uplatu od <strong>{{ transaction.amount }} EC</strong> za korisnika
+                      <strong>{{ recipient() }}</strong
+                      >.
+                    </p>
+                    @if (reversalError(); as message) {
+                      <p class="error" role="alert">{{ message }}</p>
+                    }
+                    <div class="actions">
+                      <button
+                        class="button button--primary"
+                        type="button"
+                        [disabled]="disabled()"
+                        (click)="confirmReversal.emit()"
+                      >
+                        Potvrdi storno
+                      </button>
+                      <button
+                        class="button"
+                        type="button"
+                        [disabled]="disabled()"
+                        (click)="closeReversal()"
+                      >
+                        Odustani
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
