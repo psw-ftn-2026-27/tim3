@@ -43,8 +43,9 @@ export class EditQuiz {
   protected readonly pending = signal(false);
   protected readonly detailsError = signal<string | null>(null);
   protected readonly questionError = signal<string | null>(null);
-  protected readonly publishError = signal<string | null>(null);
-  protected readonly published = signal(false);
+  protected readonly transitionError = signal<string | null>(null);
+  // The message for the last successful status transition, or null before any.
+  protected readonly transitionMessage = signal<string | null>(null);
 
   private prefilled = false;
 
@@ -141,13 +142,44 @@ export class EditQuiz {
 
   protected async publish(): Promise<void> {
     this.pending.set(true);
-    this.publishError.set(null);
+    this.transitionError.set(null);
+    this.transitionMessage.set(null);
     try {
       await this.quizAuthoring.publish(this.id());
-      this.published.set(true);
+      this.transitionMessage.set('Quiz successfully published.');
       this.quiz.reload();
     } catch (failure) {
-      this.publishError.set(serverMessage(failure, 'Could not publish the quiz.'));
+      this.transitionError.set(serverMessage(failure, 'Could not publish the quiz.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected async retire(): Promise<void> {
+    this.pending.set(true);
+    this.transitionError.set(null);
+    this.transitionMessage.set(null);
+    try {
+      await this.quizAuthoring.retire(this.id());
+      this.transitionMessage.set('Quiz successfully retired.');
+      this.quiz.reload();
+    } catch (failure) {
+      this.transitionError.set(serverMessage(failure, 'Could not retire the quiz.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected async archive(): Promise<void> {
+    this.pending.set(true);
+    this.transitionError.set(null);
+    this.transitionMessage.set(null);
+    try {
+      await this.quizAuthoring.archive(this.id());
+      this.transitionMessage.set('Quiz successfully archived.');
+      this.quiz.reload();
+    } catch (failure) {
+      this.transitionError.set(serverMessage(failure, 'Could not archive the quiz.'));
     } finally {
       this.pending.set(false);
     }

@@ -1,6 +1,6 @@
 <div class="stack">
-  @if (published()) {
-    <p>Quiz successfully published.</p>
+  @if (transitionMessage()) {
+    <p>{{ transitionMessage() }}</p>
   }
 
   @if (quiz.isLoading()) {
@@ -11,15 +11,27 @@
     <h1>{{ current.title }}</h1>
     <p class="meta">Status: {{ current.status }}</p>
 
-    @if (isDraft()) {
+    @if (current.status !== 'Archived') {
       <div class="actions">
-        <button class="button button--primary" type="button" [disabled]="pending()" (click)="publish()">
-          Publish
-        </button>
+        @if (current.status === 'Draft' || current.status === 'Retired') {
+          <button class="button button--primary" type="button" [disabled]="pending()" (click)="publish()">
+            Publish
+          </button>
+        }
+        @if (current.status === 'Published') {
+          <button class="button" type="button" [disabled]="pending()" (click)="retire()">
+            Retire
+          </button>
+        }
+        @if (current.status === 'Retired') {
+          <button class="button" type="button" [disabled]="pending()" (click)="archive()">
+            Archive
+          </button>
+        }
       </div>
-      @if (publishError()) {
-        <p class="error">{{ publishError() }}</p>
-      }
+    }
+    @if (transitionError()) {
+      <p class="error">{{ transitionError() }}</p>
     }
 
     <div class="layout">

@@ -23,6 +23,22 @@ public sealed class QuizLifecycleService
         await _unitOfWork.SaveChangesAsync();
     }
 
+    public async Task RetireAsync(Guid quizId)
+    {
+        var quiz = await GetQuizAsync(quizId);
+
+        quiz.Retire();
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task ArchiveAsync(Guid quizId)
+    {
+        var quiz = await GetQuizAsync(quizId);
+
+        quiz.Archive();
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     private async Task<Quiz> GetQuizAsync(Guid quizId)
     {
         var quiz = await _quizRepository.GetByIdAsync(quizId);

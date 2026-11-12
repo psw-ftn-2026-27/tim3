@@ -68,7 +68,10 @@ public sealed class Quiz : AggregateRoot
 
     public void Publish()
     {
-        EnsureDraft();
+        if (Status != QuizStatus.Draft && Status != QuizStatus.Retired)
+        {
+            throw new DomainException("Only a draft or retired quiz can be published.");
+        }
         if (_questions.Count < MinQuestionsToPublish)
         {
             throw new DomainException($"A quiz requires at least {MinQuestionsToPublish} questions to be published.");
@@ -79,6 +82,26 @@ public sealed class Quiz : AggregateRoot
         }
 
         Status = QuizStatus.Published;
+    }
+
+    public void Retire()
+    {
+        if (Status != QuizStatus.Published)
+        {
+            throw new DomainException("Only a published quiz can be retired.");
+        }
+
+        Status = QuizStatus.Retired;
+    }
+
+    public void Archive()
+    {
+        if (Status != QuizStatus.Retired)
+        {
+            throw new DomainException("Only a retired quiz can be archived.");
+        }
+
+        Status = QuizStatus.Archived;
     }
 
     private Question GetQuestion(Guid questionId)

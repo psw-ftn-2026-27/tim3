@@ -11,6 +11,8 @@ internal static class QuizSeed
     public static readonly Quiz FortressQuiz;
     public static readonly Quiz OtherAdministratorsQuiz;
     public static readonly Quiz ReadyToPublishCathedralQuiz;
+    public static readonly Quiz PublishedSynagogueQuiz;
+    public static readonly Quiz RetiredBridgeQuiz;
 
     static QuizSeed()
     {
@@ -24,7 +26,20 @@ internal static class QuizSeed
         ReadyToPublishCathedralQuiz.AddQuestion("Na kom trgu je katedrala?", [new Answer("Trg slobode", true), new Answer("Trg galerija", false)]);
         ReadyToPublishCathedralQuiz.AddQuestion("Kom svecu je posvećena?", [new Answer("Svetoj Mariji", true), new Answer("Svetom Đorđu", false)]);
         ReadyToPublishCathedralQuiz.AddQuestion("U kom stilu je građena?", [new Answer("Neogotičkom", true), new Answer("Baroknom", false), new Answer("Romanskom", false)]);
+
+        PublishedSynagogueQuiz = new(WellKnownUsers.Administrator, "Sinagoga", "Odgovori na tri pitanja o sinagogi.", 40);
+        PublishedSynagogueQuiz.AddQuestion("U kojoj ulici je sinagoga?", [new Answer("Jevrejskoj", true), new Answer("Zmaj Jovinoj", false)]);
+        PublishedSynagogueQuiz.AddQuestion("Ko je projektovao sinagogu?", [new Answer("Lipot Baumhorn", true), new Answer("Ödön Lechner", false)]);
+        PublishedSynagogueQuiz.AddQuestion("Za šta se sinagoga danas koristi?", [new Answer("Koncerte", true), new Answer("Sport", false)]);
+        PublishedSynagogueQuiz.Publish();
+
+        RetiredBridgeQuiz = new(WellKnownUsers.Administrator, "Mostovi", "Odgovori na tri pitanja o mostovima.", 25);
+        RetiredBridgeQuiz.AddQuestion("Koliko mostova ima Novi Sad?", [new Answer("Tri", true), new Answer("Sedam", false)]);
+        RetiredBridgeQuiz.AddQuestion("Koji most je najstariji?", [new Answer("Varadinski", true), new Answer("Most slobode", false)]);
+        RetiredBridgeQuiz.AddQuestion("Preko koje reke vode?", [new Answer("Dunav", true), new Answer("Tisa", false)]);
+        RetiredBridgeQuiz.Publish();
+        RetiredBridgeQuiz.Retire();
     }
 
-    public static Quiz[] All => [EmptyMuseumQuiz, FortressQuiz, OtherAdministratorsQuiz, ReadyToPublishCathedralQuiz];
+    public static Quiz[] All => [EmptyMuseumQuiz, FortressQuiz, OtherAdministratorsQuiz, ReadyToPublishCathedralQuiz, PublishedSynagogueQuiz, RetiredBridgeQuiz];
 }

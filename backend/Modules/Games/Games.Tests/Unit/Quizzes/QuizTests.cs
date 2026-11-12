@@ -34,6 +34,29 @@ public class QuizTests
         return quiz;
     }
 
+    private static Quiz CreateRetiredQuiz()
+    {
+        var quiz = CreatePublishedQuiz();
+        quiz.Retire();
+        return quiz;
+    }
+
+    private static Quiz CreateArchivedQuiz()
+    {
+        var quiz = CreateRetiredQuiz();
+        quiz.Archive();
+        return quiz;
+    }
+
+    private static Quiz CreateQuizIn(QuizStatus status) => status switch
+    {
+        QuizStatus.Draft => CreateQuizWithThreeQuestions("Pitanja o tvrđavi."),
+        QuizStatus.Published => CreatePublishedQuiz(),
+        QuizStatus.Retired => CreateRetiredQuiz(),
+        QuizStatus.Archived => CreateArchivedQuiz(),
+        _ => throw new ArgumentOutOfRangeException(nameof(status))
+    };
+
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
@@ -281,5 +304,74 @@ public class QuizTests
 
         removal.Should().Throw<DomainException>();
         quiz.Questions.Should().Contain(question => question.Id == questionId);
+    }
+
+    [Fact]
+    public void Published_quiz_is_retired()
+    {
+        var quiz = CreatePublishedQuiz();
+
+        quiz.Retire();
+
+        quiz.Status.Should().Be(QuizStatus.Retired);
+    }
+
+    [Theory]
+    [InlineData(QuizStatus.Draft)]
+    [InlineData(QuizStatus.Retired)]
+    [InlineData(QuizStatus.Archived)]
+    public void Quiz_that_is_not_published_cannot_be_retired(QuizStatus status)
+    {
+        var quiz = CreateQuizIn(status);
+
+        var retirement = () => quiz.Retire();
+
+        retirement.Should().Throw<DomainException>();
+        quiz.Status.Should().Be(status);
+    }
+
+    [Fact]
+    public void Retired_quiz_is_archived()
+    {
+        var quiz = CreateRetiredQuiz();
+
+        quiz.Archive();
+
+        quiz.Status.Should().Be(QuizStatus.Archived);
+    }
+
+    [Theory]
+    [InlineData(QuizStatus.Draft)]
+    [InlineData(QuizStatus.Published)]
+    [InlineData(QuizStatus.Archived)]
+    public void Quiz_that_is_not_retired_cannot_be_archived(QuizStatus status)
+    {
+        var quiz = CreateQuizIn(status);
+
+        var archiving = () => quiz.Archive();
+
+        archiving.Should().Throw<DomainException>();
+        quiz.Status.Should().Be(status);
+    }
+
+    [Fact]
+    public void Retired_quiz_is_published_again()
+    {
+        var quiz = CreateRetiredQuiz();
+
+        quiz.Publish();
+
+        quiz.Status.Should().Be(QuizStatus.Published);
+    }
+
+    [Fact]
+    public void Archived_quiz_cannot_be_published()
+    {
+        var quiz = CreateArchivedQuiz();
+
+        var publication = () => quiz.Publish();
+
+        publication.Should().Throw<DomainException>();
+        quiz.Status.Should().Be(QuizStatus.Archived);
     }
 }

@@ -37,4 +37,12 @@ export class QuizAuthoring {
   async publish(id: string): Promise<void> {
     await firstValueFrom(this.http.post<void>(`${BASE_URL}/${id}/publish`, {}));
   }
+
+  async retire(id: string): Promise<void> {
+    await firstValueFrom(this.http.post<void>(`${BASE_URL}/${id}/retire`, {}));
+  }
+
+  async archive(id: string): Promise<void> {
+    await firstValueFrom(this.http.post<void>(`${BASE_URL}/${id}/archive`, {}));
+  }
 }
