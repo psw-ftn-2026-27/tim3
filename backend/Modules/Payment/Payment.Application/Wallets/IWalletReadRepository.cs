@@ -1,5 +1,3 @@
-using Payment.Application.OwnWallet;
-
 namespace Payment.Application.Wallets;
 
 public interface IWalletReadRepository

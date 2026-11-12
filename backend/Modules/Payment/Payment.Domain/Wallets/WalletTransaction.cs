@@ -12,12 +12,13 @@ public sealed class WalletTransaction : Entity
 
     private WalletTransaction() { }
 
-    internal WalletTransaction(int amount, Guid administratorId, DateTime occurredAt)
+    internal WalletTransaction(int amount, Guid administratorId, DateTime occurredAt, Guid? originalDepositId = null)
         : base(Guid.NewGuid())
     {
         Amount = amount;
         AdministratorId = administratorId;
         OccurredAt = occurredAt;
-        Kind = WalletTransactionKind.Deposit;
+        Kind = originalDepositId.HasValue ? WalletTransactionKind.Reversal : WalletTransactionKind.Deposit;
+        OriginalDepositId = originalDepositId;
     }
 }

@@ -87,4 +87,84 @@ public class AdminWalletCommandTests : BaseIntegrationTest
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
+
+    [Fact]
+    public async Task Administrator_reverses_a_deposit_without_removing_the_original()
+    {
+        var wallet = WalletSeed.ExplorerWalletWithDeposit;
+        var deposit = wallet.Transactions.Single();
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+        var startedAt = DateTime.UtcNow;
+
+        var response = await client.PostAsync($"/api/payment/wallet/{wallet.UserId}/deposits/{deposit.Id}/reverse", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        var stored = await context.Wallets.Include(item => item.Transactions).SingleAsync(item => item.Id == wallet.Id);
+        stored.Balance.Should().Be(wallet.Balance - deposit.Amount);
+        stored.Transactions.Should().HaveCount(wallet.Transactions.Count + 1).And.Contain(deposit);
+        var reversal = stored.Transactions.Single(item => item.Id != deposit.Id);
+        reversal.Kind.Should().Be(WalletTransactionKind.Reversal);
+        reversal.OriginalDepositId.Should().Be(deposit.Id);
+        reversal.Amount.Should().Be(-deposit.Amount);
+        reversal.AdministratorId.Should().Be(WellKnownUsers.Administrator);
+        reversal.OccurredAt.Should().BeOnOrAfter(startedAt.AddMilliseconds(-1)).And.BeOnOrBefore(DateTime.UtcNow);
+    }
+
+    [Fact]
+    public async Task An_expired_deposit_remains_in_the_wallet_without_a_reversal()
+    {
+        var wallet = WalletSeed.ExplorerWalletWithReversal;
+        var deposit = wallet.Transactions.Single(item => item.Kind == WalletTransactionKind.Deposit && item.Amount == 20);
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+
+        var response = await client.PostAsync($"/api/payment/wallet/{wallet.UserId}/deposits/{deposit.Id}/reverse", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        var stored = await context.Wallets.Include(item => item.Transactions).SingleAsync(item => item.Id == wallet.Id);
+        stored.Balance.Should().Be(wallet.Balance);
+        stored.Transactions.Should().BeEquivalentTo(wallet.Transactions);
+    }
+
+    [Fact]
+    public async Task A_reversal_requires_an_existing_wallet()
+    {
+        var wallet = WalletSeed.ExplorerWalletWithDeposit;
+        var deposit = wallet.Transactions.Single();
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+        var userId = WellKnownUsers.ThirdExplorer;
+
+        var response = await client.PostAsync($"/api/payment/wallet/{userId}/deposits/{deposit.Id}/reverse", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        var stored = await context.Wallets.Include(item => item.Transactions).SingleAsync(item => item.Id == wallet.Id);
+        stored.Balance.Should().Be(wallet.Balance);
+        stored.Transactions.Should().BeEquivalentTo(wallet.Transactions);
+    }
+
+    [Fact]
+    public async Task Anonymous_visitor_cannot_reverse_a_deposit()
+    {
+        var wallet = WalletSeed.ExplorerWalletWithDeposit;
+        var deposit = wallet.Transactions.Single();
+        var client = Factory.CreateClient();
+
+        var response = await client.PostAsync($"/api/payment/wallet/{wallet.UserId}/deposits/{deposit.Id}/reverse", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Explorer_cannot_reverse_a_deposit()
+    {
+        var wallet = WalletSeed.ExplorerWalletWithDeposit;
+        var deposit = wallet.Transactions.Single();
+        var client = Factory.CreateClientFor(wallet.UserId, "explorer");
+
+        var response = await client.PostAsync($"/api/payment/wallet/{wallet.UserId}/deposits/{deposit.Id}/reverse", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
 }

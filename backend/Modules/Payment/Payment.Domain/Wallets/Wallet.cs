@@ -39,4 +39,30 @@ public sealed class Wallet : AggregateRoot
         _transactions.Add(new WalletTransaction(amount, administratorId, occurredAt));
         Balance += amount;
     }
+
+    public void ReverseDeposit(Guid depositId, Guid administratorId, DateTime occurredAt)
+    {
+        var deposit = _transactions.SingleOrDefault(transaction =>
+            transaction.Id == depositId && transaction.Kind == WalletTransactionKind.Deposit)
+            ?? throw new NotFoundException("The deposit does not exist in this wallet.");
+
+        var elapsed = occurredAt - deposit.OccurredAt;
+        if (elapsed < TimeSpan.Zero || elapsed > TimeSpan.FromHours(24))
+        {
+            throw new DomainException("The deposit can only be reversed within 24 hours.");
+        }
+
+        if (_transactions.Any(transaction => transaction.OriginalDepositId == depositId))
+        {
+            throw new DomainException("The deposit has already been reversed.");
+        }
+
+        if (Balance < deposit.Amount)
+        {
+            throw new DomainException("The wallet has insufficient EC to reverse the deposit.");
+        }
+
+        _transactions.Add(new WalletTransaction(-deposit.Amount, administratorId, occurredAt, deposit.Id));
+        Balance -= deposit.Amount;
+    }
 }

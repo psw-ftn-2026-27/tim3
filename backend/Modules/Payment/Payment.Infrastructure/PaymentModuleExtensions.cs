@@ -24,6 +24,7 @@ public static class PaymentModuleExtensions
         services.AddScoped<OwnWalletService>();
         services.AddScoped<OwnWalletQueries>();
         services.AddScoped<AdminWalletService>();
+        services.AddScoped<AdminWalletQueries>();
 
         return services;
     }

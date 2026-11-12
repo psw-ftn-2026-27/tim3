@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Payment.Application.OwnWallet;
+using Payment.Application.Wallets;
 using Shared.Api;
 
 namespace Payment.Api;

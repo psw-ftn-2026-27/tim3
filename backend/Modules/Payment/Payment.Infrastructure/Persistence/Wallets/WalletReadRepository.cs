@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Payment.Application.OwnWallet;
 using Payment.Application.Wallets;
 using Shared.Domain;
 

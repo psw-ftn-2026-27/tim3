@@ -45,6 +45,67 @@ public class WalletTests
         wallet.Transactions.Should().ContainSingle().Which.Should().Be(previousDeposit);
     }
 
+    [Fact]
+    public void A_deposit_can_be_reversed_exactly_twenty_four_hours_later()
+    {
+        var wallet = CreateWalletWithDeposit(40);
+        var deposit = wallet.Transactions.Single();
+
+        wallet.ReverseDeposit(deposit.Id, WellKnownUsers.Administrator, DepositTime.AddHours(24));
+
+        wallet.Balance.Should().Be(0);
+        wallet.Transactions.Should().Contain(deposit);
+        wallet.Transactions.Should().ContainSingle(transaction =>
+            transaction.Kind == WalletTransactionKind.Reversal && transaction.OriginalDepositId == deposit.Id);
+    }
+
+    [Fact]
+    public void A_deposit_cannot_be_reversed_after_twenty_four_hours()
+    {
+        var wallet = CreateWalletWithDeposit(40);
+        var deposit = wallet.Transactions.Single();
+        var tooLate = DepositTime.AddHours(24).AddTicks(1);
+
+        var reverse = () => wallet.ReverseDeposit(deposit.Id, WellKnownUsers.Administrator, tooLate);
+
+        reverse.Should().Throw<DomainException>();
+        wallet.Balance.Should().Be(40);
+        wallet.Transactions.Should().ContainSingle().Which.Should().Be(deposit);
+    }
+
+    [Fact]
+    public void A_deposit_cannot_be_reversed_twice()
+    {
+        var wallet = CreateWalletWithDeposit(40);
+        var deposit = wallet.Transactions.Single();
+        var reversedAt = DepositTime.AddHours(1);
+        wallet.ReverseDeposit(deposit.Id, WellKnownUsers.Administrator, reversedAt);
+        wallet.Deposit(50, WellKnownUsers.Administrator, reversedAt);
+        var history = wallet.Transactions.ToList();
+
+        var reverse = () => wallet.ReverseDeposit(deposit.Id, WellKnownUsers.Administrator, reversedAt);
+
+        reverse.Should().Throw<DomainException>();
+        wallet.Balance.Should().Be(50);
+        wallet.Transactions.Should().Equal(history);
+    }
+
+    [Fact]
+    public void A_deposit_outside_the_wallet_cannot_be_reversed()
+    {
+        var wallet = CreateWalletWithDeposit(40);
+        var deposit = wallet.Transactions.Single();
+        var otherWallet = new Wallet(WellKnownUsers.SecondExplorer);
+        otherWallet.Deposit(40, WellKnownUsers.Administrator, DepositTime);
+        var otherDeposit = otherWallet.Transactions.Single();
+
+        var reverse = () => wallet.ReverseDeposit(otherDeposit.Id, WellKnownUsers.Administrator, DepositTime.AddHours(1));
+
+        reverse.Should().Throw<NotFoundException>();
+        wallet.Balance.Should().Be(40);
+        wallet.Transactions.Should().ContainSingle().Which.Should().Be(deposit);
+    }
+
     private static Wallet CreateWalletWithDeposit(int amount)
     {
         var wallet = new Wallet(WellKnownUsers.Explorer);

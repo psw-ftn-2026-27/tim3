@@ -22,4 +22,13 @@ public sealed class AdminWalletService
         wallet.Deposit(deposit.Amount, administratorId, DateTime.UtcNow);
         await _unitOfWork.SaveChangesAsync();
     }
+
+    public async Task ReverseDepositECAsync(Guid userId, Guid depositId, Guid administratorId)
+    {
+        var wallet = await _walletRepository.GetByUserIdAsync(userId)
+            ?? throw new NotFoundException("The recipient's wallet does not exist.");
+
+        wallet.ReverseDeposit(depositId, administratorId, DateTime.UtcNow);
+        await _unitOfWork.SaveChangesAsync();
+    }
 }
