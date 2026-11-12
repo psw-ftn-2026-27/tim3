@@ -30,6 +30,9 @@ namespace Exploration.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid");
 

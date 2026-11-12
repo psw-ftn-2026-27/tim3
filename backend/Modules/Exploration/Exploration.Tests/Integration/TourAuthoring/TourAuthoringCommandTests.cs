@@ -113,4 +113,124 @@ public class TourAuthoringCommandTests : BaseIntegrationTest
         var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.PublishableRiverside.Id);
         stored.Status.Should().Be(TourStatus.Draft);
     }
+
+    [Fact]
+    public async Task Author_archives_their_published_tour()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+
+        var response = await client.PostAsync($"/api/exploration/tours/{TourSeed.PublishedVineyards.Id}/archive", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var assertContext = Factory.CreateContext<ExplorationDbContext>();
+        var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.PublishedVineyards.Id);
+        stored.Status.Should().Be(TourStatus.Archived);
+        stored.ArchivedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Explorer_cannot_archive_another_authors_tour()
+    {
+        var client = Factory.CreateClientFor(Guid.NewGuid(), "explorer");
+
+        var response = await client.PostAsync($"/api/exploration/tours/{TourSeed.PublishedVineyards.Id}/archive", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        using var assertContext = Factory.CreateContext<ExplorationDbContext>();
+        var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.PublishedVineyards.Id);
+        stored.Status.Should().Be(TourStatus.Published);
+    }
+
+    [Fact]
+    public async Task Author_cannot_archive_a_draft_tour()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+
+        var response = await client.PostAsync($"/api/exploration/tours/{TourSeed.PublishableRiverside.Id}/archive", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var assertContext = Factory.CreateContext<ExplorationDbContext>();
+        var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.PublishableRiverside.Id);
+        stored.Status.Should().Be(TourStatus.Draft);
+    }
+
+    [Fact]
+    public async Task Anonymous_user_cannot_archive_a_tour()
+    {
+        var client = Factory.CreateClient();
+
+        var response = await client.PostAsync($"/api/exploration/tours/{TourSeed.PublishedVineyards.Id}/archive", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Administrator_cannot_archive_a_tour()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+
+        var response = await client.PostAsync($"/api/exploration/tours/{TourSeed.PublishedVineyards.Id}/archive", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task Author_reactivates_their_archived_tour()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+
+        var response = await client.PostAsync($"/api/exploration/tours/{TourSeed.ArchivedHomesteads.Id}/reactivate", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var assertContext = Factory.CreateContext<ExplorationDbContext>();
+        var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.ArchivedHomesteads.Id);
+        stored.Status.Should().Be(TourStatus.Published);
+        stored.ArchivedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Explorer_cannot_reactivate_another_authors_tour()
+    {
+        var client = Factory.CreateClientFor(Guid.NewGuid(), "explorer");
+
+        var response = await client.PostAsync($"/api/exploration/tours/{TourSeed.ArchivedHomesteads.Id}/reactivate", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        using var assertContext = Factory.CreateContext<ExplorationDbContext>();
+        var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.ArchivedHomesteads.Id);
+        stored.Status.Should().Be(TourStatus.Archived);
+    }
+
+    [Fact]
+    public async Task Author_cannot_reactivate_a_published_tour()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+
+        var response = await client.PostAsync($"/api/exploration/tours/{TourSeed.PublishedVineyards.Id}/reactivate", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var assertContext = Factory.CreateContext<ExplorationDbContext>();
+        var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.PublishedVineyards.Id);
+        stored.Status.Should().Be(TourStatus.Published);
+    }
+
+    [Fact]
+    public async Task Anonymous_user_cannot_reactivate_a_tour()
+    {
+        var client = Factory.CreateClient();
+
+        var response = await client.PostAsync($"/api/exploration/tours/{TourSeed.ArchivedHomesteads.Id}/reactivate", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Administrator_cannot_reactivate_a_tour()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+
+        var response = await client.PostAsync($"/api/exploration/tours/{TourSeed.ArchivedHomesteads.Id}/reactivate", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
 }
