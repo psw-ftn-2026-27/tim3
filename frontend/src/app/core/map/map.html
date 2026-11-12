@@ -1,0 +1,81 @@
+<div class="card stack">
+  <h1>Mapa</h1>
+
+  <app-location-map
+    [locations]="locations()"
+    [route]="route()"
+    [selectable]="true"
+    [maxPins]="maxPins()"
+    (locationsChange)="changeLocations($event)"
+    (routeLength)="routeLength.set($event)"
+  />
+
+  @if (route() !== 'none' && routeLength() !== null) {
+    <p>Dužina putanje: {{ routeLength()?.toFixed(2) }} km</p>
+  }
+
+  <div class="buttons">
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="route() === 'none'"
+      (click)="select('none')"
+    >
+      Bez putanje
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="route() === 'straight'"
+      (click)="select('straight')"
+    >
+      Prave linije
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="route() === 'streets'"
+      (click)="select('streets')"
+    >
+      Po ulicama
+    </button>
+  </div>
+
+  <div class="buttons">
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="maxPins() === null"
+      (click)="selectLimit(null)"
+    >
+      Bez granice
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="maxPins() === 5"
+      (click)="selectLimit(5)"
+    >
+      Najviše 5
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="maxPins() === 1"
+      (click)="selectLimit(1)"
+    >
+      Najviše 1
+    </button>
+  </div>
+
+  <h2>Izabrane lokacije</h2>
+  @if (locations().length === 0) {
+    <p>Nema izabranih lokacija.</p>
+  } @else {
+    <ol>
+      @for (location of locations(); track $index) {
+        <li>{{ location.latitude.toFixed(5) }}, {{ location.longitude.toFixed(5) }}</li>
+      }
+    </ol>
+  }
+</div>
