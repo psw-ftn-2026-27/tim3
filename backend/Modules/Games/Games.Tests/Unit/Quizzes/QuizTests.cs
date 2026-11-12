@@ -64,6 +64,33 @@ public class QuizTests
         update.Should().Throw<DomainException>();
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Added_question_requires_text(string text)
+    {
+        var quiz = CreateQuiz();
+
+        var addition = () => quiz.AddQuestion(text, [new Answer("Prvi", true), new Answer("Drugi", false)]);
+
+        addition.Should().Throw<DomainException>();
+        quiz.Questions.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Edited_question_requires_text(string text)
+    {
+        var quiz = CreateQuizWithQuestion();
+        var questionId = quiz.Questions.Single().Id;
+
+        var update = () => quiz.UpdateQuestion(questionId, text, [new Answer("Prvi", true), new Answer("Drugi", false)]);
+
+        update.Should().Throw<DomainException>();
+        quiz.Questions.Single().Text.Should().Be("Koliko je stara Sahat kula?");
+    }
+
     [Fact]
     public void Question_with_more_than_four_answers_is_rejected()
     {

@@ -192,6 +192,22 @@ public class QuizAuthoringCommandTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Added_question_without_text_is_not_saved()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+        var request = new CreateQuestionDto("   ", [new AnswerDto("1847.", true), new AnswerDto("1947.", false)]);
+        using var arrangeContext = Factory.CreateContext<GamesDbContext>();
+        var questionCountBefore = arrangeContext.Quizzes.Single(quiz => quiz.Id == QuizSeed.FortressQuiz.Id).Questions.Count;
+
+        var response = await client.PostAsJsonAsync($"/api/games/quizzes/{QuizSeed.FortressQuiz.Id}/questions", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var assertContext = Factory.CreateContext<GamesDbContext>();
+        var stored = assertContext.Quizzes.Single(quiz => quiz.Id == QuizSeed.FortressQuiz.Id);
+        stored.Questions.Should().HaveCount(questionCountBefore);
+    }
+
+    [Fact]
     public async Task Question_for_a_missing_quiz_is_rejected()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
@@ -253,6 +269,24 @@ public class QuizAuthoringCommandTests : BaseIntegrationTest
         var seededQuestion = QuizSeed.FortressQuiz.Questions.Single();
         var request = new UpdateQuestionDto("Uz koju reku je tvrđava?",
             [new AnswerDto("Sava", true), new AnswerDto("Dunav", true)]);
+
+        var response = await client.PutAsJsonAsync(
+            $"/api/games/quizzes/{QuizSeed.FortressQuiz.Id}/questions/{seededQuestion.Id}", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var assertContext = Factory.CreateContext<GamesDbContext>();
+        var stored = assertContext.Quizzes.Single(quiz => quiz.Id == QuizSeed.FortressQuiz.Id);
+        var question = stored.Questions.Single(question => question.Id == seededQuestion.Id);
+        question.Text.Should().Be(seededQuestion.Text);
+        question.Answers.Should().Equal(seededQuestion.Answers);
+    }
+
+    [Fact]
+    public async Task Edited_question_without_text_is_not_saved()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+        var seededQuestion = QuizSeed.FortressQuiz.Questions.Single();
+        var request = new UpdateQuestionDto("", [new AnswerDto("Sava", false), new AnswerDto("Dunav", true)]);
 
         var response = await client.PutAsJsonAsync(
             $"/api/games/quizzes/{QuizSeed.FortressQuiz.Id}/questions/{seededQuestion.Id}", request);

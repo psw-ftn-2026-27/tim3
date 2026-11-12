@@ -33,7 +33,9 @@ export class EditQuiz {
     },
   );
 
-  protected readonly questionForm = form(signal(this.questionModel(null)));
+  protected readonly questionForm = form(signal(this.questionModel(null)), (path) => {
+    required(path.text, { message: 'Question text is required.' });
+  });
 
   // The question being edited, or null while the form adds a new question.
   protected readonly selectedQuestionId = signal<string | null>(null);

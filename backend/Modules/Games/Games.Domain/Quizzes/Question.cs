@@ -19,6 +19,7 @@ public sealed class Question : Entity
 
     public Question(string text, List<Answer> answers) : base(Guid.NewGuid())
     {
+        EnsureText(text);
         EnsureValidAnswers(answers);
 
         Text = text;
@@ -27,11 +28,20 @@ public sealed class Question : Entity
 
     public void Update(string text, List<Answer> answers)
     {
+        EnsureText(text);
         EnsureValidAnswers(answers);
 
         Text = text;
         _answers.Clear();
         _answers.AddRange(answers);
+    }
+
+    private static void EnsureText(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            throw new DomainException("A question requires text.");
+        }
     }
 
     private static void EnsureValidAnswers(List<Answer> answers)
