@@ -1,23 +1,56 @@
 header {
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border);
   margin-bottom: var(--space-5);
 }
 
 nav {
+  align-items: center;
   display: flex;
   gap: var(--space-4);
+  min-height: 3.75rem;
   padding-block: var(--space-3);
 }
 
 nav a {
-  color: var(--color-text-muted);
-  font-weight: 500;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
   text-decoration: none;
 }
 
-nav a:hover {
-  color: var(--color-accent);
+// The link of the open section is bold.
+nav a.active {
+  font-weight: 700;
+}
+
+// Focus is shown by the shared line below, so the outline ring is not needed.
+nav a:focus-visible {
+  outline: none;
+}
+
+.nav-links {
+  align-items: center;
+  display: flex;
+  gap: var(--space-4);
+  position: relative;
+}
+
+// One line for all links. app.ts sets its left and width from the link under the mouse.
+// It only grows when it appears, and slides (left and width) when it moves between links.
+.nav-indicator {
+  background: var(--color-border);
+  bottom: calc(-1 * var(--space-1));
+  height: 3px;
+  pointer-events: none;
+  position: absolute;
+  transition: width 300ms ease-out;
+}
+
+.nav-indicator.sliding {
+  transition:
+    left 300ms ease-out,
+    width 300ms ease-out;
 }
 
 .nav-user {
@@ -30,4 +63,71 @@ nav a:hover {
 .nav-user span {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+}
+
+// Logout does not lift like other buttons; its background only fades.
+.nav-user .button {
+  font-size: var(--font-size-sm);
+  padding: var(--space-1) var(--space-3);
+  transition:
+    background-color 200ms ease-out,
+    color 200ms ease-out;
+}
+
+.nav-user .button:hover,
+.nav-user .button:focus-visible {
+  background: var(--color-bg);
+  box-shadow: none;
+  transform: none;
+}
+
+// Keyboard focus fills the button with Midnight Violet, because the hover change alone is too faint.
+.nav-user .button:focus-visible {
+  background: var(--color-border);
+  color: var(--color-surface);
+}
+
+// The strip under the nav is the only element whose colour depends on the module.
+// It is hidden until the nav link of its module is active (routerLinkActive adds "active").
+.module-strip {
+  border-top: var(--border);
+  display: none;
+  padding-block: var(--space-3);
+}
+
+header:has(nav a.active[href^='/exploration']) .module-strip.exploration,
+header:has(nav a.active[href^='/games']) .module-strip.games,
+header:has(nav a.active[href^='/social']) .module-strip.social,
+header:has(nav a.active[href^='/payment']) .module-strip.payment {
+  display: block;
+}
+
+.module-strip.exploration {
+  background: var(--color-exploration);
+}
+
+.module-strip.games {
+  background: var(--color-games);
+}
+
+.module-strip.social {
+  background: var(--color-social);
+}
+
+.module-strip.payment {
+  background: var(--color-payment);
+}
+
+.module-strip-label {
+  background: var(--color-surface);
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: 2px 2px 0 var(--color-border);
+  color: var(--color-text);
+  display: inline-block;
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: var(--space-1) var(--space-3);
+  text-transform: uppercase;
 }

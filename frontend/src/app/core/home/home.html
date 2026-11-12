@@ -1,0 +1,70 @@
+@if (auth.isLoggedIn()) {
+  <div class="home">
+    <section class="hero">
+      <h1>Welcome, adventurer!</h1>
+      <p class="lead">Pick up where your next adventure begins.</p>
+    </section>
+
+    <section>
+      <h2>Explore</h2>
+      <div class="grid">
+        <a class="card stack" routerLink="/exploration">
+          <h3>Tours</h3>
+          <p class="meta">Browse guided tours and follow their stories.</p>
+        </a>
+        <a class="card stack" routerLink="/games">
+          <h3>Games</h3>
+          <p class="meta">Play quizzes and hunt for hidden locations.</p>
+        </a>
+        <a class="card stack" routerLink="/social">
+          <h3>Community</h3>
+          <p class="meta">Visit clubs, blogs, and leaderboards.</p>
+        </a>
+      </div>
+    </section>
+
+    @if (isExplorer()) {
+      <section class="card stack tours">
+        <h2>Your tours</h2>
+        <div class="tour-links">
+          <a class="button" routerLink="/exploration/mine">My tours</a>
+          <a class="button button--primary" routerLink="/exploration/create">+ Create tour</a>
+        </div>
+      </section>
+    }
+  </div>
+} @else {
+  <div class="home">
+    <section class="hero">
+      <h1>Explorer</h1>
+      <p class="lead">
+        Discover places through guided tours that tell a story, take on map-based games, and share
+        your adventures with a community of explorers.
+      </p>
+    </section>
+
+    <section>
+      <h2>What you can do</h2>
+      <div class="grid">
+        <a class="card stack" routerLink="/register">
+          <h3>Tours</h3>
+          <p class="meta">Follow guided tours where every key point reveals the next part of the story.</p>
+        </a>
+        <a class="card stack" routerLink="/register">
+          <h3>Games</h3>
+          <p class="meta">Solve quizzes and hunt for hidden locations on the map.</p>
+        </a>
+        <a class="card stack" routerLink="/register">
+          <h3>Community</h3>
+          <p class="meta">Join clubs, write blogs, and climb the leaderboards.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="card stack call">
+      <h2>Ready to explore?</h2>
+      <p>Create a free account to start your first tour.</p>
+      <a class="button button--primary" routerLink="/register">Register</a>
+    </section>
+  </div>
+}
