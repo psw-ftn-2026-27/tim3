@@ -110,6 +110,40 @@ public class QuizTests
     }
 
     [Fact]
+    public void Question_with_fewer_than_two_answers_is_rejected()
+    {
+        var quiz = CreateQuiz();
+
+        var addition = () => quiz.AddQuestion("Koji je tačan?", [new Answer("Jedini", true)]);
+
+        addition.Should().Throw<DomainException>();
+        quiz.Questions.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Added_question_without_a_correct_answer_is_rejected()
+    {
+        var quiz = CreateQuiz();
+
+        var addition = () => quiz.AddQuestion("Koji je tačan?", [new Answer("Prvi", false), new Answer("Drugi", false)]);
+
+        addition.Should().Throw<DomainException>();
+        quiz.Questions.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Edited_question_without_a_correct_answer_is_rejected()
+    {
+        var quiz = CreateQuizWithQuestion();
+        var questionId = quiz.Questions.Single().Id;
+
+        var update = () => quiz.UpdateQuestion(questionId, "Koji je tačan?", [new Answer("Prvi", false), new Answer("Drugi", false)]);
+
+        update.Should().Throw<DomainException>();
+        quiz.Questions.Single().Answers.Should().Contain(answer => answer.IsCorrect);
+    }
+
+    [Fact]
     public void Added_question_with_two_correct_answers_is_rejected()
     {
         var quiz = CreateQuiz();

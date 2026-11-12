@@ -5,6 +5,7 @@ namespace Games.Domain.Quizzes;
 
 public sealed class Question : Entity
 {
+    private const int MinAnswers = 2;
     private const int MaxAnswers = 4;
 
     private readonly List<Answer> _answers = [];
@@ -46,13 +47,13 @@ public sealed class Question : Entity
 
     private static void EnsureValidAnswers(List<Answer> answers)
     {
-        if (answers.Count > MaxAnswers)
+        if (answers.Count < MinAnswers || answers.Count > MaxAnswers)
         {
-            throw new DomainException($"A question has at most {MaxAnswers} answers.");
+            throw new DomainException($"A question has from {MinAnswers} to {MaxAnswers} answers.");
         }
-        if (answers.Count(answer => answer.IsCorrect) > 1)
+        if (answers.Count(answer => answer.IsCorrect) != 1)
         {
-            throw new DomainException("A question has at most one correct answer.");
+            throw new DomainException("A question has exactly one correct answer.");
         }
     }
 }
