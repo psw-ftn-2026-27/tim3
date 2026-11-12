@@ -25,11 +25,10 @@ public sealed class SocialChallenge : AggregateRoot
         EndMessage = null!;
     }
 
-    public SocialChallenge(string name, TimeOnly activeStart, TimeOnly activeEnd, int peopleRequired,
+    public SocialChallenge(string name, ActivePeriod activePeriod, int peopleRequired,
         double gatheringRadius, int experienceGained, string endMessage)
         : base(Guid.NewGuid())
     {
-        var activePeriod = new ActivePeriod(activeStart, activeEnd);
         EnsureValid(name, peopleRequired, gatheringRadius, experienceGained, endMessage);
 
         Name = name;
@@ -41,14 +40,13 @@ public sealed class SocialChallenge : AggregateRoot
         EndMessage = endMessage;
     }
 
-    public void Update(string name, TimeOnly activeStart, TimeOnly activeEnd, int peopleRequired,
+    public void Update(string name, ActivePeriod activePeriod, int peopleRequired,
         double gatheringRadius, int experienceGained, string endMessage)
     {
         if (Status != SocialChallengeStatus.Draft)
         {
             throw new DomainException("A social challenge can be changed only while it is a draft.");
         }
-        var activePeriod = new ActivePeriod(activeStart, activeEnd);
         EnsureValid(name, peopleRequired, gatheringRadius, experienceGained, endMessage);
 
         Name = name;

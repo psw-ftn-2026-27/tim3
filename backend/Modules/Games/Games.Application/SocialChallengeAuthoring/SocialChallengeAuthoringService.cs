@@ -23,7 +23,8 @@ public sealed class SocialChallengeAuthoringService
 
     public async Task<SocialChallengeDto> CreateAsync(CreateSocialChallengeDto dto)
     {
-        var socialChallenge = new SocialChallenge(dto.Name, dto.ActivePeriodStart, dto.ActivePeriodEnd,
+        var activePeriod = new ActivePeriod(dto.ActivePeriodStart, dto.ActivePeriodEnd);
+        var socialChallenge = new SocialChallenge(dto.Name, activePeriod,
             dto.PeopleRequired, dto.GatheringRadius, dto.ExperienceGained, dto.EndMessage);
 
         _socialChallengeRepository.Add(socialChallenge);
@@ -36,7 +37,8 @@ public sealed class SocialChallengeAuthoringService
     {
         var socialChallenge = await GetSocialChallengeAsync(socialChallengeId);
 
-        socialChallenge.Update(dto.Name, dto.ActivePeriodStart, dto.ActivePeriodEnd,
+        var activePeriod = new ActivePeriod(dto.ActivePeriodStart, dto.ActivePeriodEnd);
+        socialChallenge.Update(dto.Name, activePeriod,
             dto.PeopleRequired, dto.GatheringRadius, dto.ExperienceGained, dto.EndMessage);
         await _unitOfWork.SaveChangesAsync();
     }

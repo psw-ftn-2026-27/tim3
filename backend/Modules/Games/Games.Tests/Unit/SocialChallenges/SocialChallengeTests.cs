@@ -7,12 +7,11 @@ namespace Games.Tests.Unit.SocialChallenges;
 
 public class SocialChallengeTests
 {
-    private static readonly TimeOnly Evening = new(18, 0);
-    private static readonly TimeOnly LateEvening = new(20, 0);
+    private static readonly ActivePeriod Evening = new(new TimeOnly(18, 0), new TimeOnly(20, 0));
 
     private static SocialChallenge CreateChallenge(string name = "Zalazak na tvrđavi", int peopleRequired = 5,
         double gatheringRadius = 10, int experienceGained = 300, string endMessage = "Bravo!") =>
-        new(name, Evening, LateEvening, peopleRequired, gatheringRadius, experienceGained, endMessage);
+        new(name, Evening, peopleRequired, gatheringRadius, experienceGained, endMessage);
 
     [Theory]
     [InlineData("", "Bravo!")]
@@ -78,23 +77,6 @@ public class SocialChallengeTests
         creation.Should().Throw<DomainException>();
     }
 
-    [Fact]
-    public void Active_period_cannot_start_and_end_at_the_same_time()
-    {
-        var creation = () => new SocialChallenge("Zalazak na tvrđavi", Evening, Evening, 5, 10, 300, "Bravo!");
-
-        creation.Should().Throw<DomainException>();
-    }
-
-    [Fact]
-    public void Active_period_may_span_midnight()
-    {
-        var challenge = new SocialChallenge("Ponoć na mostu", new TimeOnly(22, 0), new TimeOnly(2, 0), 5, 10, 300, "Bravo!");
-
-        challenge.ActivePeriod.Start.Should().Be(new TimeOnly(22, 0));
-        challenge.ActivePeriod.End.Should().Be(new TimeOnly(2, 0));
-    }
-
     [Theory]
     [InlineData("", 5, 10, 300, "Bravo!")]
     [InlineData("Zalazak na tvrđavi", 5, 10, 300, "")]
@@ -107,7 +89,7 @@ public class SocialChallengeTests
     {
         var challenge = CreateChallenge();
 
-        var update = () => challenge.Update(name, Evening, LateEvening, peopleRequired, gatheringRadius, experienceGained, endMessage);
+        var update = () => challenge.Update(name, Evening, peopleRequired, gatheringRadius, experienceGained, endMessage);
 
         update.Should().Throw<DomainException>();
     }
