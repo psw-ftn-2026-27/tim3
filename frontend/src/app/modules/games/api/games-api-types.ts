@@ -1,4 +1,4 @@
-export type QuizStatus = 'Draft';
+export type QuizStatus = 'Draft' | 'Published' | 'Retired' | 'Archived';
 
 export interface AnswerDto {
   text: string;

@@ -1,4 +1,8 @@
 <div class="stack">
+  @if (transitionMessage()) {
+    <p>{{ transitionMessage() }}</p>
+  }
+
   @if (quiz.isLoading()) {
     <p>Loading quiz...</p>
   } @else if (quiz.error()) {
@@ -6,6 +10,45 @@
   } @else if (quiz.value(); as current) {
     <h1>{{ current.title }}</h1>
     <p class="meta">Status: {{ current.status }}</p>
+
+    <div class="actions">
+      @if (current.status === 'Draft' || current.status === 'Retired') {
+        <button class="button button--primary" type="button" [disabled]="pending()" (click)="publish()">
+          Publish
+        </button>
+      }
+      @if (current.status === 'Published') {
+        <button class="button" type="button" [disabled]="pending()" (click)="retire()">
+          Retire
+        </button>
+      }
+      @if (current.status === 'Retired') {
+        <button class="button" type="button" [disabled]="pending()" (click)="archive()">
+          Archive
+        </button>
+      }
+      @if (current.status === 'Draft' || current.status === 'Archived') {
+        <button class="button" type="button" [disabled]="pending()" (click)="startDelete()">
+          Delete
+        </button>
+      }
+    </div>
+    @if (confirmingDelete()) {
+      <div class="card stack">
+        <p>Are you sure you want to delete the quiz {{ current.title }}? This cannot be undone.</p>
+        <div class="actions">
+          <button class="button button--primary" type="button" [disabled]="pending()" (click)="remove()">
+            Delete permanently
+          </button>
+          <button class="button" type="button" [disabled]="pending()" (click)="cancelDelete()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    }
+    @if (transitionError()) {
+      <p class="error">{{ transitionError() }}</p>
+    }
 
     <div class="layout">
       <div class="layout__side stack">

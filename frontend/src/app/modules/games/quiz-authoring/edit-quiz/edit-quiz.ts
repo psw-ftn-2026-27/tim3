@@ -1,6 +1,7 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormField, form, max, min, required } from '@angular/forms/signals';
+import { Router } from '@angular/router';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { AnswerDto, QuestionDto, QuizDto } from '../../api/games-api-types';
 import { QuizAuthoring } from '../quiz-authoring';
@@ -15,6 +16,7 @@ const MAX_ANSWERS = 4;
 })
 export class EditQuiz {
   private readonly quizAuthoring = inject(QuizAuthoring);
+  private readonly router = inject(Router);
 
   readonly id = input.required<string>();
 
@@ -43,6 +45,11 @@ export class EditQuiz {
   protected readonly pending = signal(false);
   protected readonly detailsError = signal<string | null>(null);
   protected readonly questionError = signal<string | null>(null);
+  protected readonly transitionError = signal<string | null>(null);
+  // The message for the last successful status transition, or null before any.
+  protected readonly transitionMessage = signal<string | null>(null);
+  // True while the section asking to confirm the deletion is open.
+  protected readonly confirmingDelete = signal(false);
 
   private prefilled = false;
 
@@ -132,6 +139,79 @@ export class EditQuiz {
       this.quiz.reload();
     } catch (failure) {
       this.questionError.set(serverMessage(failure, 'Could not remove the question.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected async publish(): Promise<void> {
+    this.pending.set(true);
+    this.transitionError.set(null);
+    this.transitionMessage.set(null);
+    this.confirmingDelete.set(false);
+    try {
+      await this.quizAuthoring.publish(this.id());
+      this.transitionMessage.set('Quiz successfully published.');
+      this.quiz.reload();
+    } catch (failure) {
+      this.transitionError.set(serverMessage(failure, 'Could not publish the quiz.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected async retire(): Promise<void> {
+    this.pending.set(true);
+    this.transitionError.set(null);
+    this.transitionMessage.set(null);
+    this.confirmingDelete.set(false);
+    try {
+      await this.quizAuthoring.retire(this.id());
+      this.transitionMessage.set('Quiz successfully retired.');
+      this.quiz.reload();
+    } catch (failure) {
+      this.transitionError.set(serverMessage(failure, 'Could not retire the quiz.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected async archive(): Promise<void> {
+    this.pending.set(true);
+    this.transitionError.set(null);
+    this.transitionMessage.set(null);
+    this.confirmingDelete.set(false);
+    try {
+      await this.quizAuthoring.archive(this.id());
+      this.transitionMessage.set('Quiz successfully archived.');
+      this.quiz.reload();
+    } catch (failure) {
+      this.transitionError.set(serverMessage(failure, 'Could not archive the quiz.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected startDelete(): void {
+    this.transitionError.set(null);
+    this.transitionMessage.set(null);
+    this.confirmingDelete.set(true);
+  }
+
+  protected cancelDelete(): void {
+    this.confirmingDelete.set(false);
+  }
+
+  protected async remove(): Promise<void> {
+    this.pending.set(true);
+    this.transitionError.set(null);
+    try {
+      await this.quizAuthoring.remove(this.id());
+      // A deleted quiz has no page to show, so the administrator returns to all quizzes.
+      await this.router.navigate(['/games/quizzes']);
+    } catch (failure) {
+      this.confirmingDelete.set(false);
+      this.transitionError.set(serverMessage(failure, 'Could not delete the quiz.'));
     } finally {
       this.pending.set(false);
     }
