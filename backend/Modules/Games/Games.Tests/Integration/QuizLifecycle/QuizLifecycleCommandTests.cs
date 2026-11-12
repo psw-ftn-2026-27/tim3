@@ -190,4 +190,68 @@ public class QuizLifecycleCommandTests : BaseIntegrationTest
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
+
+    [Fact]
+    public async Task Administrator_deletes_a_quiz_and_neither_the_quiz_nor_its_questions_remain()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+        var questionIds = QuizSeed.ArchivedMarketQuiz.Questions.Select(question => question.Id).ToList();
+
+        var response = await client.DeleteAsync($"/api/games/quizzes/{QuizSeed.ArchivedMarketQuiz.Id}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var assertContext = Factory.CreateContext<GamesDbContext>();
+        assertContext.Quizzes.Any(quiz => quiz.Id == QuizSeed.ArchivedMarketQuiz.Id).Should().BeFalse();
+        assertContext.Set<Question>().Any(question => questionIds.Contains(question.Id)).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Published_quiz_rejected_for_deletion_by_the_domain_remains()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+
+        var response = await client.DeleteAsync($"/api/games/quizzes/{QuizSeed.PublishedSynagogueQuiz.Id}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var assertContext = Factory.CreateContext<GamesDbContext>();
+        assertContext.Quizzes.Any(quiz => quiz.Id == QuizSeed.PublishedSynagogueQuiz.Id).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Deletion_of_a_missing_quiz_is_rejected()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+        var missingQuizId = Guid.NewGuid();
+        int quizCount;
+        using (var arrangeContext = Factory.CreateContext<GamesDbContext>())
+        {
+            quizCount = arrangeContext.Quizzes.Count();
+        }
+
+        var response = await client.DeleteAsync($"/api/games/quizzes/{missingQuizId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        using var assertContext = Factory.CreateContext<GamesDbContext>();
+        assertContext.Quizzes.Count().Should().Be(quizCount);
+    }
+
+    [Fact]
+    public async Task Anonymous_user_cannot_delete_a_quiz()
+    {
+        var client = Factory.CreateClient();
+
+        var response = await client.DeleteAsync($"/api/games/quizzes/{QuizSeed.ArchivedMarketQuiz.Id}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Explorer_cannot_delete_a_quiz()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+
+        var response = await client.DeleteAsync($"/api/games/quizzes/{QuizSeed.ArchivedMarketQuiz.Id}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
 }

@@ -45,4 +45,8 @@ export class QuizAuthoring {
   async archive(id: string): Promise<void> {
     await firstValueFrom(this.http.post<void>(`${BASE_URL}/${id}/archive`, {}));
   }
+
+  async remove(id: string): Promise<void> {
+    await firstValueFrom(this.http.delete<void>(`${BASE_URL}/${id}`));
+  }
 }

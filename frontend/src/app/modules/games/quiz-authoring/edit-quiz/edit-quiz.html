@@ -11,23 +11,39 @@
     <h1>{{ current.title }}</h1>
     <p class="meta">Status: {{ current.status }}</p>
 
-    @if (current.status !== 'Archived') {
-      <div class="actions">
-        @if (current.status === 'Draft' || current.status === 'Retired') {
-          <button class="button button--primary" type="button" [disabled]="pending()" (click)="publish()">
-            Publish
+    <div class="actions">
+      @if (current.status === 'Draft' || current.status === 'Retired') {
+        <button class="button button--primary" type="button" [disabled]="pending()" (click)="publish()">
+          Publish
+        </button>
+      }
+      @if (current.status === 'Published') {
+        <button class="button" type="button" [disabled]="pending()" (click)="retire()">
+          Retire
+        </button>
+      }
+      @if (current.status === 'Retired') {
+        <button class="button" type="button" [disabled]="pending()" (click)="archive()">
+          Archive
+        </button>
+      }
+      @if (current.status === 'Draft' || current.status === 'Archived') {
+        <button class="button" type="button" [disabled]="pending()" (click)="startDelete()">
+          Delete
+        </button>
+      }
+    </div>
+    @if (confirmingDelete()) {
+      <div class="card stack">
+        <p>Are you sure you want to delete the quiz {{ current.title }}? This cannot be undone.</p>
+        <div class="actions">
+          <button class="button button--primary" type="button" [disabled]="pending()" (click)="remove()">
+            Delete permanently
           </button>
-        }
-        @if (current.status === 'Published') {
-          <button class="button" type="button" [disabled]="pending()" (click)="retire()">
-            Retire
+          <button class="button" type="button" [disabled]="pending()" (click)="cancelDelete()">
+            Cancel
           </button>
-        }
-        @if (current.status === 'Retired') {
-          <button class="button" type="button" [disabled]="pending()" (click)="archive()">
-            Archive
-          </button>
-        }
+        </div>
       </div>
     }
     @if (transitionError()) {

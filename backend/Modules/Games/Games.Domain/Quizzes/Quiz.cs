@@ -104,6 +104,14 @@ public sealed class Quiz : AggregateRoot
         Status = QuizStatus.Archived;
     }
 
+    public void EnsureCanBeDeleted()
+    {
+        if (Status != QuizStatus.Draft && Status != QuizStatus.Archived)
+        {
+            throw new DomainException("Only a draft or archived quiz can be deleted.");
+        }
+    }
+
     private Question GetQuestion(Guid questionId)
     {
         var question = _questions.FirstOrDefault(question => question.Id == questionId);

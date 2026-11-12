@@ -13,6 +13,7 @@ internal static class QuizSeed
     public static readonly Quiz ReadyToPublishCathedralQuiz;
     public static readonly Quiz PublishedSynagogueQuiz;
     public static readonly Quiz RetiredBridgeQuiz;
+    public static readonly Quiz ArchivedMarketQuiz;
 
     static QuizSeed()
     {
@@ -39,7 +40,15 @@ internal static class QuizSeed
         RetiredBridgeQuiz.AddQuestion("Preko koje reke vode?", [new Answer("Dunav", true), new Answer("Tisa", false)]);
         RetiredBridgeQuiz.Publish();
         RetiredBridgeQuiz.Retire();
+
+        ArchivedMarketQuiz = new(WellKnownUsers.Administrator, "Ribarska pijaca", "Odgovori na tri pitanja o pijaci.", 15);
+        ArchivedMarketQuiz.AddQuestion("Uz koju reku je pijaca?", [new Answer("Dunav", true), new Answer("Tisa", false)]);
+        ArchivedMarketQuiz.AddQuestion("Šta se najviše prodaje?", [new Answer("Riba", true), new Answer("Cveće", false)]);
+        ArchivedMarketQuiz.AddQuestion("Kojim danima radi?", [new Answer("Svakim danom", true), new Answer("Samo nedeljom", false)]);
+        ArchivedMarketQuiz.Publish();
+        ArchivedMarketQuiz.Retire();
+        ArchivedMarketQuiz.Archive();
     }
 
-    public static Quiz[] All => [EmptyMuseumQuiz, FortressQuiz, OtherAdministratorsQuiz, ReadyToPublishCathedralQuiz, PublishedSynagogueQuiz, RetiredBridgeQuiz];
+    public static Quiz[] All => [EmptyMuseumQuiz, FortressQuiz, OtherAdministratorsQuiz, ReadyToPublishCathedralQuiz, PublishedSynagogueQuiz, RetiredBridgeQuiz, ArchivedMarketQuiz];
 }

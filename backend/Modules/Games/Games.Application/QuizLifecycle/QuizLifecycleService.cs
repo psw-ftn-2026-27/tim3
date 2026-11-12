@@ -39,6 +39,15 @@ public sealed class QuizLifecycleService
         await _unitOfWork.SaveChangesAsync();
     }
 
+    public async Task DeleteAsync(Guid quizId)
+    {
+        var quiz = await GetQuizAsync(quizId);
+
+        quiz.EnsureCanBeDeleted();
+        _quizRepository.Remove(quiz);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     private async Task<Quiz> GetQuizAsync(Guid quizId)
     {
         var quiz = await _quizRepository.GetByIdAsync(quizId);

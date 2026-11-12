@@ -36,4 +36,11 @@ public sealed class QuizLifecycleController : ControllerBase
         await _lifecycleService.ArchiveAsync(id);
         return NoContent();
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> Delete(Guid id)
+    {
+        await _lifecycleService.DeleteAsync(id);
+        return NoContent();
+    }
 }

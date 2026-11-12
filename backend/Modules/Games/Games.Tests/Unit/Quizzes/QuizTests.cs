@@ -374,4 +374,28 @@ public class QuizTests
         publication.Should().Throw<DomainException>();
         quiz.Status.Should().Be(QuizStatus.Archived);
     }
+
+    [Theory]
+    [InlineData(QuizStatus.Draft)]
+    [InlineData(QuizStatus.Archived)]
+    public void Draft_or_archived_quiz_can_be_deleted(QuizStatus status)
+    {
+        var quiz = CreateQuizIn(status);
+
+        var deletion = () => quiz.EnsureCanBeDeleted();
+
+        deletion.Should().NotThrow();
+    }
+
+    [Theory]
+    [InlineData(QuizStatus.Published)]
+    [InlineData(QuizStatus.Retired)]
+    public void Published_or_retired_quiz_cannot_be_deleted(QuizStatus status)
+    {
+        var quiz = CreateQuizIn(status);
+
+        var deletion = () => quiz.EnsureCanBeDeleted();
+
+        deletion.Should().Throw<DomainException>();
+    }
 }
