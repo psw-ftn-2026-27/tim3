@@ -30,6 +30,7 @@ export interface UpdateSocialChallengeDto {
   gatheringRadius: number;
   experienceGained: number;
   endMessage: string;
+}
 
 export type QuizStatus = 'Draft';
 
