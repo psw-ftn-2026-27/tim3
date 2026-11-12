@@ -6,6 +6,8 @@ public interface IIdentityApi
 {
     Task<UserSearchResult> SearchUsersAsync(string text, Guid excludedUserId, int page, int pageSize);
 
+    Task<UserSearchResult> SearchAllUsersAsync(string text, int page, int pageSize);
+
     Task<List<UserDisplayName>> GetDisplayNamesAsync(List<Guid> userIds);
 
     Task<bool> ExistsAsync(Guid userId);

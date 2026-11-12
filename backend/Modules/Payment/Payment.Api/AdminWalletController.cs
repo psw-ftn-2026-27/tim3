@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Payment.Application.AdminWallet;
 using Payment.Application.Wallets;
 using Shared.Api;
+using Shared.Domain;
 
 namespace Payment.Api;
 
@@ -18,6 +19,13 @@ public sealed class AdminWalletController : ControllerBase
     {
         _walletService = walletService;
         _walletQueries = walletQueries;
+    }
+
+    [HttpGet("users")]
+    public async Task<ActionResult<PageResult<UserWalletSummaryDto>>> GetUsersWithWallets(
+        [FromQuery] string? text = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        return await _walletQueries.GetUsersWithWalletsAsync(text ?? string.Empty, page, pageSize);
     }
 
     [HttpGet("{userId:guid}")]

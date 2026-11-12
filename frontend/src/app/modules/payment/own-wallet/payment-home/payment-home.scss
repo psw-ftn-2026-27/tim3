@@ -1,0 +1,19 @@
+.balance {
+  font-size: var(--font-size-lg);
+}
+
+.inline-form {
+  align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.inline-form button {
+  align-self: start;
+  margin-top: calc(var(--font-size-sm) * 1.5 + var(--space-1));
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}

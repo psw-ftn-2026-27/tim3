@@ -13,6 +13,11 @@ internal sealed class WalletRepository : IWalletRepository
         _dbContext = dbContext;
     }
 
+    public Task<bool> ExistsForUserAsync(Guid userId)
+    {
+        return _dbContext.Wallets.AnyAsync(wallet => wallet.UserId == userId);
+    }
+
     public Task<Wallet?> GetByUserIdAsync(Guid userId)
     {
         return _dbContext.Wallets

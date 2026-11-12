@@ -13,6 +13,14 @@ internal sealed class WalletReadRepository : IWalletReadRepository
         _dbContext = dbContext;
     }
 
+    public Task<Dictionary<Guid, int>> GetBalancesByUserIdsAsync(List<Guid> userIds)
+    {
+        return _dbContext.Wallets
+            .Where(wallet => userIds.Contains(wallet.UserId))
+            .Select(wallet => new { wallet.UserId, wallet.Balance })
+            .ToDictionaryAsync(wallet => wallet.UserId, wallet => wallet.Balance);
+    }
+
     public Task<WalletDto?> GetByUserIdAsync(Guid userId, int page, int pageSize)
     {
         var offset = (int)Math.Min((page - 1L) * pageSize, int.MaxValue);

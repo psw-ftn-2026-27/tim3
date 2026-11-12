@@ -8,6 +8,7 @@ internal static class WalletSeed
     public static readonly Wallet EmptyExplorerWallet;
     public static readonly Wallet ExplorerWalletWithReversal;
     public static readonly Wallet ExplorerWalletWithDeposit;
+    public static readonly Wallet DemoExplorerWalletWithDeposit;
 
     public static readonly Wallet[] All;
 
@@ -23,6 +24,10 @@ internal static class WalletSeed
         ExplorerWalletWithDeposit = new Wallet(WellKnownUsers.FourthExplorer);
         ExplorerWalletWithDeposit.Deposit(40, WellKnownUsers.Administrator, DateTime.UtcNow.AddHours(-1));
 
-        All = [EmptyExplorerWallet, ExplorerWalletWithReversal, ExplorerWalletWithDeposit];
+        // Identity seeds explorer1 in the Development test host.
+        DemoExplorerWalletWithDeposit = new Wallet(Guid.Parse("20000000-0000-0000-0000-000000000001"));
+        DemoExplorerWalletWithDeposit.Deposit(60, WellKnownUsers.Administrator, historyStart);
+
+        All = [EmptyExplorerWallet, ExplorerWalletWithReversal, ExplorerWalletWithDeposit, DemoExplorerWalletWithDeposit];
     }
 }

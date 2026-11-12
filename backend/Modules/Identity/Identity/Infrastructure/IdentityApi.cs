@@ -42,6 +42,33 @@ internal sealed class IdentityApi : IIdentityApi
         return new UserSearchResult(items, totalCount);
     }
 
+    public async Task<UserSearchResult> SearchAllUsersAsync(string text, int page, int pageSize)
+    {
+        var normalizedText = text.Trim().ToUpperInvariant();
+        var matching = _dbContext.Users.AsNoTracking();
+        if (normalizedText.Length > 0)
+        {
+            matching = matching.Where(user => user.NormalizedUserName != null &&
+                (user.NormalizedUserName.Contains("@")
+                    ? user.NormalizedUserName.Substring(0, user.NormalizedUserName.IndexOf("@"))
+                    : user.NormalizedUserName).Contains(normalizedText));
+        }
+
+        var totalCount = await matching.CountAsync();
+        var offset = (int)Math.Min((page - 1L) * pageSize, int.MaxValue);
+        var users = await matching
+            .OrderBy(user => user.NormalizedUserName)
+            .ThenBy(user => user.Id)
+            .Skip(offset)
+            .Take(pageSize)
+            .Select(user => new { user.Id, user.UserName })
+            .ToListAsync();
+
+        var items = users.Select(user => new UserDisplayName(user.Id, ToDisplayName(user.UserName ?? string.Empty)))
+            .ToList();
+        return new UserSearchResult(items, totalCount);
+    }
+
     public async Task<List<UserDisplayName>> GetDisplayNamesAsync(List<Guid> userIds)
     {
         var users = await _dbContext.Users

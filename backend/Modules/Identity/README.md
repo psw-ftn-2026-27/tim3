@@ -22,7 +22,9 @@ Projekat je podeljen na tri direktorijuma koji odgovaraju slojevima funkcionalno
 
 ### Api
 
-Sadrži klasu `IdentityController` sa dve krajnje tačke. Krajnja tačka `POST /api/identity/register` pravi novi nalog, dodeljuje mu ulogu `explorer` i vraća token. Krajnja tačka `POST /api/identity/login` proverava adresu elektronske pošte i lozinku i vraća token. Obe krajnje tačke su javne, jer im pristupaju korisnici koji još nemaju token. Kontroler direktno koristi klasu `UserManager` iz biblioteke ASP.NET Core Identity, koja vrši ulogu aplikacionog servisa.
+Sadrži klasu `IdentityController`. Krajnja tačka `POST /api/identity/login` proverava adresu elektronske pošte i lozinku i vraća token. Kontroler direktno koristi klasu `UserManager` iz biblioteke ASP.NET Core Identity.
+
+Javna krajnja tačka `POST /api/identity/register` nalazi se u `Host.Api`. Poziva `IdentityRegistrationService` da sačuva nalog i dodeli mu ulogu `explorer`, zatim obezbeđuje novčanik za ID tog naloga. Operacija za obezbeđivanje novčanika se povezuje u `AddPaymentModule`, bez direktne reference sa hosta na `Payment.Contracts`. Identity izdaje token tek kada su oba koraka uspela. Ako kreiranje novčanika ne uspe, nalog ostaje sačuvan, a registracija vraća grešku bez tokena. Korisnik se tada može prijaviti i zatražiti novčanik preko `POST /api/payment/wallet/me`.
 
 Sadrži i klasu koja definiše metodu `AddIdentityControllers` kojom `Host.Api` uključuje kontrolere ovog projekta, po istom obrascu kao kod funkcionalnih modula.
 
@@ -40,7 +42,7 @@ Metoda `AddIdentityModule` registruje sve delove modula i jedino je mesto koje `
 
 ## Projekat Identity.Contracts
 
-Drugim modulima ponekad treba nešto o korisniku osim identifikatora: ime koje se prikazuje uz zahtev za praćenje ili pretraga korisnika. Taj podatak poseduje Identity, pa ga nudi kroz kontrakt, po istom pravilu kao i funkcionalni moduli. Projekat `Identity.Contracts` ne referencira ništa i sadrži interfejs `IIdentityApi` sa tri upita: pretragu korisnika sa ulogom `explorer` po delu imena za prikaz (po stranama, uz izostavljanje jednog korisnika), ime za prikaz za listu identifikatora i proveru da li korisnik postoji. Tipovi `UserDisplayName` i `UserSearchResult` sadrže samo identifikator i ime za prikaz.
+Drugim modulima ponekad treba nešto o korisniku osim identifikatora, na primer ime koje se prikazuje uz zahtev za praćenje ili pretraga korisnika. Taj podatak poseduje Identity, pa ga nudi kroz kontrakt u projektu `Identity.Contracts`. Interfejs `IIdentityApi` nudi pretragu istraživača uz izostavljanje jednog korisnika, paginiranu pretragu svih korisnika, imena za prikaz za listu identifikatora i proveru da li korisnik postoji. Obe pretrage koriste ime za prikaz i vraćaju samo identifikatore, imena za prikaz i ukupan broj rezultata.
 
 Korisničko ime je adresa elektronske pošte, pa je ime za prikaz njen deo pre znaka `@`. Puna adresa, lozinka i uloge nikada ne napuštaju modul. Interfejs implementira interna klasa `IdentityApi` u direktorijumu `Infrastructure`, a registruje ga metoda `AddIdentityModule`. Arhitekturni testovi i dalje zabranjuju svakom modulu da referencira projekat `Identity`, a proveravaju i da `Identity.Contracts` ne zavisi ni od čega.
 
