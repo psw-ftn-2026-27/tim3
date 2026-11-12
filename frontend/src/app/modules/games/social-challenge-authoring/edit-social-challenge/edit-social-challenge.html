@@ -5,85 +5,12 @@
     <p>Učitavanje izazova...</p>
   } @else if (challenge.error()) {
     <p class="error">Izazov ne postoji ili ne može da se učita.</p>
-  } @else {
-    <form class="stack" (submit)="submit($event)">
-      <div class="field">
-        <label for="name">Naziv</label>
-        <input id="name" type="text" [formField]="form.name" />
-        @if (form.name().touched()) {
-          @for (message of form.name().errors(); track $index) {
-            <p class="error">{{ message.message }}</p>
-          }
-        }
-      </div>
-
-      <div class="field">
-        <label for="activePeriodStart">Početak doba dana</label>
-        <input id="activePeriodStart" type="time" [formField]="form.activePeriodStart" />
-        @if (form.activePeriodStart().touched()) {
-          @for (message of form.activePeriodStart().errors(); track $index) {
-            <p class="error">{{ message.message }}</p>
-          }
-        }
-      </div>
-
-      <div class="field">
-        <label for="activePeriodEnd">Kraj doba dana</label>
-        <input id="activePeriodEnd" type="time" [formField]="form.activePeriodEnd" />
-        @if (form.activePeriodEnd().touched()) {
-          @for (message of form.activePeriodEnd().errors(); track $index) {
-            <p class="error">{{ message.message }}</p>
-          }
-        }
-      </div>
-
-      <div class="field">
-        <label for="peopleRequired">Potreban broj ljudi</label>
-        <input id="peopleRequired" type="number" [formField]="form.peopleRequired" />
-        @if (form.peopleRequired().touched()) {
-          @for (message of form.peopleRequired().errors(); track $index) {
-            <p class="error">{{ message.message }}</p>
-          }
-        }
-      </div>
-
-      <div class="field">
-        <label for="gatheringRadius">Opseg (m)</label>
-        <input id="gatheringRadius" type="number" step="any" [formField]="form.gatheringRadius" />
-        @if (form.gatheringRadius().touched()) {
-          @for (message of form.gatheringRadius().errors(); track $index) {
-            <p class="error">{{ message.message }}</p>
-          }
-        }
-      </div>
-
-      <div class="field">
-        <label for="experienceGained">XP</label>
-        <input id="experienceGained" type="number" [formField]="form.experienceGained" />
-        @if (form.experienceGained().touched()) {
-          @for (message of form.experienceGained().errors(); track $index) {
-            <p class="error">{{ message.message }}</p>
-          }
-        }
-      </div>
-
-      <div class="field">
-        <label for="endMessage">Izlazna poruka</label>
-        <textarea id="endMessage" rows="4" [formField]="form.endMessage"></textarea>
-        @if (form.endMessage().touched()) {
-          @for (message of form.endMessage().errors(); track $index) {
-            <p class="error">{{ message.message }}</p>
-          }
-        }
-      </div>
-
-      @if (error()) {
-        <p class="error">{{ error() }}</p>
-      }
-
-      <button class="button button--primary" type="submit" [disabled]="!form().valid() || pending()">
-        Sačuvaj
-      </button>
-    </form>
+  } @else if (challenge.value(); as value) {
+    <app-social-challenge-form
+      [initial]="toFormValue(value)"
+      [pending]="pending()"
+      [error]="error()"
+      (save)="update($event)"
+    />
   }
 </div>
