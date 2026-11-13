@@ -29,7 +29,12 @@
     }
     @case ('social') {
       <div class="card stack">
-        <p class="meta">Social challenges are coming soon.</p>
+        @if (isAdministrator()) {
+          <p><a routerLink="/games/challenges">Svi društveni izazovi</a></p>
+          <p><a routerLink="/games/challenges/create">Novi društveni izazov</a></p>
+        } @else {
+          <p class="meta">Društvene izazove pregleda administrator.</p>
+        }
       </div>
     }
   }

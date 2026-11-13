@@ -1,0 +1,16 @@
+<div class="card stack">
+  <h1>Izmena izazova</h1>
+
+  @if (challenge.isLoading()) {
+    <p>Učitavanje izazova...</p>
+  } @else if (challenge.error()) {
+    <p class="error">Izazov ne postoji ili ne može da se učita.</p>
+  } @else if (challenge.value(); as value) {
+    <app-social-challenge-form
+      [initial]="toFormValue(value)"
+      [pending]="pending()"
+      [error]="error()"
+      (save)="update($event)"
+    />
+  }
+</div>
