@@ -14,6 +14,10 @@ Komponenta `LocationMap` (`app-location-map`) je deljena prikazna komponenta pla
 - `selectable: boolean` (podrazumevano `false`) uključuje izbor niza lokacija (vidi ispod). Bez njega mapa samo prikazuje lokacije.
 - `maxPins: number | null` (podrazumevano `null`, bez granice) je najveći broj pinova u izboru.
 - `locationsChange` je izlaz sa celim novim nizom lokacija (`MapLocation[]`), redom. Javlja se samo u izboru.
+- `positionSettable: boolean` (podrazumevano `false`) nudi postavljanje pozicije korisnika (vidi ispod). Bez njega mapa ne nudi postavljanje pozicije.
+- `settingPosition: boolean` (podrazumevano `false`) je režim klika: dok je uključen, klik na mapu postavlja poziciju umesto da menja niz. Važi samo uz `positionSettable`.
+- `position: MapLocation | null` (podrazumevano `null`) je sačuvana pozicija korisnika, prikazana posebnim pinom.
+- `positionSet` je izlaz sa mestom klika (`MapLocation`) u režimu postavljanja pozicije.
 
 Mapa uvek obuhvata sve pinove. Bez ijedne lokacije prikazuje Novi Sad. Podloga je OpenStreetMap, sa navodom autora u uglu mape. Visina mape je 24rem.
 
@@ -105,6 +109,47 @@ Granica broja pinova se zadaje ulazom `maxPins`:
 - sa granicom većom od 1, kada je dostignuta, klik na praznu mapu ne dodaje pin, a na sredini mape se na kratko prikaže poruka „Uneli ste najveći dozvoljen broj pinova.".
 
 Čuvanje niza je posao stranice, kao i provera najmanjeg potrebnog broja lokacija (na primer za turu) pri čuvanju. Da li niz sme da se menja odlučuje modul: ako ne sme, stranica ne uključuje `selectable`. Primer izbora sa sve tri granice je stranica `/map`.
+
+## Postavljanje pozicije
+
+Funkcionalnosti koje zavise od toga da je korisnik na mestu traže njegovu trenutnu poziciju. Dok izvor pozicije nije telefon, korisnik je postavlja klikom na mapu. Da li mapa nudi postavljanje pozicije odlučuje stranica; primer je platformska stranica `/map`.
+
+Sa `[positionSettable]="true"` mapa:
+
+- prikazuje sačuvanu poziciju iz ulaza `position` kao zeleni kvadrat bez broja, drugačiji od pinova lokacija; pin pozicije se ne prevlači i ne uklanja klikom;
+- bez pozicije (`null`) na mapi prikazuje poruku „Pozicija još nije postavljena.";
+- dok je `settingPosition` uključen, klik na mapu javlja mesto klika kroz `positionSet`, a pinovi niza se ne dodaju, ne pomeraju i ne uklanjaju;
+- dok `settingPosition` nije uključen, klik radi kao i bez postavljanja pozicije.
+
+Komponenta poziciju ne čuva. Stranica mesto klika šalje serveru (`PUT /api/maps/user-positions/me`, modul Maps), a kada ga server sačuva, ponovo čita poziciju (`GET /api/maps/user-positions/me`) i vraća je mapi kroz `position`. Server vraća 404 dok korisnik nije postavio poziciju; tada stranica predaje `null`. Pin se zato pojavljuje ili premešta tek kada server sačuva poziciju, a ponovni ulazak na stranicu prikazuje istu poziciju.
+
+```html
+<app-location-map
+  [locations]="locations()"
+  [selectable]="true"
+  [positionSettable]="true"
+  [settingPosition]="settingPosition()"
+  [position]="position()"
+  (locationsChange)="locations.set($event)"
+  (positionSet)="setPosition($event)"
+/>
+```
+
+Režim klika bira stranica, na `/map` parom dugmadi „Biranje niza" i „Postavljanje pozicije".
+
+## Čitanje pozicije iz modula
+
+Modul poziciju nikada ne čita kroz krajnje tačke pozicije, jer one služe samo stranici na kojoj se pozicija postavlja. Server modula je čita kroz kontrakt `IMapsApi` iz `Maps.Contracts` (vidi `backend/Modules/Maps/README.md`), koji vraća širinu, dužinu i vreme postavljanja ili odgovor da pozicija ne postoji. Da li je korisnik blizu nečega odlučuje modul, ne mapa.
+
+## Koju mogućnost mape koristi koja funkcionalnost
+
+| Funkcionalnost | Mogućnost mape |
+|---|---|
+| E21, ključne tačke ture | Izbor niza lokacija (`selectable`), gde je svaka ključna tačka jedan pin; putanja između tačaka (`route`) i njena dužina iz izlaza `routeLength`. |
+| E22, obilazak ture | Pozicija korisnika (`positionSettable`, `position`) i putanja od pozicije do sledeće ključne tačke: stranica preda poziciju i tačku kao dve lokacije u `locations` i izabere `route`. Proveru na svakih 10 sekundi i pravilo blizine radi stranica, odnosno server modula kroz `IMapsApi`. |
+| E23, pretraga tura | Prikaz pinova tura (`locations`). Krug oblasti pretrage i izbor ture klikom na pin mapa danas ne nudi; to je zahtev platformskom timu. |
+| G21, skrivena lokacija | Pozicija korisnika (`positionSettable`, `position`); blizinu proverava server modula kroz `IMapsApi`. Krug oblasti traženja mapa danas ne nudi; to je zahtev platformskom timu. |
+| G22, izazov na mapi | Pozicija korisnika (`positionSettable`, `position`) i prikaz pinova izazova (`locations`). Proveru na svakih 10 sekundi radi stranica. Izbor izazova klikom na pin mapa danas ne nudi; to je zahtev platformskom timu. |
 
 ## Pravila
 

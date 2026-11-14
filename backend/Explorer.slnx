@@ -22,6 +22,7 @@
     <Project Path="Modules/Identity/Identity/Identity.csproj" />
   </Folder>
   <Folder Name="/Modules/Maps/">
+    <Project Path="Modules/Maps/Maps.Contracts/Maps.Contracts.csproj" />
     <Project Path="Modules/Maps/Maps.Tests/Maps.Tests.csproj" />
     <Project Path="Modules/Maps/Maps/Maps.csproj" />
   </Folder>

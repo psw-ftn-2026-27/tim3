@@ -6,8 +6,12 @@
     [route]="route()"
     [selectable]="true"
     [maxPins]="maxPins()"
+    [positionSettable]="true"
+    [settingPosition]="settingPosition()"
+    [position]="position()"
     (locationsChange)="changeLocations($event)"
     (routeLength)="routeLength.set($event)"
+    (positionSet)="setPosition($event)"
   />
 
   @if (route() !== 'none' && routeLength() !== null) {
@@ -67,6 +71,29 @@
       Najviše 1
     </button>
   </div>
+
+  <div class="buttons">
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="!settingPosition()"
+      (click)="settingPosition.set(false)"
+    >
+      Biranje niza
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="settingPosition()"
+      (click)="settingPosition.set(true)"
+    >
+      Postavljanje pozicije
+    </button>
+  </div>
+
+  @if (positionError()) {
+    <p class="error">{{ positionError() }}</p>
+  }
 
   <h2>Izabrane lokacije</h2>
   @if (locations().length === 0) {

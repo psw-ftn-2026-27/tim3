@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Maps.Core;
+using Maps.Infrastructure.Persistence;
+using Maps.Tests.Integration.Seeds;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,5 +41,6 @@ public abstract class BaseIntegrationTest
     protected BaseIntegrationTest(MapsApiFactory factory)
     {
         Factory = factory;
+        Factory.Reseed<MapsDbContext>(MapsSeed.All);
     }
 }
