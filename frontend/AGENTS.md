@@ -29,7 +29,7 @@ frontend/src/
     _components.scss         global classes: button, card, form field, table
   app/
     core/                    auth (state, interceptor, login, register), home,
-                             app.routes.ts                                    [platform]
+                             theme (light/dark toggle), app.routes.ts         [platform]
     shared/
       util/
       api/                   shared types (PageResult, ProblemDetails),
@@ -133,7 +133,8 @@ No component library. Styling is plain SCSS, deliberately minimal: elegant defau
 lean files that students extend, not a design system. The four global partials in
 `src/styles/` are platform-owned and short. Theming means editing `_tokens.scss` and
 nothing else; every colour, spacing and font value elsewhere refers to a custom property
-defined there.
+defined there. The dark theme is the same tokens redefined under
+`:root[data-theme='dark']`, so a colour that refers to a token works in both themes.
 
 Where a style goes, in order:
 

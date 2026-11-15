@@ -43,6 +43,8 @@
   --glass-field: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.72));
   --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
   --highlight-soft: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  // The light spot that follows the pointer, as "R G B" so its opacity can change.
+  --lens: 255 255 255;
   --line: rgba(29, 29, 31, 0.14);
   --line-strong: rgba(29, 29, 31, 0.28);
 
@@ -91,4 +93,53 @@
   --font-size-2xl: 3.5rem;
 
   --container-width: 60rem;
+}
+
+// Dark theme: the same tokens with night values. app/core/theme/theme.ts sets data-theme on
+// <html>. Glass turns smoky, ink and white swap, and module tones become deep tints.
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-bg: #0f0f12;
+  --bg-mesh:
+    radial-gradient(40rem 28rem at 8% 4%, #10302d 0, transparent 70%),
+    radial-gradient(36rem 26rem at 96% 12%, #2e1f17 0, transparent 70%),
+    radial-gradient(40rem 28rem at 60% 98%, #1f1b36 0, transparent 70%), #0f0f12;
+
+  --color-surface: #1c1c1f;
+  --color-border: #3a3a40;
+  --color-hairline: #2c2c31;
+  --color-fill: #232327;
+  --color-text: #f5f5f7;
+  --color-text-muted: #a1a1a8;
+  --color-accent: #f5f5f7;
+  --color-accent-text: #1d1d1f;
+  --color-danger: #ff6b61;
+  --color-danger-bg: #3a1614;
+  --color-success: #4cc38a;
+  --color-success-bg: #10301f;
+  --color-warning: #f0b44c;
+  --color-warning-bg: #33260b;
+
+  --color-exploration: #12403b;
+  --color-exploration-ink: #7fdccf;
+  --color-games: #4a2a17;
+  --color-games-ink: #ffb78a;
+  --color-social: #2c2645;
+  --color-social-ink: #bdb2f0;
+  --color-payment: #2a2a2e;
+  --color-payment-ink: #a1a1a8;
+
+  --glass: rgba(28, 28, 32, 0.55);
+  --glass-button: rgba(44, 44, 50, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-field: linear-gradient(180deg, rgba(36, 36, 40, 0.95), rgba(28, 28, 32, 0.8));
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --highlight-soft: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --lens: 110 110 125;
+  --line: rgba(245, 245, 247, 0.14);
+  --line-strong: rgba(245, 245, 247, 0.28);
+
+  --shadow: 0 10px 40px -16px rgba(0, 0, 0, 0.6);
+  --shadow-button: 0 14px 28px -16px rgba(0, 0, 0, 0.7);
 }

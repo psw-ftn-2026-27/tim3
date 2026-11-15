@@ -100,6 +100,36 @@ nav a:focus-visible {
   font-size: var(--font-size-sm);
 }
 
+// A round glass button with a moon (light theme) or a sun (dark theme).
+.theme-toggle {
+  align-items: center;
+  background: var(--glass-button);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--color-text);
+  cursor: pointer;
+  display: inline-flex;
+  height: 2rem;
+  justify-content: center;
+  padding: 0;
+  transition: border-color 200ms ease;
+  width: 2rem;
+}
+
+.theme-toggle:hover {
+  border-color: var(--line-strong);
+}
+
+.theme-toggle svg {
+  fill: none;
+  height: 1rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 1rem;
+}
+
 .nav-user .button {
   padding: var(--space-1) var(--space-4);
 }

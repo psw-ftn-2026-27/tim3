@@ -8,7 +8,7 @@
   background:
     radial-gradient(
       7rem circle at var(--mx, 50%) var(--my, 50%),
-      rgb(255 255 255 / var(--glow)),
+      rgb(var(--lens) / var(--glow)),
       transparent 70%
     ),
     var(--glass-button);
@@ -39,7 +39,7 @@
   background:
     radial-gradient(
       6rem circle at var(--mx, 50%) var(--my, 50%),
-      rgb(255 255 255 / calc(var(--glow) * 0.45)),
+      rgb(var(--lens) / calc(var(--glow) * 0.45)),
       transparent 70%
     ),
     var(--color-accent);
@@ -71,7 +71,7 @@
   background:
     radial-gradient(
       26rem circle at var(--mx, 50%) var(--my, 0%),
-      rgb(255 255 255 / calc(var(--glow) * 0.4)),
+      rgb(var(--lens) / calc(var(--glow) * 0.4)),
       transparent 60%
     ),
     var(--glass);
@@ -87,7 +87,7 @@ article.card {
   background:
     radial-gradient(
       14rem circle at var(--mx, 50%) var(--my, 0%),
-      rgb(255 255 255 / calc(var(--glow) * 0.9)),
+      rgb(var(--lens) / calc(var(--glow) * 0.9)),
       transparent 60%
     ),
     radial-gradient(
@@ -212,10 +212,10 @@ article.card:hover {
   background:
     radial-gradient(
       10rem 5rem at var(--mx, 50%) var(--my, 50%),
-      rgb(255 255 255 / calc(var(--glow) * 0.9)),
+      rgb(var(--lens) / calc(var(--glow) * 0.9)),
       transparent 70%
     ),
-    rgb(255 255 255 / calc(var(--glow) * 0.45));
+    rgb(var(--lens) / calc(var(--glow) * 0.45));
   transition: --glow 380ms ease;
 }
 

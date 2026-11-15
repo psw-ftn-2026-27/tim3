@@ -92,3 +92,25 @@ a:hover {
     backdrop-filter: none !important;
   }
 }
+
+// Switching between light and dark (app/core/theme/theme.ts) is a view transition: the
+// browser shows the old page and reveals the new one as a circle growing from the toggle.
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: theme-reveal 650ms var(--ease-out);
+}
+
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--reveal-x) var(--reveal-y));
+  }
+
+  to {
+    clip-path: circle(150vmax at var(--reveal-x) var(--reveal-y));
+  }
+}
