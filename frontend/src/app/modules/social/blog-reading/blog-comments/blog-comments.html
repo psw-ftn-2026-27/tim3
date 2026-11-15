@@ -1,38 +1,52 @@
-<ul class="comments">
-  @for (comment of comments(); track comment.id) {
-    <li class="stack">
-      <p>{{ comment.text }}</p>
-      <p class="meta">{{ comment.createdAt }}</p>
+<section class="stack">
+  <h2>Comments</h2>
 
-      @if (comment.userId === currentUserId()) {
+  <ul class="comments">
+    @for (comment of comments(); track comment.id) {
+      <li class="comment">
         @if (editingCommentId() === comment.id) {
-          <form class="comment-actions" (submit)="saveEdit($event, comment.id)">
+          <form class="comment-form" (submit)="saveEdit($event, comment.id)">
             <input type="text" aria-label="Edit comment" [formField]="editForm.text" />
-            <button class="button" type="submit" [disabled]="!editForm().valid()">Save</button>
+            <button class="button button--primary" type="submit" [disabled]="!editForm().valid()">
+              Save
+            </button>
             <button class="button" type="button" (click)="editingCommentId.set(null)">
               Cancel
             </button>
           </form>
         } @else {
-          <div class="comment-actions">
-            <button class="button" type="button" (click)="startEdit(comment)">Edit</button>
-            <button class="button" type="button" (click)="deleteComment.emit(comment.id)">
-              Delete
-            </button>
-          </div>
+          <p class="text">{{ comment.text }}</p>
         }
-      }
-    </li>
-  } @empty {
-    <li class="meta">No comments yet.</li>
-  }
-</ul>
 
-@if (currentUserId()) {
-  <form class="comment-form" (submit)="submitComment($event)">
-    <input type="text" aria-label="New comment" [formField]="form.text" />
-    <button class="button button--primary" type="submit" [disabled]="!form().valid()">
-      Comment
-    </button>
-  </form>
-}
+        <div class="footer">
+          <span class="meta">{{ when(comment.createdAt) }}</span>
+
+          @if (comment.userId === currentUserId() && editingCommentId() !== comment.id) {
+            <span class="comment-actions">
+              <button class="button" type="button" (click)="startEdit(comment)">Edit</button>
+              <button class="button" type="button" (click)="deleteComment.emit(comment.id)">
+                Delete
+              </button>
+            </span>
+          }
+        </div>
+      </li>
+    } @empty {
+      <li class="meta">No comments yet.</li>
+    }
+  </ul>
+
+  @if (currentUserId()) {
+    <form class="comment-form" (submit)="submitComment($event)">
+      <input
+        type="text"
+        aria-label="New comment"
+        placeholder="Write a comment"
+        [formField]="form.text"
+      />
+      <button class="button button--primary" type="submit" [disabled]="!form().valid()">
+        Comment
+      </button>
+    </form>
+  }
+</section>

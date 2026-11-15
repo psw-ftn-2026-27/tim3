@@ -31,6 +31,18 @@ export class BlogComments {
     required(path.text, { message: 'A comment cannot be empty.' });
   });
 
+  // "Nov 15, 2026, 21:42"
+  protected when(createdAt: string): string {
+    return new Date(createdAt).toLocaleString('en-US', {
+      day: 'numeric',
+      hour: '2-digit',
+      hour12: false,
+      minute: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
   protected submitComment(event: Event): void {
     event.preventDefault();
     this.addComment.emit(this.form.text().value());
