@@ -9,20 +9,6 @@
 
       @if (ownWallet.isLoading()) {
         <p role="status">Učitavanje novčanika…</p>
-      } @else if (needsWallet()) {
-        <p class="balance">Stanje: <strong>0 EC</strong></p>
-        <p>Još nema transakcija.</p>
-        <button
-          class="button button--primary"
-          type="button"
-          [disabled]="writeBlocked()"
-          (click)="ensureWallet()"
-        >
-          Otvori novčanik
-        </button>
-        @if (setupError(); as message) {
-          <p class="error" role="alert">{{ message }}</p>
-        }
       } @else if (ownWalletErrorStatus() === 401) {
         <p class="error" role="alert">
           Sesija je istekla. <a routerLink="/login">Prijavi se ponovo</a>.

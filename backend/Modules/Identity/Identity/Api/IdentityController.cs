@@ -19,6 +19,27 @@ public sealed class IdentityController : ControllerBase
         _tokenFactory = tokenFactory;
     }
 
+    [HttpPost("register")]
+    public async Task<ActionResult<AccessTokenDto>> Register(RegisterDto dto)
+    {
+        var user = new ApplicationUser { UserName = dto.Email, Email = dto.Email };
+
+        var result = await _userManager.CreateAsync(user, dto.Password);
+        if (!result.Succeeded)
+        {
+            var reasons = string.Join(" ", result.Errors.Select(error => error.Description));
+            return Problem(statusCode: StatusCodes.Status400BadRequest, title: reasons);
+        }
+
+        var roleResult = await _userManager.AddToRoleAsync(user, "explorer");
+        if (!roleResult.Succeeded)
+        {
+            throw new InvalidOperationException("Could not assign the explorer role to a registered user.");
+        }
+
+        return new AccessTokenDto(_tokenFactory.CreateToken(user, await _userManager.GetRolesAsync(user)));
+    }
+
     [HttpPost("login")]
     public async Task<ActionResult<AccessTokenDto>> Login(LoginDto dto)
     {
