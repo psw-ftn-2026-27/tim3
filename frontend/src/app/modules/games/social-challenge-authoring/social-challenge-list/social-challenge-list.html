@@ -1,9 +1,14 @@
 <div class="stack">
-  <h1>Društveni izazovi</h1>
+  <div class="page-head">
+    <h1>Društveni izazovi</h1>
 
-  @if (isAdministrator()) {
-    <p><a class="button button--primary" routerLink="/games/challenges/create">Novi izazov</a></p>
-  }
+    <div class="page-actions">
+      <a class="button" routerLink="/games">Games</a>
+      @if (isAdministrator()) {
+        <a class="button button--primary" routerLink="/games/challenges/create">Novi izazov</a>
+      }
+    </div>
+  </div>
 
   @if (success()) {
     <p class="success" role="status">{{ success() }}</p>
@@ -39,7 +44,7 @@
             <td>{{ challenge.peopleRequired }}</td>
             <td>{{ challenge.gatheringRadius }}</td>
             <td>{{ challenge.experienceGained }}</td>
-            <td>{{ challenge.status }}</td>
+            <td><span class="badge">{{ challenge.status }}</span></td>
             <td>
               <div class="actions">
                 @if (awaitingConfirmation()?.id === challenge.id) {

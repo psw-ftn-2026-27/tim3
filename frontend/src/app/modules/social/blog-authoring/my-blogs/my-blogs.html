@@ -1,7 +1,12 @@
 <div class="stack">
-  <h1>My blogs</h1>
+  <div class="page-head">
+    <h1>My blogs</h1>
 
-  <p><a routerLink="/social/create">Create blog</a></p>
+    <div class="page-actions">
+      <a class="button" routerLink="/social">All blogs</a>
+      <a class="button button--primary" routerLink="/social/create">Create blog</a>
+    </div>
+  </div>
 
   @if (error()) {
     <p class="error">{{ error() }}</p>
@@ -25,7 +30,9 @@
         @for (blog of blogs.value() ?? []; track blog.id) {
           <tr>
             <td>{{ blog.title }}</td>
-            <td>{{ blog.status }}</td>
+            <td>
+              <span class="badge">{{ blog.status }}</span>
+            </td>
             <td>{{ blog.comments.length }}</td>
             <td>
               @if (blog.status !== 'Closed') {

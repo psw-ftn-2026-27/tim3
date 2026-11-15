@@ -1,25 +1,36 @@
-<article class="card stack">
-  <h3>{{ tour().name }}</h3>
+<article
+  class="card"
+  [class.easy]="tour().difficulty === 'Easy'"
+  [class.moderate]="tour().difficulty === 'Moderate'"
+  [class.hard]="tour().difficulty === 'Hard'"
+>
+  <!-- A tinted pill with a signal meter: one, two or three bars filled by difficulty. -->
+  <span class="difficulty">
+    <span class="bars" aria-hidden="true">
+      @for (bar of [1, 2, 3]; track bar) {
+        <span class="bar" [class.filled]="bar <= level()"></span>
+      }
+    </span>
+    Difficulty: {{ tour().difficulty }}
+  </span>
 
-  <p>{{ tour().description }}</p>
+  <h2>{{ tour().name }}</h2>
 
-  <p class="meta">Difficulty: {{ tour().difficulty }}</p>
+  <p class="description">{{ tour().description }}</p>
 
   @if (tour().tags.length > 0) {
     <ul class="tags">
       @for (tag of tour().tags; track tag) {
-        <li>{{ tag }}</li>
+        <li class="badge">{{ tag }}</li>
       }
     </ul>
   }
 
-  @if (tour().transportTimes.length > 0) {
-    <ul class="times">
-      @for (time of tour().transportTimes; track time.transport) {
-        <li class="meta">{{ time.transport }}: {{ time.minutes }} min</li>
-      }
-    </ul>
-  } @else {
-    <p class="meta">No transport times yet.</p>
-  }
+  <ul class="times">
+    @for (time of tour().transportTimes; track time.transport) {
+      <li>{{ time.transport }}: {{ time.minutes }} min</li>
+    } @empty {
+      <li>No transport times yet.</li>
+    }
+  </ul>
 </article>
