@@ -6,6 +6,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Shared\Shared.Domain\Shared.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Shared.Api\Shared.Api.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\Maps.Contracts\Maps.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
