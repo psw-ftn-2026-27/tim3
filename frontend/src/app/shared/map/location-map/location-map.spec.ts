@@ -77,10 +77,12 @@ describe('LocationMap', () => {
     locations: MapLocation[],
     settingPosition: boolean,
     position: MapLocation | null = null,
+    positionMissing = false,
   ): void {
     fixture.componentRef.setInput('positionSettable', true);
     fixture.componentRef.setInput('settingPosition', settingPosition);
     fixture.componentRef.setInput('position', position);
+    fixture.componentRef.setInput('positionMissing', positionMissing);
     select(locations, 'none');
   }
 
@@ -457,8 +459,12 @@ describe('LocationMap', () => {
       { latitude: 0, longitude: 1 },
     ];
 
-    offerPosition(start, false);
+    offerPosition(start, false, null, true);
     expect(fixture.nativeElement.textContent).toContain(NO_POSITION_MESSAGE);
+    expect(count('.map-position')).toBe(0);
+
+    offerPosition(start, false);
+    expect(fixture.nativeElement.textContent).not.toContain(NO_POSITION_MESSAGE);
     expect(count('.map-position')).toBe(0);
 
     offerPosition(start, false, { latitude: 1, longitude: 1 });

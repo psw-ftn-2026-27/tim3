@@ -50,7 +50,7 @@ Obe krajnje tačke pozicije služe samo stranici na kojoj korisnik postavlja poz
 2. Komponenta mape pošalje lokacije na `GET /api/maps/walking-routes` i iscrta liniju iz vraćenih tačaka.
 3. Kada upit završi greškom, komponenta crta prave linije i javlja stranici da putanja nije po ulicama.
 
-Modul nikada ne referencira projekat `Maps` i ne poziva njegove klase, već samo `Maps.Contracts`. Arhitektonski test to proverava.
+Modul nikada ne referencira projekat `Maps` i ne poziva njegove klase, već samo `Maps.Contracts`. Arhitektonski testovi u `Host.Tests` proveravaju da nijedan modul ne zavisi od projekta `Maps` i da `Maps.Contracts` ne zavisi ni od čega.
 
 ## Odstupanje od strukture modula
 

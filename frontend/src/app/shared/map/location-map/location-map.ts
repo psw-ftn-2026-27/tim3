@@ -50,8 +50,11 @@ export class LocationMap {
   readonly positionSettable = input(false);
   // Režim klika: dok je uključen (i postavljanje ponuđeno), klik javlja poziciju umesto da menja niz.
   readonly settingPosition = input(false);
-  // Sačuvana pozicija korisnika; null dok je korisnik nije postavio.
+  // Sačuvana pozicija korisnika; null dok nije poznata ili ne postoji.
   readonly position = input<MapLocation | null>(null);
+  // Stranica javlja da server zna da korisnik još nije postavio poziciju. Dok se pozicija
+  // učitava ili čitanje ne uspe, ovo ostaje false, pa mapa ne tvrdi da pozicije nema.
+  readonly positionMissing = input(false);
 
   readonly routeLength = output<number>();
   readonly routeNotAlongStreets = output<void>();
@@ -62,8 +65,8 @@ export class LocationMap {
   // serveru, ponovo je pročita i vraća kroz ulaz position.
   readonly positionSet = output<MapLocation>();
 
-  protected readonly positionMissing = computed(
-    () => this.positionSettable() && this.position() === null,
+  protected readonly showPositionMissing = computed(
+    () => this.positionSettable() && this.positionMissing(),
   );
 
   protected readonly limitReached = signal(false);

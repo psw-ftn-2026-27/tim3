@@ -16,10 +16,11 @@ Komponenta `LocationMap` (`app-location-map`) je deljena prikazna komponenta pla
 - `locationsChange` je izlaz sa celim novim nizom lokacija (`MapLocation[]`), redom. Javlja se samo u izboru.
 - `positionSettable: boolean` (podrazumevano `false`) nudi postavljanje pozicije korisnika (vidi ispod). Bez njega mapa ne nudi postavljanje pozicije.
 - `settingPosition: boolean` (podrazumevano `false`) je režim klika: dok je uključen, klik na mapu postavlja poziciju umesto da menja niz. Važi samo uz `positionSettable`.
-- `position: MapLocation | null` (podrazumevano `null`) je sačuvana pozicija korisnika, prikazana posebnim pinom.
+- `position: MapLocation | null` (podrazumevano `null`) je sačuvana pozicija korisnika, prikazana posebnim pinom. Pin se prikazuje i bez `positionSettable`, pa mapa koja poziciju samo pokazuje (na primer za E22 i G22) predaje samo ovaj ulaz.
+- `positionMissing: boolean` (podrazumevano `false`) je tačan kada server javi da korisnik još nije postavio poziciju. Uz `positionSettable` mapa tada prikazuje poruku da pozicija još nije postavljena.
 - `positionSet` je izlaz sa mestom klika (`MapLocation`) u režimu postavljanja pozicije.
 
-Mapa uvek obuhvata sve pinove. Bez ijedne lokacije prikazuje Novi Sad. Podloga je OpenStreetMap, sa navodom autora u uglu mape. Visina mape je 24rem.
+Mapa uvek obuhvata sve pinove, i pin pozicije. Bez ijedne lokacije prikazuje Novi Sad. Podloga je OpenStreetMap, sa navodom autora u uglu mape. Visina mape je 24rem.
 
 ## Prikaz bez putanje
 
@@ -114,14 +115,13 @@ Granica broja pinova se zadaje ulazom `maxPins`:
 
 Funkcionalnosti koje zavise od toga da je korisnik na mestu traže njegovu trenutnu poziciju. Dok izvor pozicije nije telefon, korisnik je postavlja klikom na mapu. Da li mapa nudi postavljanje pozicije odlučuje stranica; primer je platformska stranica `/map`.
 
-Sa `[positionSettable]="true"` mapa:
+Sačuvanu poziciju iz ulaza `position` mapa uvek prikazuje kao zeleni kvadrat bez broja, drugačiji od pinova lokacija; pin pozicije se ne prevlači i ne uklanja klikom. Sa `[positionSettable]="true"` mapa uz to:
 
-- prikazuje sačuvanu poziciju iz ulaza `position` kao zeleni kvadrat bez broja, drugačiji od pinova lokacija; pin pozicije se ne prevlači i ne uklanja klikom;
-- bez pozicije (`null`) na mapi prikazuje poruku „Pozicija još nije postavljena.";
+- kada je `positionMissing` tačan, na mapi prikazuje poruku „Pozicija još nije postavljena.";
 - dok je `settingPosition` uključen, klik na mapu javlja mesto klika kroz `positionSet`, a pinovi niza se ne dodaju, ne pomeraju i ne uklanjaju;
 - dok `settingPosition` nije uključen, klik radi kao i bez postavljanja pozicije.
 
-Komponenta poziciju ne čuva. Stranica mesto klika šalje serveru (`PUT /api/maps/user-positions/me`, modul Maps), a kada ga server sačuva, ponovo čita poziciju (`GET /api/maps/user-positions/me`) i vraća je mapi kroz `position`. Server vraća 404 dok korisnik nije postavio poziciju; tada stranica predaje `null`. Pin se zato pojavljuje ili premešta tek kada server sačuva poziciju, a ponovni ulazak na stranicu prikazuje istu poziciju.
+Komponenta poziciju ne čuva. Stranica mesto klika šalje serveru (`PUT /api/maps/user-positions/me`, modul Maps), a kada ga server sačuva, ponovo čita poziciju (`GET /api/maps/user-positions/me`) i vraća je mapi kroz `position`. Server vraća 404 dok korisnik nije postavio poziciju; samo tada stranica predaje `positionMissing` kao tačno. Dok se pozicija učitava ili kada čitanje ne uspe iz drugog razloga (na primer 401 ili 500), stranica predaje `position` kao `null` i `positionMissing` kao netačno, pa mapa ne crta pin i ne prikazuje poruku. Pin se zato pojavljuje ili premešta tek kada server sačuva poziciju, a ponovni ulazak na stranicu prikazuje istu poziciju.
 
 ```html
 <app-location-map
@@ -130,6 +130,7 @@ Komponenta poziciju ne čuva. Stranica mesto klika šalje serveru (`PUT /api/map
   [positionSettable]="true"
   [settingPosition]="settingPosition()"
   [position]="position()"
+  [positionMissing]="positionMissing()"
   (locationsChange)="locations.set($event)"
   (positionSet)="setPosition($event)"
 />

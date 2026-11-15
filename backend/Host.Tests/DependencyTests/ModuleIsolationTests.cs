@@ -3,7 +3,7 @@ using Xunit;
 namespace Host.Tests.DependencyTests;
 
 // Another module is reachable only through its Contracts project. Identity is reachable only
-// through Identity.Contracts, and Media and Maps are reachable by no module at all.
+// through Identity.Contracts, Maps only through Maps.Contracts, and Media by no module at all.
 public class ModuleIsolationTests : BaseArchitectureTests
 {
     [Theory]
@@ -47,6 +47,13 @@ public class ModuleIsolationTests : BaseArchitectureTests
         {
             AssertNoDependency(assembly, "Media");
         }
+    }
+
+    [Fact]
+    public void Maps_contracts_depend_on_nothing()
+    {
+        AssertNoDependency("Maps.Contracts",
+            "Maps", "Shared.Domain", "Shared.Api", "Shared.Infrastructure");
     }
 
     [Theory]

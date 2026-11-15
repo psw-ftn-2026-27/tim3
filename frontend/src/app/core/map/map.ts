@@ -1,4 +1,4 @@
-import { httpResource } from '@angular/common/http';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { UserPositionDto } from '../../shared/api/maps';
 import { LocationMap, MapLocation, RouteKind } from '../../shared/map/location-map/location-map';
@@ -31,8 +31,8 @@ export class MapPage {
 
   // Režim klika: false je biranje niza, true postavljanje pozicije.
   protected readonly settingPosition = signal(false);
-  // Sačuvana pozicija korisnika. Server vraća 404 dok je korisnik nije postavio, pa tada
-  // resurs nema vrednost i mapa prikazuje poruku da pozicija još nije postavljena.
+  // Sačuvana pozicija korisnika. Dok se učitava ili kada čitanje ne uspe, resurs nema
+  // vrednost i mapa ne crta pin.
   protected readonly userPosition = httpResource<UserPositionDto>(
     () => '/api/maps/user-positions/me',
   );
@@ -43,6 +43,12 @@ export class MapPage {
     const position = this.userPosition.value();
     return { latitude: position.latitude, longitude: position.longitude };
   });
+  // Samo 404 znači da korisnik još nije postavio poziciju; 401 ili 500 to ne znače.
+  protected readonly positionErrorStatus = computed(() => {
+    const failure = this.userPosition.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
+  protected readonly positionMissing = computed(() => this.positionErrorStatus() === 404);
   protected readonly positionError = signal<string | null>(null);
 
   protected select(route: RouteKind): void {
