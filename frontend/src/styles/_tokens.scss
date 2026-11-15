@@ -1,26 +1,70 @@
 :root {
-  --color-bg: #ced5f1;
-  --color-surface: #f4f6fc;
-  --color-border: #432534;
-  --color-text: #432534;
-  --color-text-muted: #5a3f4d;
-  --color-accent: #dd7596;
-  --color-accent-text: #432534;
-  --color-danger: #a12b3b;
-  --color-danger-bg: #fbe1e6;
-  --color-success: #13505b;
-  --color-success-bg: #d3e6e8;
-  --color-warning: #7a4e12;
-  --color-warning-bg: #f8e6c4;
-  --color-disabled-bg: #e3e1ec;
-  --color-disabled-text: #5a3f4d;
-  --color-table-header: #e5d9df;
+  // The page is an almost neutral grey field with soft colour blobs behind frosted glass.
+  --color-bg: #f5f5f7;
+  --bg-mesh:
+    radial-gradient(40rem 28rem at 8% 4%, #e4efee 0, transparent 70%),
+    radial-gradient(36rem 26rem at 96% 12%, #f4ece6 0, transparent 70%),
+    radial-gradient(40rem 28rem at 60% 98%, #eceaf4 0, transparent 70%), #f5f5f7;
 
-  // Module tones, used only by the strip under the main nav.
-  --color-exploration: #13505b;
-  --color-games: #dd7596;
-  --color-social: #e5d9df;
-  --color-payment: #e0e3ea;
+  --color-surface: #ffffff;
+  --color-border: #d2d2d7;
+  --color-hairline: #e5e5ea;
+  --color-fill: #f5f5f7;
+  --color-text: #1d1d1f;
+  --color-text-muted: #5c5c62;
+  --color-accent: #1d1d1f;
+  --color-accent-text: #ffffff;
+  --color-danger: #c4302b;
+  --color-danger-bg: #fdeceb;
+  --color-success: #1e7a50;
+  --color-success-bg: #e7f5ee;
+  --color-warning: #875700;
+  --color-warning-bg: #fdf3e1;
+
+  // Module tone (strip background) and ink (strip dot), used only by the strip under the main nav.
+  --color-exploration: #cfefea;
+  --color-exploration-ink: #0e6b63;
+  --color-games: #ffdcc4;
+  --color-games-ink: #a6430f;
+  --color-social: #e8e3f7;
+  --color-social-ink: #5c5c62;
+  --color-payment: #efeff1;
+  --color-payment-ink: #5c5c62;
+
+  // Focused fields get a sea border and a mint ring.
+  --color-focus: var(--color-exploration-ink);
+  --color-focus-ring: var(--color-exploration);
+
+  // Frosted glass: a half-transparent white that blurs whatever is behind it.
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass-button: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-blur: blur(14px) saturate(170%);
+  --glass-field: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.72));
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --highlight-soft: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --line: rgba(29, 29, 31, 0.14);
+  --line-strong: rgba(29, 29, 31, 0.28);
+
+  --shadow: 0 10px 40px -16px rgba(29, 29, 31, 0.22);
+  --shadow-button: 0 14px 28px -16px rgba(29, 29, 31, 0.4);
+  // The primary button casts a mint, apricot and lilac halo on hover.
+  --halo:
+    -10px 12px 28px -10px rgba(14, 107, 99, 0.45), 10px 12px 28px -10px rgba(166, 67, 15, 0.35),
+    0 18px 34px -14px rgba(75, 59, 143, 0.45);
+  // Glow (light) and shadow colour of each module, as "R G B" so their opacity can change:
+  // mint and sea, apricot and clay, lilac and violet.
+  --glow-exploration: 143 222 210;
+  --shadow-exploration: 14 107 99;
+  --glow-games: 255 184 140;
+  --shadow-games: 166 67 15;
+  --glow-social: 190 176 245;
+  --shadow-social: 75 59 143;
+
+  // Cards glow in this colour under the pointer. A component may set its own value,
+  // for example one of the module colours above.
+  --card-glow: var(--glow-exploration);
+  --card-shadow: var(--shadow-exploration);
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -29,17 +73,22 @@
   --space-5: 1.5rem;
   --space-6: 2rem;
 
-  --radius: 0.125rem;
-  --border: 2px solid var(--color-border);
-  --shadow: 4px 4px 0 var(--color-border);
-  --transition: 120ms ease-out;
+  --radius: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-pill: 999px;
+  --border: 1px solid var(--color-border);
 
-  --font-family: system-ui, 'Segoe UI', -apple-system, sans-serif;
-  --font-family-heading: Georgia, 'Times New Roman', serif;
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  // EB Garamond and Open Sans are not loaded; until they are, the browser uses the next font.
+  --font-family: 'Open Sans', -apple-system, system-ui, sans-serif;
+  --font-family-heading: 'EB Garamond', 'New York', Georgia, serif;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
   --font-size-lg: 1.25rem;
   --font-size-xl: 1.75rem;
+  --font-size-2xl: 3.5rem;
 
   --container-width: 60rem;
 }

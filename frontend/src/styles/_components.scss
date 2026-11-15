@@ -1,137 +1,227 @@
-// Buttons are flat at rest and lift with a hard shadow on hover and keyboard focus.
+// --mx and --my (pointer position) and --glow (0 or 1) below are set by app.ts on the
+// button, card or table row under the pointer. Without them everything is simply still.
+
+// Buttons are frosted glass pills. They never move: on hover a light spot follows the
+// pointer and a soft shadow appears. Click and keyboard focus change nothing else.
 .button {
-  background: var(--color-surface);
-  border: var(--border);
-  border-radius: var(--radius);
+  backdrop-filter: var(--glass-blur);
+  background:
+    radial-gradient(
+      7rem circle at var(--mx, 50%) var(--my, 50%),
+      rgb(255 255 255 / var(--glow)),
+      transparent 70%
+    ),
+    var(--glass-button);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--highlight);
   color: var(--color-text);
   cursor: pointer;
+  display: inline-block;
   font: inherit;
-  font-weight: 700;
-  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  padding: var(--space-3) var(--space-5);
   transition:
-    box-shadow var(--transition),
-    transform var(--transition);
+    box-shadow 500ms var(--ease-out),
+    border-color 400ms ease,
+    --glow 400ms ease;
 }
 
-.button:hover,
-.button:focus-visible {
-  box-shadow: var(--shadow);
-  outline: none;
-  transform: translate(-2px, -2px);
+.button:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-button), var(--highlight);
+  color: var(--color-text);
 }
 
-.button:active {
-  box-shadow: none;
-  transform: none;
-}
-
+// The primary button is ink, and on hover it casts a mint, apricot and lilac halo.
 .button--primary {
-  background: var(--color-accent);
+  background:
+    radial-gradient(
+      6rem circle at var(--mx, 50%) var(--my, 50%),
+      rgb(255 255 255 / calc(var(--glow) * 0.45)),
+      transparent 70%
+    ),
+    var(--color-accent);
+  border-color: var(--color-accent);
+  // On ink the top highlight is only a faint sheen, not a white line.
+  box-shadow: var(--highlight-soft);
   color: var(--color-accent-text);
 }
 
-// A disabled button keeps its own look, only faded, and does not lift.
-.button:disabled {
-  box-shadow: none;
-  cursor: not-allowed;
-  opacity: 0.55;
-  transform: none;
+.button--primary:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--halo), var(--highlight-soft);
+  color: var(--color-accent-text);
 }
 
-// Cards stay light, because forms with error messages sit inside them.
+.button:disabled,
+.button:disabled:hover {
+  background: var(--color-fill);
+  border-color: var(--color-hairline);
+  box-shadow: none;
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+// Cards are frosted glass. A card that is a link or an article tilts toward the pointer and
+// glows in --card-glow; any other card (a form, a section) only brightens under the pointer.
 .card {
-  background: var(--color-surface);
-  border: var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: var(--space-4);
+  backdrop-filter: var(--glass-blur);
+  background:
+    radial-gradient(
+      26rem circle at var(--mx, 50%) var(--my, 0%),
+      rgb(255 255 255 / calc(var(--glow) * 0.4)),
+      transparent 60%
+    ),
+    var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow), var(--highlight);
+  padding: var(--space-5);
+  transition: --glow 600ms ease;
+}
+
+a.card,
+article.card {
+  background:
+    radial-gradient(
+      14rem circle at var(--mx, 50%) var(--my, 0%),
+      rgb(255 255 255 / calc(var(--glow) * 0.9)),
+      transparent 60%
+    ),
+    radial-gradient(
+      26rem circle at var(--mx, 50%) var(--my, 0%),
+      rgb(var(--card-glow) / calc(var(--glow) * 0.55)),
+      transparent 70%
+    ),
+    var(--glass-button);
+  color: var(--color-text);
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
+    translateY(var(--lift, 0px)) scale(var(--scale));
+  transition:
+    transform 280ms var(--ease-out),
+    box-shadow 480ms var(--ease-out),
+    --glow 450ms ease,
+    --scale 420ms var(--ease-spring);
+}
+
+a.card:hover,
+article.card:hover {
+  box-shadow:
+    0 40px 80px -30px rgb(var(--card-shadow) / 0.55),
+    0 0 0 1.5px rgb(var(--card-glow)),
+    var(--highlight);
+}
+
+// A heading inside a card is smaller than a page heading.
+.card h1 {
+  font-size: var(--font-size-xl);
+}
+
+.card h2 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .field label {
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .field input,
 .field select,
 .field textarea {
-  background: var(--color-surface);
+  background: var(--glass-field);
   border: var(--border);
   border-radius: var(--radius);
   color: var(--color-text);
   font: inherit;
-  padding: var(--space-2) var(--space-3);
-  transition: box-shadow var(--transition);
+  padding: var(--space-3) var(--space-4);
+  transition:
+    border-color 200ms ease,
+    box-shadow 300ms var(--ease-out);
 }
 
-// Focus is shown with a hard shadow instead of an outline ring.
+.field textarea {
+  resize: vertical;
+}
+
+// Focus is shown with a sea border and a mint ring instead of an outline.
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  box-shadow: var(--shadow);
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 4px var(--color-focus-ring);
   outline: none;
 }
 
 // A field shows its error state while its error message is visible.
 .field:has(.error) input,
 .field:has(.error) select,
-.field:has(.error) textarea {
-  border-color: var(--color-danger);
-  box-shadow: 3px 3px 0 var(--color-danger);
-}
-
+.field:has(.error) textarea,
 .field:has(.error) input:focus,
 .field:has(.error) select:focus,
 .field:has(.error) textarea:focus {
-  box-shadow: 5px 5px 0 var(--color-danger);
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 4px var(--color-danger-bg);
+}
+
+.field:has(:disabled) label {
+  color: var(--color-text-muted);
 }
 
 .field input:disabled,
 .field select:disabled,
 .field textarea:disabled {
-  background: var(--color-disabled-bg);
-  border: 2px dashed var(--color-text-muted);
-  color: var(--color-disabled-text);
+  background: var(--color-fill);
+  border-color: var(--color-hairline);
+  color: var(--color-text-muted);
   cursor: not-allowed;
 }
 
+// The table has no box of its own: a hairline under the header, and rows that turn to
+// soft glass under the pointer, calmer than cards and buttons on purpose.
 .table {
-  background: var(--color-surface);
-  border: var(--border);
   border-collapse: separate;
-  border-radius: var(--radius);
-  border-spacing: 0;
-  box-shadow: var(--shadow);
+  border-spacing: 0 2px;
   width: 100%;
 }
 
 .table th,
 .table td {
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
   text-align: left;
 }
 
 .table th {
-  background: var(--color-table-header);
-  border-bottom: var(--border);
+  border-bottom: 1px solid var(--color-hairline);
+  color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+  font-weight: 600;
+  padding-block: 0 var(--space-2);
 }
 
-.table tr:last-child td {
-  border-bottom: 0;
+.table tbody tr {
+  background:
+    radial-gradient(
+      10rem 5rem at var(--mx, 50%) var(--my, 50%),
+      rgb(255 255 255 / calc(var(--glow) * 0.9)),
+      transparent 70%
+    ),
+    rgb(255 255 255 / calc(var(--glow) * 0.45));
+  transition: --glow 380ms ease;
 }
 
 .error {
   color: var(--color-danger);
   font-size: var(--font-size-sm);
-  font-weight: 700;
   margin: 0;
 }
 

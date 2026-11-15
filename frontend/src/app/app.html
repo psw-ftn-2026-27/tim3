@@ -1,7 +1,17 @@
 <header>
   <nav class="container">
-    <!-- One shared line under the links follows the mouse and keyboard focus (see app.ts). -->
+    <span class="brand">Explorer</span>
+
+    <!-- One shared pill behind the links follows the mouse and keyboard focus (see app.ts). -->
     <span class="nav-links" (mouseleave)="hideIndicator()" (focusout)="hideIndicatorOnBlur($event)">
+      <span
+        class="nav-indicator"
+        [class.shown]="indicatorShown()"
+        [class.sliding]="indicatorSliding()"
+        [style.left.px]="indicatorLeft()"
+        [style.width.px]="indicatorWidth()"
+      ></span>
+
       <a
         routerLink="/"
         routerLinkActive="active"
@@ -43,13 +53,6 @@
         (focus)="moveIndicator($event)"
         >Payment</a
       >
-
-      <span
-        class="nav-indicator"
-        [class.sliding]="indicatorSliding()"
-        [style.left.px]="indicatorLeft()"
-        [style.width.px]="indicatorWidth()"
-      ></span>
     </span>
 
     <span class="nav-user">
