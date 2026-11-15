@@ -33,8 +33,6 @@ export interface UpdateSocialChallengeDto {
   endMessage: string;
 }
 
-export type QuizStatus = 'Draft';
-
 export interface AnswerDto {
   text: string;
   isCorrect: boolean;
