@@ -1,6 +1,6 @@
 # Mapa sa lokacijama
 
-Komponenta `LocationMap` (`app-location-map`) je deljena prikazna komponenta platforme. Prikazuje mapu sa po jednim pinom na svakoj predatoj lokaciji, po želji i putanju između njih (pravim linijama ili po ulicama), i javlja dužinu te putanje. Po želji korisnik na njoj bira niz lokacija. Moduli je koriste na svojim stranicama, ali je ne menjaju. Primer upotrebe je platformska stranica `/map` (`core/map/`).
+Komponenta `LocationMap` (`app-location-map`) je deljena prikazna komponenta platforme. Prikazuje mapu sa po jednim pinom na svakoj predatoj lokaciji, po želji i putanju između njih (pravim linijama ili po ulicama), i javlja dužinu te putanje. Po želji prikazuje i krug oko zadatog centra. Po želji korisnik na njoj bira niz lokacija ili centar kruga. Moduli je koriste na svojim stranicama, ali je ne menjaju. Primer upotrebe je platformska stranica `/map` (`core/map/`).
 
 ## Ulazi i izlaz
 
@@ -19,8 +19,11 @@ Komponenta `LocationMap` (`app-location-map`) je deljena prikazna komponenta pla
 - `position: MapLocation | null` (podrazumevano `null`) je sačuvana pozicija korisnika, prikazana posebnim pinom. Pin se prikazuje i bez `positionSettable`, pa mapa koja poziciju samo pokazuje (na primer za E22 i G22) predaje samo ovaj ulaz.
 - `positionMissing: boolean` (podrazumevano `false`) je tačan kada server javi da korisnik još nije postavio poziciju. Uz `positionSettable` mapa tada prikazuje poruku da pozicija još nije postavljena.
 - `positionSet` je izlaz sa mestom klika (`MapLocation`) u režimu postavljanja pozicije.
+- `circle: MapCircle | null` (podrazumevano `null`, bez kruga) je krug koji mapa crta (vidi ispod). `MapCircle` je `{ center: MapLocation; radiusInMetres: number }` i uvozi se iz `location-map.ts`.
+- `pickingCircle: boolean` (podrazumevano `false`) je režim klika: dok je uključen, klik na mapu bira centar kruga umesto da menja niz.
+- `circleCenterSet` je izlaz sa mestom klika (`MapLocation`) u izboru kruga.
 
-Mapa uvek obuhvata sve pinove, i pin pozicije. Izuzetak je pomeranje pina pozicije koji je već bio na mapi: korisnik ga postavlja klikom na deo mape koji vidi, pa mapa tada zadržava pogled (pomeranje i zum) koji je korisnik namestio. Bez ijedne lokacije prikazuje Novi Sad. Podloga je OpenStreetMap, sa navodom autora u uglu mape. Visina mape je 24rem.
+Mapa uvek obuhvata sve pinove, i pin pozicije, i ceo krug. Izuzetak je pomeranje pina pozicije koji je već bio na mapi: korisnik ga postavlja klikom na deo mape koji vidi, pa mapa tada zadržava pogled (pomeranje i zum) koji je korisnik namestio. Bez ijedne lokacije prikazuje Novi Sad. Podloga je OpenStreetMap, sa navodom autora u uglu mape. Visina mape je 24rem.
 
 ## Prikaz bez putanje
 
@@ -136,7 +139,36 @@ Komponenta poziciju ne čuva. Stranica mesto klika šalje serveru (`PUT /api/map
 />
 ```
 
-Režim klika bira stranica, na `/map` parom dugmadi „Biranje niza" i „Postavljanje pozicije".
+Režim klika bira stranica, na `/map` dugmadima „Biranje niza", „Postavljanje pozicije" i „Biranje kruga".
+
+## Krug i izbor centra
+
+Krug pokazuje oblast, na primer oblast pretrage tura (E23) ili oblast traženja skrivene lokacije (G21). Mapa ga crta samo kada stranica preda `circle`, sa centrom i poluprečnikom u metrima. Krug obuhvata tačke čije rastojanje od centra, mereno po površini Zemlje, nije veće od poluprečnika. Crta se bojom akcenta, kao putanja, i ne prima klik, pa klik unutar kruga ide mapi.
+
+Poluprečnik zadaje stranica, a komponenta crta ono što dobije. Kada stranica promeni poluprečnik, krug se ponovo iscrta oko istog centra. Stranica poluprečnik prikazuje u jedinici koja joj odgovara (na primer km), ali ga mapi predaje u metrima. Ispravnost poluprečnika proverava stranica; dok nije ispravan, ona mapi predaje `circle` kao `null`.
+
+Sa `[pickingCircle]="true"` klik na praznu mapu javlja mesto klika kroz `circleCenterSet`, a pinovi niza se ne dodaju, ne pomeraju i ne uklanjaju. Dok je uključeno postavljanje pozicije (`positionSettable` i `settingPosition`), ono ima prednost, pa klik javlja poziciju, a ne centar. Postoji najviše jedan centar: svaki sledeći klik javlja nov centar, a stranica ga upisuje u svoj signal umesto starog.
+
+Komponenta centar ne čuva. Stranica ga upisuje u svoj signal i vraća mapi kroz `circle`; ako to ne uradi, mapa ne crta krug. Da bi uklonila krug, stranica obriše svoj centar i preda `null`.
+
+```ts
+protected readonly circleCenter = signal<MapLocation | null>(null);
+protected readonly circle = computed<MapCircle | null>(() => {
+  const center = this.circleCenter();
+  return center === null ? null : { center, radiusInMetres: this.radius() };
+});
+```
+
+```html
+<app-location-map
+  [locations]="locations()"
+  [pickingCircle]="true"
+  [circle]="circle()"
+  (circleCenterSet)="circleCenter.set($event)"
+/>
+```
+
+Koje su tačke ili entiteti u krugu mapa ne javlja, jer ne poznaje entitete modula; to odlučuje server modula (na primer Exploration u lokacijskoj pretrazi tura). Na stranici `/map` režim klika bira se dugmadima „Biranje niza", „Postavljanje pozicije" i „Biranje kruga", pa je uvek uključen tačno jedan; poluprečnik se zadaje poljem „Poluprečnik (m)", a krug se uklanja dugmetom „Ukloni krug".
 
 ## Čitanje pozicije iz modula
 
@@ -148,8 +180,8 @@ Modul poziciju nikada ne čita kroz krajnje tačke pozicije, jer one služe samo
 |---|---|
 | E21, ključne tačke ture | Izbor niza lokacija (`selectable`), gde je svaka ključna tačka jedan pin; putanja između tačaka (`route`) i njena dužina iz izlaza `routeLength`. |
 | E22, obilazak ture | Pozicija korisnika (`positionSettable`, `position`) i putanja od pozicije do sledeće ključne tačke: stranica preda poziciju i tačku kao dve lokacije u `locations` i izabere `route`. Proveru na svakih 10 sekundi i pravilo blizine radi stranica, odnosno server modula kroz `IMapsApi`. |
-| E23, pretraga tura | Prikaz pinova tura (`locations`). Krug oblasti pretrage i izbor ture klikom na pin mapa danas ne nudi; to je zahtev platformskom timu. |
-| G21, skrivena lokacija | Pozicija korisnika (`positionSettable`, `position`); blizinu proverava server modula kroz `IMapsApi`. Krug oblasti traženja mapa danas ne nudi; to je zahtev platformskom timu. |
+| E23, pretraga tura | Prikaz pinova tura (`locations`) i krug oblasti pretrage (`circle`), čiji centar korisnik bira klikom (`pickingCircle`, `circleCenterSet`). Koje su ture u krugu odlučuje server Exploration-a. Izbor ture klikom na pin mapa danas ne nudi; to je zahtev platformskom timu. |
+| G21, skrivena lokacija | Pozicija korisnika (`positionSettable`, `position`); blizinu proverava server modula kroz `IMapsApi`. Krug oblasti traženja (`circle`), čiji poluprečnik zadaje Games. |
 | G22, izazov na mapi | Pozicija korisnika (`positionSettable`, `position`) i prikaz pinova izazova (`locations`). Proveru na svakih 10 sekundi radi stranica. Izbor izazova klikom na pin mapa danas ne nudi; to je zahtev platformskom timu. |
 
 ## Pravila
