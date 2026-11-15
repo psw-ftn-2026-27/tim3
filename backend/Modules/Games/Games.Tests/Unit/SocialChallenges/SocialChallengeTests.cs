@@ -235,10 +235,13 @@ public class SocialChallengeTests
         deletionCheck.Should().Throw<DomainException>();
     }
 
-    [Fact]
-    public void Published_challenge_cannot_be_changed()
+    [Theory]
+    [InlineData(SocialChallengeStatus.Published)]
+    [InlineData(SocialChallengeStatus.Retired)]
+    [InlineData(SocialChallengeStatus.Archived)]
+    public void Challenge_that_is_not_a_draft_cannot_be_changed(SocialChallengeStatus status)
     {
-        var challenge = CreateChallengeIn(SocialChallengeStatus.Published);
+        var challenge = CreateChallengeIn(status);
 
         var update = () => challenge.Update("Zalazak na bedemu", Evening, 8, 12, 500, "Zalazak je vaš!");
 
