@@ -66,6 +66,9 @@ export class LocationMap {
   // Režim klika: dok je uključen, klik na mapu javlja centar kruga umesto da menja niz.
   // Postavljanje pozicije ima prednost, pa dok je ono uključeno klik ne javlja centar.
   readonly pickingCircle = input(false);
+  // Izbor pina: klik na pin ga ističe i javlja njegov indeks. Izbor niza ima prednost, pa uz
+  // selectable izbor pina nije uključen; isto važi dok je uključeno postavljanje pozicije.
+  readonly pickingPin = input(false);
 
   readonly routeLength = output<number>();
   readonly routeNotAlongStreets = output<void>();
@@ -78,10 +81,17 @@ export class LocationMap {
   // Mesto klika u izboru kruga. Komponenta centar ne čuva: stranica ga upisuje u svoj signal
   // i vraća kroz ulaz circle.
   readonly circleCenterSet = output<MapLocation>();
+  // Indeks izabrane lokacije u nizu locations koji je stranica predala, a ne njene koordinate.
+  // Stranica preko indeksa nalazi svoj entitet.
+  readonly pinPicked = output<number>();
 
   protected readonly showPositionMissing = computed(
     () => this.positionSettable() && this.positionMissing(),
   );
+
+  // Istaknut pin u izboru pina; null dok nijedan nije izabran ili kada stignu nove lokacije.
+  // Obično polje, ne signal: čita ga samo crtanje, pa klik na pin ne sme da ponovo iscrta mapu.
+  private pickedPin: number | null = null;
 
   protected readonly limitReached = signal(false);
   private limitMessageTimer: ReturnType<typeof setTimeout> | undefined;
@@ -143,6 +153,11 @@ export class LocationMap {
     position: MapLocation | null,
     circle: MapCircle | null,
   ): L.Map {
+    // Nove lokacije brišu istaknut pin, a ponovno crtanje istih lokacija ga zadržava.
+    if (this.previousView === null || this.previousView.locations !== locations) {
+      this.pickedPin = null;
+    }
+
     const map = L.map(this.host);
     L.tileLayer(TILES_URL, { attribution: TILES_ATTRIBUTION }).addTo(map);
 
@@ -198,11 +213,15 @@ export class LocationMap {
       }).addTo(map);
     }
     const editable = !settingPosition && !pickingCircle;
+    // Izbor pina radi i uz izbor kruga: klik na pin ne stiže do mape, pa ne javlja centar.
+    const pickingPin = !selectable && !settingPosition && this.pickingPin();
     if (selectable) {
       if (editable) {
         map.on('click', (event) => this.addLocation(event.latlng));
       }
       points.forEach((point, i) => this.addNumberedPin(map, point, i, editable));
+    } else if (pickingPin) {
+      this.addPickablePins(map, points);
     } else {
       for (const point of points) {
         L.circleMarker(point, { className: 'map-pin', color, radius: 8 }).addTo(map);
@@ -255,6 +274,22 @@ export class LocationMap {
     marker.on('click', () => this.removeLocation(index));
   }
 
+  // Pinovi u izboru pina su bez broja. Istaknut pin se menja na samoj mapi, bez ponovnog crtanja,
+  // pa mapa zadržava pogled koji je korisnik namestio.
+  private addPickablePins(map: L.Map, points: L.LatLng[]): void {
+    const picked = this.pickedPin;
+    const pins = points.map((point, i) =>
+      L.marker(point, { icon: pickablePinIcon(i === picked) }).addTo(map),
+    );
+    pins.forEach((pin, index) =>
+      pin.on('click', () => {
+        this.pickedPin = index;
+        pins.forEach((other, i) => other.setIcon(pickablePinIcon(i === index)));
+        this.pinPicked.emit(index);
+      }),
+    );
+  }
+
   // Pin pozicije je kvadrat bez broja, drugačiji od okruglih pinova niza. Ne prima klik, pa
   // klik na njega ide mapi.
   private addPositionPin(map: L.Map, point: L.LatLng): void {
@@ -300,6 +335,21 @@ export class LocationMap {
     clearTimeout(this.limitMessageTimer);
     this.limitMessageTimer = setTimeout(() => this.limitReached.set(false), LIMIT_MESSAGE_MS);
   }
+}
+
+// Pin bez broja. Njegov HTML pravi Leaflet van šablona, pa se stilizuje inline iz tokena;
+// istaknut pin je veći, sa debljim okvirom u boji akcenta.
+function pickablePinIcon(picked: boolean): L.DivIcon {
+  const size = picked ? 28 : 18;
+  const border = picked ? 6 : 3;
+  return L.divIcon({
+    className: picked ? 'map-pin map-pin--picked' : 'map-pin',
+    html:
+      '<span style="display: block; box-sizing: border-box; width: 100%; height: 100%; ' +
+      'border-radius: 50%; background: var(--color-surface); ' +
+      `border: ${border}px solid var(--color-accent);"></span>`,
+    iconSize: [size, size],
+  });
 }
 
 function toMapLocation(point: L.LatLng): MapLocation {

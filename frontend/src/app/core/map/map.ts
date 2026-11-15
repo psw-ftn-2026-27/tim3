@@ -18,6 +18,13 @@ const START_LOCATIONS: MapLocation[] = [
   { latitude: 45.2461, longitude: 19.8517 },
 ];
 
+// Drugi skup mesta u Novom Sadu, kao rezultat nove pretrage u biranju pina.
+const OTHER_LOCATIONS: MapLocation[] = [
+  { latitude: 45.2517, longitude: 19.8618 },
+  { latitude: 45.2396, longitude: 19.8227 },
+  { latitude: 45.2636, longitude: 19.8314 },
+];
+
 @Component({
   imports: [FormField, LocationMap],
   selector: 'app-map',
@@ -35,10 +42,21 @@ export class MapPage {
 
   private readonly userPositioning = inject(UserPositioning);
 
-  // Režim klika: uvek je uključen tačno jedan, pa se izbor kruga i izbor niza ne uključuju zajedno.
-  protected readonly clickMode = signal<'sequence' | 'position' | 'circle'>('sequence');
+  // Režim klika: uvek je uključen tačno jedan, pa se izbor kruga ili izbor pina i izbor niza
+  // ne uključuju zajedno.
+  protected readonly clickMode = signal<'sequence' | 'position' | 'circle' | 'pin'>('sequence');
   protected readonly settingPosition = computed(() => this.clickMode() === 'position');
   protected readonly pickingCircle = computed(() => this.clickMode() === 'circle');
+  protected readonly pickingPin = computed(() => this.clickMode() === 'pin');
+
+  // Indeks izabrane lokacije drži stranica: mapa javlja indeks u nizu locations, a stranica
+  // preko njega nalazi lokaciju. Svaka promena lokacija briše indeks, kao što mapa briše
+  // istaknut pin.
+  protected readonly pickedIndex = signal<number | null>(null);
+  protected readonly picked = computed(() => {
+    const index = this.pickedIndex();
+    return index === null ? null : { number: index + 1, location: this.locations()[index] };
+  });
 
   // Centar kruga drži stranica: mapa javlja mesto klika, a stranica ga vraća mapi kroz ulaz circle.
   protected readonly circleCenter = signal<MapLocation | null>(null);
@@ -96,13 +114,22 @@ export class MapPage {
       return;
     }
     this.maxPins.set(maxPins);
-    this.locations.set(maxPins === 1 ? [] : START_LOCATIONS);
+    // Kopija je nov niz, pa mapa briše istaknut pin i kada se vraća isti početni niz.
+    this.locations.set(maxPins === 1 ? [] : [...START_LOCATIONS]);
     this.routeLength.set(null);
+    this.pickedIndex.set(null);
   }
 
   protected changeLocations(locations: MapLocation[]): void {
     this.locations.set(locations);
     this.routeLength.set(null);
+    this.pickedIndex.set(null);
+  }
+
+  // Glumi novu pretragu: stranica predaje nov niz (kopiju, i kada je isti skup ponovo izabran),
+  // a changeLocations briše i izabran indeks.
+  protected showOtherLocations(): void {
+    this.changeLocations([...OTHER_LOCATIONS]);
   }
 
   // Pin se premešta tek kada server sačuva poziciju i stranica je ponovo pročita; dok se
