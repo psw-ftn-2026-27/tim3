@@ -31,6 +31,15 @@
   --color-payment: #efeff1;
   --color-payment-ink: #5c5c62;
 
+  // Violet ink for the hardest difficulty, on the lilac social tone.
+  --color-violet: #4b3b8f;
+  // Tags and statuses are small glass chips with a soft prism dot.
+  --chip: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.62));
+  --chip-border: rgba(29, 29, 31, 0.08);
+  --prism: linear-gradient(135deg, #8fded2, #beb0f5);
+  // Games headings shade from clay through rose to violet.
+  --games-gradient: linear-gradient(100deg, #a6430f 0%, #b23a5e 50%, #4b3b8f 100%);
+
   // Focused fields get a sea border and a mint ring.
   --color-focus: var(--color-exploration-ink);
   --color-focus-ring: var(--color-exploration);
@@ -129,6 +138,10 @@
   --color-social-ink: #bdb2f0;
   --color-payment: #2a2a2e;
   --color-payment-ink: #a1a1a8;
+  --color-violet: #bdb2f0;
+  --chip: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+  --chip-border: rgba(255, 255, 255, 0.1);
+  --games-gradient: linear-gradient(100deg, #ffb78a 0%, #f08fb0 50%, #bdb2f0 100%);
 
   --glass: rgba(28, 28, 32, 0.55);
   --glass-button: rgba(44, 44, 50, 0.6);
@@ -136,7 +149,7 @@
   --glass-field: linear-gradient(180deg, rgba(36, 36, 40, 0.95), rgba(28, 28, 32, 0.8));
   --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --highlight-soft: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  --lens: 110 110 125;
+  --lens: 70 70 82;
   --line: rgba(245, 245, 247, 0.14);
   --line-strong: rgba(245, 245, 247, 0.28);
 

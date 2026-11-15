@@ -20,3 +20,22 @@
   gap: var(--space-5);
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
 }
+
+// A page title with its actions (buttons) on the right; on a narrow screen they wrap below.
+.page-head {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: space-between;
+}
+
+.page-head h1 {
+  margin: 0;
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}

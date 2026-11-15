@@ -186,11 +186,18 @@ article.card:hover {
   cursor: not-allowed;
 }
 
-// The table has no box of its own: a hairline under the header, and rows that turn to
-// soft glass under the pointer, calmer than cards and buttons on purpose.
+// The table sits on a glass pane: muted column titles over a hairline, the first column
+// (the name) in ink, the other cells smaller and muted. Rows turn to soft glass under the
+// pointer, calmer than cards and buttons on purpose.
 .table {
+  backdrop-filter: var(--glass-blur);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
   border-collapse: separate;
+  border-radius: var(--radius-lg);
   border-spacing: 0 2px;
+  box-shadow: var(--shadow), var(--highlight);
+  padding: var(--space-4) var(--space-3);
   width: 100%;
 }
 
@@ -198,6 +205,7 @@ article.card:hover {
 .table td {
   padding: var(--space-3) var(--space-4);
   text-align: left;
+  vertical-align: middle;
 }
 
 .table th {
@@ -205,7 +213,19 @@ article.card:hover {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
   font-weight: 600;
-  padding-block: 0 var(--space-2);
+  padding-block: 0 var(--space-3);
+}
+
+.table td {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.table td:first-child {
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+  font-weight: 600;
 }
 
 .table tbody tr {
@@ -217,6 +237,37 @@ article.card:hover {
     ),
     rgb(var(--lens) / calc(var(--glow) * 0.45));
   transition: --glow 380ms ease;
+}
+
+// Buttons inside a row are smaller, so a row stays one line high.
+.table .button {
+  padding: var(--space-1) var(--space-4);
+}
+
+// A small glass chip with a prism dot, for a status ("Draft", "Published") or a tag.
+// It is not interactive, so it has no hover.
+.badge {
+  align-items: center;
+  background: var(--chip);
+  border: 1px solid var(--chip-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--highlight);
+  color: var(--color-text);
+  display: inline-flex;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  gap: 0.375rem;
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
+  white-space: nowrap;
+}
+
+.badge::before {
+  background: var(--prism);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--glass-border);
+  content: '';
+  height: 0.375rem;
+  width: 0.375rem;
 }
 
 .error {
