@@ -57,6 +57,41 @@ public sealed class SocialChallenge : AggregateRoot
         EndMessage = endMessage;
     }
 
+    public void Publish() => TransitionTo(SocialChallengeStatus.Published,
+        "Only a draft social challenge can be published.",
+        SocialChallengeStatus.Draft);
+
+    public void Retire() => TransitionTo(SocialChallengeStatus.Retired,
+        "Only a published social challenge can be retired.",
+        SocialChallengeStatus.Published);
+
+    public void Reactivate() => TransitionTo(SocialChallengeStatus.Published,
+        "Only a retired social challenge can be reactivated.",
+        SocialChallengeStatus.Retired);
+
+    public void Archive() => TransitionTo(SocialChallengeStatus.Archived,
+        "Only a published or retired social challenge can be archived.",
+        SocialChallengeStatus.Published, SocialChallengeStatus.Retired);
+
+    public void EnsureDeletable()
+    {
+        if (Status != SocialChallengeStatus.Draft && Status != SocialChallengeStatus.Archived)
+        {
+            throw new DomainException("Only a draft or archived social challenge can be deleted.");
+        }
+    }
+
+    private void TransitionTo(SocialChallengeStatus target, string errorMessage,
+        params SocialChallengeStatus[] allowedFrom)
+    {
+        if (!allowedFrom.Contains(Status))
+        {
+            throw new DomainException(errorMessage);
+        }
+
+        Status = target;
+    }
+
     private static void EnsureValid(string name, int peopleRequired, double gatheringRadius,
         int experienceGained, string endMessage)
     {

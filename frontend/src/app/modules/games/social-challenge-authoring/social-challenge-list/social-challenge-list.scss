@@ -2,3 +2,24 @@
   display: flex;
   gap: var(--space-3);
 }
+
+// The time of day stays on one line; the narrower number columns give up their spare space.
+.period {
+  white-space: nowrap;
+}
+
+// Wide enough for the widest pair of buttons ("Potvrdi arhiviranje" and "Odustani od
+// arhiviranja"), so the column keeps its width when a row switches to confirmation.
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 25rem;
+}
+
+.success {
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  margin: 0;
+}
