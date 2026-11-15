@@ -17,6 +17,7 @@
         <tr>
           <th scope="col">Name</th>
           <th scope="col">Difficulty</th>
+          <th scope="col">Group size</th>
           <th scope="col">Status</th>
           <th scope="col">Transport times</th>
           <th scope="col">Actions</th>
@@ -27,6 +28,17 @@
           <tr>
             <td>{{ tour.name }}</td>
             <td>{{ tour.difficulty }}</td>
+            <td>
+              @if (tour.recommendedGroupSize; as size) {
+                @if (size.from === size.to) {
+                  {{ size.from }}
+                } @else {
+                  {{ size.from }}–{{ size.to }}
+                }
+              } @else {
+                <span class="meta">not specified</span>
+              }
+            </td>
             <td>
               {{ tour.status }}
               @if (tour.archivedAt) {
@@ -57,7 +69,7 @@
                   class="button button--primary"
                   type="button"
                   [disabled]="pending()"
-                  (click)="publish(tour.id)"
+                  (click)="selectForPublish(tour.id)"
                 >
                   Publish
                 </button>
@@ -86,7 +98,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="5">You have no tours yet.</td>
+            <td colspan="6">You have no tours yet.</td>
           </tr>
         }
       </tbody>
@@ -122,6 +134,44 @@
         [disabled]="!form().valid() || pending()"
       >
         Save
+      </button>
+    </form>
+  }
+
+  @if (publishTourId()) {
+    <form class="card stack" (submit)="publish($event)">
+      <h2>Publish tour</h2>
+
+      <fieldset class="price">
+        <legend>Price</legend>
+        <label>
+          <input type="radio" value="Free" [formField]="publishForm.price" />
+          Free
+        </label>
+        <label>
+          <input type="radio" value="Paid" [formField]="publishForm.price" />
+          Paid
+        </label>
+      </fieldset>
+
+      @if (publishForm.price().value() === 'Paid') {
+        <div class="field">
+          <label for="amount">Amount</label>
+          <input id="amount" type="number" step="any" [formField]="publishForm.amount" />
+          @if (publishForm.amount().touched()) {
+            @for (message of publishForm.amount().errors(); track $index) {
+              <p class="error">{{ message.message }}</p>
+            }
+          }
+        </div>
+      }
+
+      <button
+        class="button button--primary"
+        type="submit"
+        [disabled]="!publishForm().valid() || pending()"
+      >
+        Publish
       </button>
     </form>
   }

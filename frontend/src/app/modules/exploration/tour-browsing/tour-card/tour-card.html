@@ -5,6 +5,16 @@
 
   <p class="meta">Difficulty: {{ tour().difficulty }}</p>
 
+  @if (tour().recommendedGroupSize; as size) {
+    @if (size.from === size.to) {
+      <p class="meta">Group size: {{ size.from }}</p>
+    } @else {
+      <p class="meta">Group size: {{ size.from }}–{{ size.to }}</p>
+    }
+  } @else {
+    <p class="meta">Group size not specified</p>
+  }
+
   @if (tour().tags.length > 0) {
     <ul class="tags">
       @for (tag of tour().tags; track tag) {
