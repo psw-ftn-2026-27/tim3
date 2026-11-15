@@ -5,3 +5,6 @@
 @if (limitReached()) {
   <p class="map-message map-message--center">Uneli ste najveći dozvoljen broj pinova.</p>
 }
+@if (showPositionMissing()) {
+  <p class="map-message map-message--bottom">Pozicija još nije postavljena.</p>
+}

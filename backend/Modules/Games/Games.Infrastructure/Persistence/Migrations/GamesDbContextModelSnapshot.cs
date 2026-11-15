@@ -73,6 +73,40 @@ namespace Games.Infrastructure.Persistence.Migrations
                     b.ToTable("Quizzes", "games");
                 });
 
+            modelBuilder.Entity("Games.Domain.SocialChallenges.SocialChallenge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EndMessage")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ExperienceGained")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("GatheringRadius")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("PeopleRequired")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SocialChallenges", "games");
+                });
+
             modelBuilder.Entity("Games.Domain.Quizzes.Question", b =>
                 {
                     b.HasOne("Games.Domain.Quizzes.Quiz", null)
@@ -106,6 +140,31 @@ namespace Games.Infrastructure.Persistence.Migrations
                         });
 
                     b.Navigation("Answers");
+                });
+
+            modelBuilder.Entity("Games.Domain.SocialChallenges.SocialChallenge", b =>
+                {
+                    b.OwnsOne("Games.Domain.SocialChallenges.ActivePeriod", "ActivePeriod", b1 =>
+                        {
+                            b1.Property<Guid>("SocialChallengeId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<TimeOnly>("End")
+                                .HasColumnType("time without time zone");
+
+                            b1.Property<TimeOnly>("Start")
+                                .HasColumnType("time without time zone");
+
+                            b1.HasKey("SocialChallengeId");
+
+                            b1.ToTable("SocialChallenges", "games");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SocialChallengeId");
+                        });
+
+                    b.Navigation("ActivePeriod")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Games.Domain.Quizzes.Quiz", b =>

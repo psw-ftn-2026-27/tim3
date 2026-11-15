@@ -35,7 +35,6 @@ export class PaymentHome {
   protected readonly selectedUser = signal<UserWalletSummaryDto | null>(null);
   protected readonly reversalId = signal<string | null>(null);
   protected readonly pending = signal(false);
-  protected readonly setupError = signal<string | null>(null);
   protected readonly depositError = signal<string | null>(null);
   protected readonly reversalError = signal<string | null>(null);
   protected readonly confirmation = signal<string | null>(null);
@@ -66,7 +65,6 @@ export class PaymentHome {
     const failure = this.ownWallet.error();
     return failure instanceof HttpErrorResponse ? failure.status : null;
   });
-  protected readonly needsWallet = computed(() => this.ownWalletErrorStatus() === 404);
 
   protected readonly users = httpResource<PageResult<UserWalletSummaryDto>>(() =>
     this.isAdministrator() && this.showAdministration()
@@ -126,22 +124,6 @@ export class PaymentHome {
     this.reversalError.set(null);
   }
 
-  protected async ensureWallet(): Promise<void> {
-    if (this.writeBlocked() || !this.needsWallet()) {
-      return;
-    }
-    this.pending.set(true);
-    this.setupError.set(null);
-    try {
-      await this.wallet.ensureWallet();
-      this.refreshWallets();
-    } catch (failure) {
-      this.setupError.set(serverMessage(failure, 'Novčanik trenutno nije moguće otvoriti.'));
-    } finally {
-      this.pending.set(false);
-    }
-  }
-
   protected async deposit(event: Event): Promise<void> {
     event.preventDefault();
     const user = this.selectedUser();
@@ -162,14 +144,10 @@ export class PaymentHome {
     try {
       await this.wallet.deposit(user.userId, { amount });
       this.depositForm().reset({ amount: null });
-      this.confirmation.set(`Uplaćeno je ${amount} EC korisniku ${user.displayName}.`);
+      this.confirmation.set('Uplata je uspešno izvršena.');
       this.refreshWallets();
     } catch (failure) {
-      const message = serverMessage(failure, 'Uplata trenutno nije moguća.');
-      const needsRecipientWallet = failure instanceof HttpErrorResponse && failure.status === 404;
-      this.depositError.set(
-        needsRecipientWallet ? `${message} Primalac prvo treba da otvori svoj novčanik.` : message,
-      );
+      this.depositError.set(serverMessage(failure, 'Uplata trenutno nije moguća.'));
     } finally {
       this.pending.set(false);
     }

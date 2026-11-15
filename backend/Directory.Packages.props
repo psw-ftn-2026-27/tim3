@@ -19,6 +19,17 @@
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
   </ItemGroup>
 
+  <!--
+    AutoMapper stays on 16.1.1 (see backend/AGENTS.md). These two advisories are denial of
+    service through deeply nested input on mapping paths the project does not use (Include,
+    ConvertUsing, ConstructUsing, object or dictionary sources, constructor-mapped recursive
+    types). Suppressed so the audit keeps failing the build for any new advisory.
+  -->
+  <ItemGroup Label="Accepted advisories">
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-6vhm-j9h7-f9gh" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-gpwp-5797-mjff" />
+  </ItemGroup>
+
   <ItemGroup Label="Testing">
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="FluentAssertions" Version="7.2.2" />

@@ -10,6 +10,7 @@ const ONE_DEGREE_KM = (Math.PI * 6371) / 180;
 const WALKING_ROUTES_URL = '/api/maps/walking-routes';
 const MESSAGE = 'Putanja nije po ulicama: prikazane su prave linije.';
 const LIMIT_MESSAGE = 'Uneli ste najveći dozvoljen broj pinova.';
+const NO_POSITION_MESSAGE = 'Pozicija još nije postavljena.';
 
 describe('LocationMap', () => {
   let fixture: ComponentFixture<LocationMap>;
@@ -20,6 +21,7 @@ describe('LocationMap', () => {
   let addedTiles: ReturnType<typeof vi.spyOn>;
   let addedPins: ReturnType<typeof vi.spyOn>;
   let changes: MapLocation[][];
+  let positions: MapLocation[];
 
   function show(locations: MapLocation[], route: RouteKind): void {
     fixture.componentRef.setInput('locations', locations);
@@ -70,6 +72,20 @@ describe('LocationMap', () => {
     ).map((pin) => pin.textContent!.trim());
   }
 
+  // Mapa koja nudi postavljanje pozicije, sa izborom niza i izabranim režimom klika.
+  function offerPosition(
+    locations: MapLocation[],
+    settingPosition: boolean,
+    position: MapLocation | null = null,
+    positionMissing = false,
+  ): void {
+    fixture.componentRef.setInput('positionSettable', true);
+    fixture.componentRef.setInput('settingPosition', settingPosition);
+    fixture.componentRef.setInput('position', position);
+    fixture.componentRef.setInput('positionMissing', positionMissing);
+    select(locations, 'none');
+  }
+
   function walkingRouteRequests(): number {
     return httpTesting.match((request) => request.url.startsWith(WALKING_ROUTES_URL)).length;
   }
@@ -86,6 +102,8 @@ describe('LocationMap', () => {
     lengths = [];
     notAlongStreets = 0;
     changes = [];
+    positions = [];
+    fixture.componentInstance.positionSet.subscribe((position) => positions.push(position));
     fixture.componentInstance.locationsChange.subscribe((locations) => changes.push(locations));
     fixture.componentInstance.routeLength.subscribe((length) => lengths.push(length));
     fixture.componentInstance.routeNotAlongStreets.subscribe(() => notAlongStreets++);
@@ -413,5 +431,46 @@ describe('LocationMap', () => {
 
     writeBack();
     expect(pinNumbers()).toEqual(['1', '2', '3', '4']);
+  });
+
+  it('u postavljanju pozicije klik javlja poziciju i ne menja niz, a u biranju niza ne javlja poziciju', () => {
+    const start = [
+      { latitude: 0, longitude: 0 },
+      { latitude: 0, longitude: 1 },
+    ];
+
+    offerPosition(start, true);
+    clickOnMap({ latitude: 1, longitude: 1 });
+    currentPins()[1].fire('click');
+    currentPins()[0].fire('dragend');
+    expect(positions).toEqual([{ latitude: 1, longitude: 1 }]);
+    expect(changes).toEqual([]);
+    expect(pinNumbers()).toEqual(['1', '2']);
+
+    offerPosition(start, false);
+    clickOnMap({ latitude: 2, longitude: 2 });
+    expect(changes).toEqual([[...start, { latitude: 2, longitude: 2 }]]);
+    expect(positions).toEqual([{ latitude: 1, longitude: 1 }]);
+  });
+
+  it('bez pozicije prikazuje poruku, a sa pozicijom pin drugačiji od pinova niza', () => {
+    const start = [
+      { latitude: 0, longitude: 0 },
+      { latitude: 0, longitude: 1 },
+    ];
+
+    offerPosition(start, false, null, true);
+    expect(fixture.nativeElement.textContent).toContain(NO_POSITION_MESSAGE);
+    expect(count('.map-position')).toBe(0);
+
+    offerPosition(start, false);
+    expect(fixture.nativeElement.textContent).not.toContain(NO_POSITION_MESSAGE);
+    expect(count('.map-position')).toBe(0);
+
+    offerPosition(start, false, { latitude: 1, longitude: 1 });
+    expect(fixture.nativeElement.textContent).not.toContain(NO_POSITION_MESSAGE);
+    expect(count('.map-position')).toBe(1);
+    expect(count('.map-position.map-pin')).toBe(0);
+    expect(pinNumbers()).toEqual(['1', '2']);
   });
 });
