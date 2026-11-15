@@ -46,12 +46,28 @@ export class LocationMap {
   readonly selectable = input(false);
   // Najveći broj pinova u izboru; null znači bez granice.
   readonly maxPins = input<number | null>(null);
+  // Postavljanje pozicije nudi samo stranica koja to izabere; podrazumevano ga mapa ne nudi.
+  readonly positionSettable = input(false);
+  // Režim klika: dok je uključen (i postavljanje ponuđeno), klik javlja poziciju umesto da menja niz.
+  readonly settingPosition = input(false);
+  // Sačuvana pozicija korisnika; null dok nije poznata ili ne postoji.
+  readonly position = input<MapLocation | null>(null);
+  // Stranica javlja da server zna da korisnik još nije postavio poziciju. Dok se pozicija
+  // učitava ili čitanje ne uspe, ovo ostaje false, pa mapa ne tvrdi da pozicije nema.
+  readonly positionMissing = input(false);
 
   readonly routeLength = output<number>();
   readonly routeNotAlongStreets = output<void>();
   // Ceo nov niz posle svakog dodavanja, uklanjanja i puštanja prevučenog pina. Komponenta
   // niz ne čuva: stranica ga upisuje u svoj signal i vraća kroz ulaz locations.
   readonly locationsChange = output<MapLocation[]>();
+  // Mesto klika u režimu postavljanja pozicije. Komponenta poziciju ne čuva: stranica je šalje
+  // serveru, ponovo je pročita i vraća kroz ulaz position.
+  readonly positionSet = output<MapLocation>();
+
+  protected readonly showPositionMissing = computed(
+    () => this.positionSettable() && this.positionMissing(),
+  );
 
   protected readonly limitReached = signal(false);
   private limitMessageTimer: ReturnType<typeof setTimeout> | undefined;
@@ -79,26 +95,45 @@ export class LocationMap {
     // Leaflet crta van stabla komponenti, pa effect() ponovo iscrtava mapu kada se ulazi
     // ili odgovor servera promene.
     effect((onCleanup) => {
-      const map = this.draw(this.locations(), this.route(), this.selectable());
+      const map = this.draw(this.locations(), this.route(), this.selectable(), this.position());
       onCleanup(() => map.remove());
     });
   }
 
-  private draw(locations: MapLocation[], route: RouteKind, selectable: boolean): L.Map {
+  private draw(
+    locations: MapLocation[],
+    route: RouteKind,
+    selectable: boolean,
+    position: MapLocation | null,
+  ): L.Map {
     const map = L.map(this.host);
     L.tileLayer(TILES_URL, { attribution: TILES_ATTRIBUTION }).addTo(map);
 
     const points = locations.map(toLatLng);
-    if (points.length === 0) {
+    // Mapa obuhvata sve pinove, i pin pozicije.
+    const framed = position === null ? points : [...points, toLatLng(position)];
+    if (framed.length === 0) {
       map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
     } else {
-      map.fitBounds(L.latLngBounds(points), { maxZoom: MAX_FIT_ZOOM, padding: [24, 24] });
+      map.fitBounds(L.latLngBounds(framed), { maxZoom: MAX_FIT_ZOOM, padding: [24, 24] });
+    }
+
+    // Dok se postavlja pozicija, klik javlja poziciju, a pinovi niza se samo prikazuju,
+    // pa klik na njih ide mapi.
+    const settingPosition = this.positionSettable() && this.settingPosition();
+    if (settingPosition) {
+      map.on('click', (event) => this.positionSet.emit(toMapLocation(event.latlng)));
+    }
+    if (position !== null) {
+      this.addPositionPin(map, toLatLng(position));
     }
 
     const color = getComputedStyle(this.host).getPropertyValue('--color-accent');
     if (selectable) {
-      map.on('click', (event) => this.addLocation(event.latlng));
-      points.forEach((point, i) => this.addNumberedPin(map, point, i));
+      if (!settingPosition) {
+        map.on('click', (event) => this.addLocation(event.latlng));
+      }
+      points.forEach((point, i) => this.addNumberedPin(map, point, i, !settingPosition));
     } else {
       for (const point of points) {
         L.circleMarker(point, { className: 'map-pin', color, radius: 8 }).addTo(map);
@@ -132,7 +167,7 @@ export class LocationMap {
   }
 
   // Pin sa rednim brojem. Njegov HTML pravi Leaflet van šablona, pa se stilizuje inline iz tokena.
-  private addNumberedPin(map: L.Map, point: L.LatLng, index: number): void {
+  private addNumberedPin(map: L.Map, point: L.LatLng, index: number, editable: boolean): void {
     const icon = L.divIcon({
       className: 'map-pin',
       html:
@@ -142,10 +177,27 @@ export class LocationMap {
         `font-size: var(--font-size-sm); font-weight: bold;">${index + 1}</span>`,
       iconSize: [28, 28],
     });
-    const marker = L.marker(point, { draggable: true, icon }).addTo(map);
+    const marker = L.marker(point, { draggable: editable, icon, interactive: editable }).addTo(map);
+    if (!editable) {
+      return;
+    }
     // Tokom prevlačenja Leaflet pomera samo pin; niz se javlja tek kada korisnik pusti pin.
     marker.on('dragend', () => this.moveLocation(index, marker.getLatLng()));
     marker.on('click', () => this.removeLocation(index));
+  }
+
+  // Pin pozicije je kvadrat bez broja, drugačiji od okruglih pinova niza. Ne prima klik, pa
+  // klik na njega ide mapi.
+  private addPositionPin(map: L.Map, point: L.LatLng): void {
+    const icon = L.divIcon({
+      className: 'map-position',
+      html:
+        '<span style="display: block; width: 100%; height: 100%; ' +
+        'background: var(--color-success); border: 3px solid var(--color-surface); ' +
+        'outline: 2px solid var(--color-success);"></span>',
+      iconSize: [18, 18],
+    });
+    L.marker(point, { icon, interactive: false }).addTo(map);
   }
 
   private addLocation(point: L.LatLng): void {
