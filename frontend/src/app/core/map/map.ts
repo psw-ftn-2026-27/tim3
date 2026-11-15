@@ -1,7 +1,13 @@
 import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
+import { FormField, form, validate } from '@angular/forms/signals';
 import { UserPositionDto } from '../../shared/api/maps';
-import { LocationMap, MapLocation, RouteKind } from '../../shared/map/location-map/location-map';
+import {
+  LocationMap,
+  MapCircle,
+  MapLocation,
+  RouteKind,
+} from '../../shared/map/location-map/location-map';
 import { UserPositioning } from './user-positioning';
 
 // Nekoliko poznatih mesta u Novom Sadu, samo za prikaz komponente.
@@ -13,7 +19,7 @@ const START_LOCATIONS: MapLocation[] = [
 ];
 
 @Component({
-  imports: [LocationMap],
+  imports: [FormField, LocationMap],
   selector: 'app-map',
   styleUrl: './map.scss',
   templateUrl: './map.html',
@@ -29,8 +35,33 @@ export class MapPage {
 
   private readonly userPositioning = inject(UserPositioning);
 
-  // Režim klika: false je biranje niza, true postavljanje pozicije.
-  protected readonly settingPosition = signal(false);
+  // Režim klika: uvek je uključen tačno jedan, pa se izbor kruga i izbor niza ne uključuju zajedno.
+  protected readonly clickMode = signal<'sequence' | 'position' | 'circle'>('sequence');
+  protected readonly settingPosition = computed(() => this.clickMode() === 'position');
+  protected readonly pickingCircle = computed(() => this.clickMode() === 'circle');
+
+  // Centar kruga drži stranica: mapa javlja mesto klika, a stranica ga vraća mapi kroz ulaz circle.
+  protected readonly circleCenter = signal<MapLocation | null>(null);
+  protected readonly radiusForm = form(
+    signal<{ radius: number | null }>({ radius: 500 }),
+    (path) => {
+      validate(path.radius, ({ value }) => {
+        const radius = value();
+        return radius !== null && radius > 0
+          ? null
+          : { kind: 'positive', message: 'Poluprečnik mora biti veći od 0.' };
+      });
+    },
+  );
+  // Bez centra ili dok poluprečnik nije ispravan, stranica mapi ne predaje krug.
+  protected readonly circle = computed<MapCircle | null>(() => {
+    const center = this.circleCenter();
+    const radius = this.radiusForm.radius().value();
+    if (center === null || radius === null || !this.radiusForm.radius().valid()) {
+      return null;
+    }
+    return { center, radiusInMetres: radius };
+  });
   // Sačuvana pozicija korisnika. Dok se učitava ili kada čitanje ne uspe, resurs nema
   // vrednost i mapa ne crta pin.
   protected readonly userPosition = httpResource<UserPositionDto>(

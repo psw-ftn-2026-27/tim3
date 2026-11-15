@@ -10,9 +10,12 @@
     [settingPosition]="settingPosition()"
     [position]="position()"
     [positionMissing]="positionMissing()"
+    [circle]="circle()"
+    [pickingCircle]="pickingCircle()"
     (locationsChange)="changeLocations($event)"
     (routeLength)="routeLength.set($event)"
     (positionSet)="setPosition($event)"
+    (circleCenterSet)="circleCenter.set($event)"
   />
 
   @if (route() !== 'none' && routeLength() !== null) {
@@ -77,20 +80,55 @@
     <button
       class="button"
       type="button"
-      [class.button--primary]="!settingPosition()"
-      (click)="settingPosition.set(false)"
+      [class.button--primary]="clickMode() === 'sequence'"
+      (click)="clickMode.set('sequence')"
     >
       Biranje niza
     </button>
     <button
       class="button"
       type="button"
-      [class.button--primary]="settingPosition()"
-      (click)="settingPosition.set(true)"
+      [class.button--primary]="clickMode() === 'position'"
+      (click)="clickMode.set('position')"
     >
       Postavljanje pozicije
     </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="clickMode() === 'circle'"
+      (click)="clickMode.set('circle')"
+    >
+      Biranje kruga
+    </button>
   </div>
+
+  @if (pickingCircle()) {
+    <div class="field">
+      <label for="radius">Poluprečnik (m)</label>
+      <input id="radius" type="number" step="any" [formField]="radiusForm.radius" />
+      @for (message of radiusForm.radius().errors(); track $index) {
+        <p class="error">{{ message.message }}</p>
+      }
+    </div>
+
+    @if (circleCenter(); as center) {
+      <p>Centar kruga: {{ center.latitude.toFixed(5) }}, {{ center.longitude.toFixed(5) }}</p>
+    } @else {
+      <p>Centar nije izabran.</p>
+    }
+
+    <div class="buttons">
+      <button
+        class="button"
+        type="button"
+        [disabled]="circleCenter() === null"
+        (click)="circleCenter.set(null)"
+      >
+        Ukloni krug
+      </button>
+    </div>
+  }
 
   @if (positionError()) {
     <p class="error">{{ positionError() }}</p>
