@@ -1,0 +1,68 @@
+<div class="card stack">
+  <h1>My tour preference</h1>
+
+  @if (preference.isLoading()) {
+    <p>Loading your preference...</p>
+  } @else if (preference.error()) {
+    <p class="error">Could not load your preference. Log in and try again.</p>
+  } @else {
+    @if (preference.value(); as saved) {
+      <div class="summary">
+        <p>
+          <strong>Difficulty:</strong>
+          {{ saved.difficulties.length > 0 ? saved.difficulties.join(', ') : 'any' }}
+        </p>
+        <p><strong>Transport:</strong> {{ saved.transport ?? 'any' }}</p>
+        <p><strong>Tags:</strong> {{ saved.tags.length > 0 ? saved.tags.join(', ') : 'any' }}</p>
+        <p>
+          <strong>Tour search starts from this preference:</strong>
+          {{ saved.appliesToSearch ? 'yes' : 'no' }}
+        </p>
+      </div>
+    } @else {
+      <p class="meta">You have no saved preference yet.</p>
+    }
+
+    <form class="stack" (submit)="save($event)">
+      <fieldset class="field">
+        <legend>Difficulty (leave all unchecked for any)</legend>
+        <label class="choice"><input type="checkbox" [formField]="form.easy" /> Easy</label>
+        <label class="choice"><input type="checkbox" [formField]="form.moderate" /> Moderate</label>
+        <label class="choice"><input type="checkbox" [formField]="form.hard" /> Hard</label>
+      </fieldset>
+
+      <div class="field">
+        <label for="transport">Favourite transport</label>
+        <select id="transport" [formField]="form.transport">
+          <option value="">Any</option>
+          <option value="Walking">Walking</option>
+          <option value="Bicycle">Bicycle</option>
+          <option value="Car">Car</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="tags">Tags, separated by commas</label>
+        <input id="tags" type="text" [formField]="form.tags" />
+      </div>
+
+      <label class="choice">
+        <input type="checkbox" [formField]="form.appliesToSearch" />
+        Start the tour search from this preference
+      </label>
+
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+
+      <div class="actions">
+        <button class="button button--primary" type="submit" [disabled]="pending()">Save</button>
+        @if (preference.value()) {
+          <button class="button" type="button" [disabled]="pending()" (click)="remove()">
+            Delete
+          </button>
+        }
+      </div>
+    </form>
+  }
+</div>
