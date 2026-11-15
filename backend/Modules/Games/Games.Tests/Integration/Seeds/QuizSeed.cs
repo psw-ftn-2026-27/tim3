@@ -10,6 +10,10 @@ internal static class QuizSeed
     public static readonly Quiz EmptyMuseumQuiz = new(WellKnownUsers.Administrator, "Muzej Vojvodine", "", 10);
     public static readonly Quiz FortressQuiz;
     public static readonly Quiz OtherAdministratorsQuiz;
+    public static readonly Quiz ReadyToPublishCathedralQuiz;
+    public static readonly Quiz PublishedSynagogueQuiz;
+    public static readonly Quiz RetiredBridgeQuiz;
+    public static readonly Quiz ArchivedMarketQuiz;
 
     static QuizSeed()
     {
@@ -18,7 +22,33 @@ internal static class QuizSeed
 
         OtherAdministratorsQuiz = new(OtherAdministrator, "Trg slobode", "Kviz drugog administratora.", 20);
         OtherAdministratorsQuiz.AddQuestion("Koji je trg glavni?", [new Answer("Trg slobode", true), new Answer("Trg mladenaca", false)]);
+
+        ReadyToPublishCathedralQuiz = new(WellKnownUsers.Administrator, "Katedrala", "Odgovori na tri pitanja o katedrali.", 30);
+        ReadyToPublishCathedralQuiz.AddQuestion("Na kom trgu je katedrala?", [new Answer("Trg slobode", true), new Answer("Trg galerija", false)]);
+        ReadyToPublishCathedralQuiz.AddQuestion("Kom svecu je posvećena?", [new Answer("Svetoj Mariji", true), new Answer("Svetom Đorđu", false)]);
+        ReadyToPublishCathedralQuiz.AddQuestion("U kom stilu je građena?", [new Answer("Neogotičkom", true), new Answer("Baroknom", false), new Answer("Romanskom", false)]);
+
+        PublishedSynagogueQuiz = new(WellKnownUsers.Administrator, "Sinagoga", "Odgovori na tri pitanja o sinagogi.", 40);
+        PublishedSynagogueQuiz.AddQuestion("U kojoj ulici je sinagoga?", [new Answer("Jevrejskoj", true), new Answer("Zmaj Jovinoj", false)]);
+        PublishedSynagogueQuiz.AddQuestion("Ko je projektovao sinagogu?", [new Answer("Lipot Baumhorn", true), new Answer("Ödön Lechner", false)]);
+        PublishedSynagogueQuiz.AddQuestion("Za šta se sinagoga danas koristi?", [new Answer("Koncerte", true), new Answer("Sport", false)]);
+        PublishedSynagogueQuiz.Publish();
+
+        RetiredBridgeQuiz = new(WellKnownUsers.Administrator, "Mostovi", "Odgovori na tri pitanja o mostovima.", 25);
+        RetiredBridgeQuiz.AddQuestion("Koliko mostova ima Novi Sad?", [new Answer("Tri", true), new Answer("Sedam", false)]);
+        RetiredBridgeQuiz.AddQuestion("Koji most je najstariji?", [new Answer("Varadinski", true), new Answer("Most slobode", false)]);
+        RetiredBridgeQuiz.AddQuestion("Preko koje reke vode?", [new Answer("Dunav", true), new Answer("Tisa", false)]);
+        RetiredBridgeQuiz.Publish();
+        RetiredBridgeQuiz.Retire();
+
+        ArchivedMarketQuiz = new(WellKnownUsers.Administrator, "Ribarska pijaca", "Odgovori na tri pitanja o pijaci.", 15);
+        ArchivedMarketQuiz.AddQuestion("Uz koju reku je pijaca?", [new Answer("Dunav", true), new Answer("Tisa", false)]);
+        ArchivedMarketQuiz.AddQuestion("Šta se najviše prodaje?", [new Answer("Riba", true), new Answer("Cveće", false)]);
+        ArchivedMarketQuiz.AddQuestion("Kojim danima radi?", [new Answer("Svakim danom", true), new Answer("Samo nedeljom", false)]);
+        ArchivedMarketQuiz.Publish();
+        ArchivedMarketQuiz.Retire();
+        ArchivedMarketQuiz.Archive();
     }
 
-    public static Quiz[] All => [EmptyMuseumQuiz, FortressQuiz, OtherAdministratorsQuiz];
+    public static Quiz[] All => [EmptyMuseumQuiz, FortressQuiz, OtherAdministratorsQuiz, ReadyToPublishCathedralQuiz, PublishedSynagogueQuiz, RetiredBridgeQuiz, ArchivedMarketQuiz];
 }
