@@ -82,7 +82,10 @@ reference types and treats warnings as errors, solution-wide. Both files are
 platform-owned.
 
 AutoMapper is pinned to 16.1.1 and runs without a license key; this is a settled
-platform decision. Do not change the version or add a license key.
+platform decision. Do not change the version or add a license key. Two known advisories
+against 16.1.1 are suppressed in `Directory.Packages.props`, with the reason next to them;
+a new advisory still fails the build and is a platform decision, not something to suppress
+in passing.
 
 ## Identity
 
