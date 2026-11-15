@@ -9,6 +9,8 @@ namespace Payment.Infrastructure.Persistence;
 
 internal sealed class PaymentDbContext : DbContext, IUnitOfWork
 {
+    private const string ConcurrentWalletChangeMessage = "The wallet changed while you were editing it. Refresh and try again.";
+
     public PaymentDbContext(DbContextOptions<PaymentDbContext> options) : base(options) { }
 
     public DbSet<Wallet> Wallets => Set<Wallet>();
@@ -21,10 +23,16 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
         }
         catch (DbUpdateConcurrencyException)
         {
-            throw new DomainException("The wallet changed while you were editing it. Refresh and try again.");
+            throw new DomainException(ConcurrentWalletChangeMessage);
         }
         catch (DbUpdateException exception) when (IsDuplicateWalletCreation(exception))
         {
+            if (ChangeTracker.Entries().Count(entry =>
+                    entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted) != 1)
+            {
+                throw new DomainException(ConcurrentWalletChangeMessage);
+            }
+
             // Another request saved the wallet after our existence check.
             exception.Entries[0].State = EntityState.Detached;
             return 0;
@@ -41,9 +49,7 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
             }
             && exception.Entries.Count == 1
             && exception.Entries[0].Entity is Wallet
-            && exception.Entries[0].State == EntityState.Added
-            && ChangeTracker.Entries().Count(entry =>
-                entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted) == 1;
+            && exception.Entries[0].State == EntityState.Added;
     }
 
     protected override void OnModelCreating(ModelBuilder builder)

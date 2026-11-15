@@ -9,10 +9,6 @@ const BASE_URL = '/api/payment/wallet';
 export class OwnWallet {
   private readonly http = inject(HttpClient);
 
-  async ensureWallet(): Promise<void> {
-    await firstValueFrom(this.http.post<void>(`${BASE_URL}/me`, null));
-  }
-
   async deposit(userId: string, dto: DepositEcDto): Promise<void> {
     await firstValueFrom(this.http.post<void>(`${BASE_URL}/${userId}/deposits`, dto));
   }

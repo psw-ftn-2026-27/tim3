@@ -18,7 +18,7 @@ public class AdminWalletCommandTests : BaseIntegrationTest
     [Fact]
     public async Task Administrator_adds_a_deposit_to_the_recipients_wallet()
     {
-        var wallet = WalletSeed.ExplorerWalletWithDeposit;
+        var wallet = WalletSeed.DemoExplorerWalletWithDeposit;
         var previousDeposit = wallet.Transactions.Single();
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
         var deposit = new DepositEcDto(60);
@@ -41,7 +41,7 @@ public class AdminWalletCommandTests : BaseIntegrationTest
     [Fact]
     public async Task Rejected_amount_leaves_the_recipients_wallet_unchanged()
     {
-        var wallet = WalletSeed.ExplorerWalletWithDeposit;
+        var wallet = WalletSeed.DemoExplorerWalletWithDeposit;
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
 
         var response = await client.PostAsJsonAsync($"/api/payment/wallet/{wallet.UserId}/deposits", new DepositEcDto(0));
@@ -54,16 +54,42 @@ public class AdminWalletCommandTests : BaseIntegrationTest
     }
 
     [Fact]
-    public async Task Depositing_for_a_user_without_a_wallet_is_rejected()
+    public async Task First_deposit_creates_the_recipients_wallet_with_the_deposit()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
-        var userId = WellKnownUsers.ThirdExplorer;
+        var demoExplorerWithoutWalletId = Guid.Parse("20000000-0000-0000-0000-000000000002");
+        var deposit = new DepositEcDto(100);
+
+        var response = await client.PostAsJsonAsync($"/api/payment/wallet/{demoExplorerWithoutWalletId}/deposits", deposit);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        var stored = await context.Wallets.Include(wallet => wallet.Transactions)
+            .SingleAsync(wallet => wallet.UserId == demoExplorerWithoutWalletId);
+        stored.Balance.Should().Be(deposit.Amount);
+        var transaction = stored.Transactions.Should().ContainSingle().Which;
+        transaction.Amount.Should().Be(deposit.Amount);
+        transaction.Kind.Should().Be(WalletTransactionKind.Deposit);
+        transaction.AdministratorId.Should().Be(WellKnownUsers.Administrator);
+    }
+
+    [Fact]
+    public async Task Depositing_for_an_unknown_user_writes_no_wallet_or_transaction()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+        var userId = Guid.NewGuid();
+        int previousTransactionCount;
+        using (var initialContext = Factory.CreateContext<PaymentDbContext>())
+        {
+            previousTransactionCount = await initialContext.Set<WalletTransaction>().CountAsync();
+        }
 
         var response = await client.PostAsJsonAsync($"/api/payment/wallet/{userId}/deposits", new DepositEcDto(60));
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         using var context = Factory.CreateContext<PaymentDbContext>();
         (await context.Wallets.AnyAsync(wallet => wallet.UserId == userId)).Should().BeFalse();
+        (await context.Set<WalletTransaction>().CountAsync()).Should().Be(previousTransactionCount);
     }
 
     [Fact]
