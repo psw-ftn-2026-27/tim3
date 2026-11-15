@@ -11,20 +11,11 @@ namespace Payment.Api;
 [Authorize]
 public sealed class OwnWalletController : ControllerBase
 {
-    private readonly OwnWalletService _walletService;
     private readonly OwnWalletQueries _walletQueries;
 
-    public OwnWalletController(OwnWalletService walletService, OwnWalletQueries walletQueries)
+    public OwnWalletController(OwnWalletQueries walletQueries)
     {
-        _walletService = walletService;
         _walletQueries = walletQueries;
-    }
-
-    [HttpPost("me")]
-    public async Task<ActionResult> EnsureMyWallet()
-    {
-        await _walletService.EnsureWalletAsync(User.GetUserId());
-        return NoContent();
     }
 
     [HttpGet("me")]

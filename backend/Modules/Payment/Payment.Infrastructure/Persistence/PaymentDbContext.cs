@@ -27,29 +27,19 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
         }
         catch (DbUpdateException exception) when (IsDuplicateWalletCreation(exception))
         {
-            if (ChangeTracker.Entries().Count(entry =>
-                    entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted) != 1)
-            {
-                throw new DomainException(ConcurrentWalletChangeMessage);
-            }
-
-            // Another request saved the wallet after our existence check.
-            exception.Entries[0].State = EntityState.Detached;
-            return 0;
+            // A concurrent first deposit created the recipient's wallet after our existence check.
+            throw new DomainException(ConcurrentWalletChangeMessage);
         }
     }
 
-    private bool IsDuplicateWalletCreation(DbUpdateException exception)
+    private static bool IsDuplicateWalletCreation(DbUpdateException exception)
     {
         return exception.InnerException is PostgresException
-            {
-                SqlState: PostgresErrorCodes.UniqueViolation,
-                SchemaName: "payment",
-                ConstraintName: "IX_Wallets_UserId"
-            }
-            && exception.Entries.Count == 1
-            && exception.Entries[0].Entity is Wallet
-            && exception.Entries[0].State == EntityState.Added;
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            SchemaName: "payment",
+            ConstraintName: "IX_Wallets_UserId"
+        };
     }
 
     protected override void OnModelCreating(ModelBuilder builder)

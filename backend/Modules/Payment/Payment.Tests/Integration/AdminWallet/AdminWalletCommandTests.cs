@@ -74,6 +74,28 @@ public class AdminWalletCommandTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Simultaneous_first_deposits_create_only_one_wallet_for_the_recipient()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+        var demoExplorerWithoutWalletId = Guid.Parse("20000000-0000-0000-0000-000000000002");
+        var url = $"/api/payment/wallet/{demoExplorerWithoutWalletId}/deposits";
+
+        var responses = await Task.WhenAll(
+            client.PostAsJsonAsync(url, new DepositEcDto(100)),
+            client.PostAsJsonAsync(url, new DepositEcDto(100)));
+
+        responses.Should().OnlyContain(response =>
+            response.StatusCode == HttpStatusCode.NoContent || response.StatusCode == HttpStatusCode.BadRequest);
+        var acceptedDeposits = responses.Count(response => response.StatusCode == HttpStatusCode.NoContent);
+        acceptedDeposits.Should().BeGreaterThan(0);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        var stored = await context.Wallets.Include(wallet => wallet.Transactions)
+            .SingleAsync(wallet => wallet.UserId == demoExplorerWithoutWalletId);
+        stored.Balance.Should().Be(acceptedDeposits * 100);
+        stored.Transactions.Should().HaveCount(acceptedDeposits);
+    }
+
+    [Fact]
     public async Task Depositing_for_an_unknown_user_writes_no_wallet_or_transaction()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");

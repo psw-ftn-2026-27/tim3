@@ -53,7 +53,7 @@ builder.Services
     .AddExplorationModule(builder.Configuration)
     .AddGamesModule(builder.Configuration)
     .AddSocialModule(builder.Configuration)
-    .AddPaymentModule(builder.Configuration, ensureWallet => new RegistrationWalletProvisioning(ensureWallet));
+    .AddPaymentModule(builder.Configuration);
 
 var app = builder.Build();
 
