@@ -57,45 +57,21 @@ public sealed class SocialChallenge : AggregateRoot
         EndMessage = endMessage;
     }
 
-    public void Publish()
-    {
-        if (Status != SocialChallengeStatus.Draft)
-        {
-            throw new DomainException("Only a draft social challenge can be published.");
-        }
+    public void Publish() => TransitionTo(SocialChallengeStatus.Published,
+        "Only a draft social challenge can be published.",
+        SocialChallengeStatus.Draft);
 
-        Status = SocialChallengeStatus.Published;
-    }
+    public void Retire() => TransitionTo(SocialChallengeStatus.Retired,
+        "Only a published social challenge can be retired.",
+        SocialChallengeStatus.Published);
 
-    public void Retire()
-    {
-        if (Status != SocialChallengeStatus.Published)
-        {
-            throw new DomainException("Only a published social challenge can be retired.");
-        }
+    public void Reactivate() => TransitionTo(SocialChallengeStatus.Published,
+        "Only a retired social challenge can be reactivated.",
+        SocialChallengeStatus.Retired);
 
-        Status = SocialChallengeStatus.Retired;
-    }
-
-    public void Reactivate()
-    {
-        if (Status != SocialChallengeStatus.Retired)
-        {
-            throw new DomainException("Only a retired social challenge can be reactivated.");
-        }
-
-        Status = SocialChallengeStatus.Published;
-    }
-
-    public void Archive()
-    {
-        if (Status != SocialChallengeStatus.Published && Status != SocialChallengeStatus.Retired)
-        {
-            throw new DomainException("Only a published or retired social challenge can be archived.");
-        }
-
-        Status = SocialChallengeStatus.Archived;
-    }
+    public void Archive() => TransitionTo(SocialChallengeStatus.Archived,
+        "Only a published or retired social challenge can be archived.",
+        SocialChallengeStatus.Published, SocialChallengeStatus.Retired);
 
     public void EnsureDeletable()
     {
@@ -103,6 +79,17 @@ public sealed class SocialChallenge : AggregateRoot
         {
             throw new DomainException("Only a draft or archived social challenge can be deleted.");
         }
+    }
+
+    private void TransitionTo(SocialChallengeStatus target, string errorMessage,
+        params SocialChallengeStatus[] allowedFrom)
+    {
+        if (!allowedFrom.Contains(Status))
+        {
+            throw new DomainException(errorMessage);
+        }
+
+        Status = target;
     }
 
     private static void EnsureValid(string name, int peopleRequired, double gatheringRadius,
