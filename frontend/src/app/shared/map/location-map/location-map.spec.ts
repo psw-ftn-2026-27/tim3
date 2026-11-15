@@ -473,4 +473,25 @@ describe('LocationMap', () => {
     expect(count('.map-position.map-pin')).toBe(0);
     expect(pinNumbers()).toEqual(['1', '2']);
   });
+  it('kada se pomeri samo pin pozicije, zadržava pogled koji je korisnik namestio, a nov niz ponovo obuhvata', () => {
+    const start = [
+      { latitude: 0, longitude: 0 },
+      { latitude: 0, longitude: 1 },
+    ];
+    offerPosition(start, true, { latitude: 1, longitude: 1 });
+    const firstMap = addedTiles.mock.calls.at(-1)![0] as L.Map;
+    firstMap.setView(L.latLng(0.5, 0.5), 7);
+
+    fixture.componentRef.setInput('position', { latitude: 0.6, longitude: 0.6 });
+    fixture.detectChanges();
+    const secondMap = addedTiles.mock.calls.at(-1)![0] as L.Map;
+    expect(secondMap).not.toBe(firstMap);
+    expect(secondMap.getZoom()).toBe(7);
+    expect(secondMap.getCenter()).toEqual(L.latLng(0.5, 0.5));
+
+    fixture.componentRef.setInput('locations', [...start, { latitude: 0, longitude: 2 }]);
+    fixture.detectChanges();
+    const thirdMap = addedTiles.mock.calls.at(-1)![0] as L.Map;
+    expect(thirdMap.getZoom()).not.toBe(7);
+  });
 });

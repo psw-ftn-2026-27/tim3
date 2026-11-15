@@ -20,7 +20,7 @@ Komponenta `LocationMap` (`app-location-map`) je deljena prikazna komponenta pla
 - `positionMissing: boolean` (podrazumevano `false`) je tačan kada server javi da korisnik još nije postavio poziciju. Uz `positionSettable` mapa tada prikazuje poruku da pozicija još nije postavljena.
 - `positionSet` je izlaz sa mestom klika (`MapLocation`) u režimu postavljanja pozicije.
 
-Mapa uvek obuhvata sve pinove, i pin pozicije. Bez ijedne lokacije prikazuje Novi Sad. Podloga je OpenStreetMap, sa navodom autora u uglu mape. Visina mape je 24rem.
+Mapa uvek obuhvata sve pinove, i pin pozicije. Izuzetak je pomeranje pina pozicije koji je već bio na mapi: korisnik ga postavlja klikom na deo mape koji vidi, pa mapa tada zadržava pogled (pomeranje i zum) koji je korisnik namestio. Bez ijedne lokacije prikazuje Novi Sad. Podloga je OpenStreetMap, sa navodom autora u uglu mape. Visina mape je 24rem.
 
 ## Prikaz bez putanje
 

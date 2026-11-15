@@ -91,12 +91,26 @@ export class LocationMap {
       this.walkingRoute.status() === 'error',
   );
 
+  // Pogled sa prethodno iscrtane mape i šta je na njoj bilo, da bi pomeranje samog pina
+  // pozicije zadržalo pomeranje i zum koje je korisnik namestio.
+  private previousView: {
+    locations: MapLocation[];
+    position: MapLocation | null;
+    center: L.LatLng;
+    zoom: number;
+  } | null = null;
+
   constructor() {
     // Leaflet crta van stabla komponenti, pa effect() ponovo iscrtava mapu kada se ulazi
     // ili odgovor servera promene.
     effect((onCleanup) => {
-      const map = this.draw(this.locations(), this.route(), this.selectable(), this.position());
-      onCleanup(() => map.remove());
+      const locations = this.locations();
+      const position = this.position();
+      const map = this.draw(locations, this.route(), this.selectable(), position);
+      onCleanup(() => {
+        this.previousView = { locations, position, center: map.getCenter(), zoom: map.getZoom() };
+        map.remove();
+      });
     });
   }
 
@@ -112,7 +126,18 @@ export class LocationMap {
     const points = locations.map(toLatLng);
     // Mapa obuhvata sve pinove, i pin pozicije.
     const framed = position === null ? points : [...points, toLatLng(position)];
-    if (framed.length === 0) {
+    // Kada se promeni samo pin pozicije koji je već bio na mapi, korisnik ga je postavio
+    // klikom na deo mape koji vidi, pa mapa zadržava njegov pogled.
+    const previous = this.previousView;
+    if (
+      previous !== null &&
+      previous.locations === locations &&
+      previous.position !== null &&
+      position !== null &&
+      previous.position !== position
+    ) {
+      map.setView(previous.center, previous.zoom);
+    } else if (framed.length === 0) {
       map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
     } else {
       map.fitBounds(L.latLngBounds(framed), { maxZoom: MAX_FIT_ZOOM, padding: [24, 24] });
