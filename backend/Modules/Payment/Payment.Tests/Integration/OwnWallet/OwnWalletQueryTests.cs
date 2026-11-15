@@ -41,13 +41,16 @@ public class OwnWalletQueryTests : BaseIntegrationTest
     }
 
     [Fact]
-    public async Task Explorer_without_a_wallet_cannot_see_another_users_wallet()
+    public async Task Explorer_without_a_wallet_sees_zero_balance_and_empty_history()
     {
-        var client = Factory.CreateClientFor(WellKnownUsers.ThirdExplorer, "explorer");
+        var demoExplorerWithoutWalletId = Guid.Parse("20000000-0000-0000-0000-000000000002");
+        var client = Factory.CreateClientFor(demoExplorerWithoutWalletId, "explorer");
 
-        var response = await client.GetAsync("/api/payment/wallet/me");
+        var wallet = await client.GetFromJsonAsync<WalletDto>("/api/payment/wallet/me", JsonOptions);
 
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        wallet!.Balance.Should().Be(0);
+        wallet.Transactions.Items.Should().BeEmpty();
+        wallet.Transactions.TotalCount.Should().Be(wallet.Transactions.Items.Count);
     }
 
     [Fact]
