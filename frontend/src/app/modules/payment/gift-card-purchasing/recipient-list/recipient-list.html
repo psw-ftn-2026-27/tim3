@@ -1,0 +1,26 @@
+@if (recipients().length === 0) {
+  <p>Nema korisnika koji odgovaraju pretrazi.</p>
+} @else {
+  <ul class="recipients" aria-label="Korisnici koji odgovaraju pretrazi">
+    @for (recipient of recipients(); track recipient.userId) {
+      <li>
+        <span>{{ recipient.displayName }}</span>
+        <button
+          class="button"
+          type="button"
+          [attr.aria-label]="'Izaberi korisnika ' + recipient.displayName"
+          [attr.aria-pressed]="selectedId() === recipient.userId"
+          [disabled]="disabled()"
+          (click)="choose.emit(recipient)"
+        >
+          Izaberi
+        </button>
+      </li>
+    }
+  </ul>
+  @if (totalCount() > recipients().length) {
+    <p class="meta">
+      Prikazano je prvih {{ recipients().length }} od {{ totalCount() }} korisnika. Suzi pretragu.
+    </p>
+  }
+}

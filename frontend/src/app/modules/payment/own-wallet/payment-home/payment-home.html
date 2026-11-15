@@ -48,6 +48,10 @@
       }
     </section>
 
+    @if (isExplorer()) {
+      <p><a routerLink="/payment/gift-cards">Poklon kartice</a></p>
+    }
+
     @if (isAdministrator()) {
       @if (!showAdministration()) {
         <button

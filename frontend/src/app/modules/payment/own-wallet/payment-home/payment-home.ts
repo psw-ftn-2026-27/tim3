@@ -31,6 +31,9 @@ export class PaymentHome {
   protected readonly isAdministrator = computed(
     () => this.auth.user()?.roles.includes('administrator') ?? false,
   );
+  protected readonly isExplorer = computed(
+    () => this.auth.user()?.roles.includes('explorer') ?? false,
+  );
   protected readonly showAdministration = signal(false);
   protected readonly selectedUser = signal<UserWalletSummaryDto | null>(null);
   protected readonly reversalId = signal<string | null>(null);

@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Payment.Application;
+using Payment.Domain.GiftCards;
 using Payment.Domain.Wallets;
+using Payment.Infrastructure.Persistence.GiftCards;
 using Payment.Infrastructure.Persistence.Wallets;
 using Shared.Domain.Exceptions;
 
@@ -12,6 +14,7 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
     public PaymentDbContext(DbContextOptions<PaymentDbContext> options) : base(options) { }
 
     public DbSet<Wallet> Wallets => Set<Wallet>();
+    public DbSet<GiftCard> GiftCards => Set<GiftCard>();
 
     async Task<int> IUnitOfWork.SaveChangesAsync(CancellationToken cancellationToken)
     {
@@ -50,5 +53,6 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
     {
         builder.HasDefaultSchema("payment");
         builder.ConfigureWallets();
+        builder.ConfigureGiftCards();
     }
 }

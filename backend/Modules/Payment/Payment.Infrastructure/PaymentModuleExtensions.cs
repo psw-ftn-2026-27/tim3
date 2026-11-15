@@ -2,10 +2,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Payment.Application;
 using Payment.Application.AdminWallet;
+using Payment.Application.GiftCardPurchasing;
+using Payment.Application.GiftCards;
 using Payment.Application.OwnWallet;
 using Payment.Application.Wallets;
 using Payment.Contracts;
 using Payment.Infrastructure.Persistence;
+using Payment.Infrastructure.Persistence.GiftCards;
 using Payment.Infrastructure.Persistence.Wallets;
 using Shared.Infrastructure;
 
@@ -33,6 +36,10 @@ public static class PaymentModuleExtensions
         services.AddScoped<OwnWalletQueries>();
         services.AddScoped<AdminWalletService>();
         services.AddScoped<AdminWalletQueries>();
+        services.AddScoped<IGiftCardRepository, GiftCardRepository>();
+        services.AddScoped<IGiftCardReadRepository, GiftCardReadRepository>();
+        services.AddScoped<GiftCardPurchasingService>();
+        services.AddScoped<GiftCardPurchasingQueries>();
 
         return services;
     }
