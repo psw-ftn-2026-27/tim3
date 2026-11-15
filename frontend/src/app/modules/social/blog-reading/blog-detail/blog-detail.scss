@@ -1,4 +1,8 @@
 .meta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
   margin: 0;
 }
 
@@ -9,7 +13,8 @@
 }
 
 .blog-image {
-  width: 240px;
-  max-width: 100%;
+  border-radius: var(--radius);
   height: auto;
+  max-width: 100%;
+  width: 240px;
 }

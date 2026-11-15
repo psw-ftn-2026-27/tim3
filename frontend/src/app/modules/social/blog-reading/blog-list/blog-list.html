@@ -1,17 +1,19 @@
 <div class="stack">
-  <h1>Blogs</h1>
+  <div class="page-head">
+    <h1>Blogs</h1>
 
-  @if (auth.isLoggedIn()) {
-    <p class="links">
-      <a routerLink="/social/mine">My blogs</a>
-      <a routerLink="/social/create">Create blog</a>
-      <a routerLink="/social/clubs">Clubs</a>
-      @if (isExplorer()) {
-        <a routerLink="/social/users">Find users</a>
-        <a routerLink="/social/profile">My profile</a>
-      }
-    </p>
-  }
+    @if (auth.isLoggedIn()) {
+      <div class="page-actions">
+        <a class="button" routerLink="/social/mine">My blogs</a>
+        <a class="button" routerLink="/social/clubs">Clubs</a>
+        @if (isExplorer()) {
+          <a class="button" routerLink="/social/users">Find users</a>
+          <a class="button" routerLink="/social/profile">My profile</a>
+        }
+        <a class="button button--primary" routerLink="/social/create">Create blog</a>
+      </div>
+    }
+  </div>
 
   @if (blogs.isLoading()) {
     <p>Loading blogs...</p>
