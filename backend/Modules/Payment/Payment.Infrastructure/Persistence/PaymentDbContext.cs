@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Payment.Application;
+using Payment.Domain.Products;
 using Payment.Domain.Wallets;
+using Payment.Infrastructure.Persistence.Products;
 using Payment.Infrastructure.Persistence.Wallets;
 using Shared.Domain.Exceptions;
 
@@ -14,6 +16,7 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
     public PaymentDbContext(DbContextOptions<PaymentDbContext> options) : base(options) { }
 
     public DbSet<Wallet> Wallets => Set<Wallet>();
+    public DbSet<Product> Products => Set<Product>();
 
     async Task<int> IUnitOfWork.SaveChangesAsync(CancellationToken cancellationToken)
     {
@@ -30,6 +33,33 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
             // A concurrent first deposit created the recipient's wallet after our existence check.
             throw new DomainException(ConcurrentWalletChangeMessage);
         }
+        catch (DbUpdateException exception) when (IsDuplicateProductCreation(exception))
+        {
+            var pendingChanges = ChangeTracker.Entries()
+                .Where(entry => entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+                .ToList();
+            if (pendingChanges.Count != 1 || pendingChanges[0].State != EntityState.Added ||
+                pendingChanges[0].Entity is not Product attemptedProduct)
+            {
+                throw;
+            }
+
+            var savedProduct = await Products.AsNoTracking()
+                .SingleAsync(product => product.TourId == attemptedProduct.TourId);
+            pendingChanges[0].State = EntityState.Detached;
+            savedProduct.EnsureSameOffer(attemptedProduct.Name, attemptedProduct.AuthorId, attemptedProduct.PriceInEc);
+            return 0;
+        }
+    }
+
+    private static bool IsDuplicateProductCreation(DbUpdateException exception)
+    {
+        return exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            SchemaName: "payment",
+            ConstraintName: "IX_Products_TourId"
+        };
     }
 
     private static bool IsDuplicateWalletCreation(DbUpdateException exception)
@@ -46,5 +76,6 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
     {
         builder.HasDefaultSchema("payment");
         builder.ConfigureWallets();
+        builder.ConfigureProducts();
     }
 }
