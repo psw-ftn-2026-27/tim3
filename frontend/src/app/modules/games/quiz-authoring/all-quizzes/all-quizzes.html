@@ -9,45 +9,54 @@
   </div>
 
   @if (quizzes.isLoading()) {
-    <p>Loading quizzes...</p>
+    <p class="loading">Loading quizzes...</p>
   } @else if (quizzes.error()) {
-    <p class="error">Could not load the quizzes. Log in as an administrator and try again.</p>
+    <p class="error" role="alert">
+      Could not load the quizzes. <a routerLink="/login">Log in</a> as an administrator and try again.
+    </p>
   } @else {
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Title</th>
-          <th scope="col">Status</th>
-          <th scope="col">XP</th>
-          <th scope="col">Questions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (quiz of quizzes.value()?.items ?? []; track quiz.id) {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
           <tr>
-            <td>
-              <a [routerLink]="['/games/quizzes', quiz.id]">{{ quiz.title }}</a>
-            </td>
-            <td>
-              <span class="badge">{{ quiz.status }}</span>
-            </td>
-            <td>{{ quiz.experiencePoints }}</td>
-            <td>{{ quiz.questions.length }}</td>
+            <th scope="col">Title</th>
+            <th scope="col">Status</th>
+            <th scope="col">XP</th>
+            <th scope="col">Questions</th>
           </tr>
-        } @empty {
-          <tr>
-            <td colspan="4">There are no quizzes yet.</td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  }
+        </thead>
+        <tbody>
+          @for (quiz of quizzes.value()?.items ?? []; track quiz.id) {
+            <tr>
+              <td>
+                <a [routerLink]="['/games/quizzes', quiz.id]">{{ quiz.title }}</a>
+              </td>
+              <td>
+                <span class="badge">{{ quiz.status }}</span>
+              </td>
+              <td>{{ quiz.experiencePoints }}</td>
+              <td>{{ quiz.questions.length }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4">
+                <p class="empty">
+                  There are no quizzes yet.
+                  <a routerLink="/games/quizzes/create">Create a new quiz.</a>
+                </p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
 
-  <div class="paging">
-    <button class="button" type="button" [disabled]="!hasPrevious()" (click)="previous()">
-      Previous
-    </button>
-    <span class="meta">Page {{ page() }}</span>
-    <button class="button" type="button" [disabled]="!hasNext()" (click)="next()">Next</button>
-  </div>
+    <div class="paging">
+      <button class="button" type="button" [disabled]="!hasPrevious()" (click)="previous()">
+        Previous
+      </button>
+      <span class="meta">Page {{ page() }}</span>
+      <button class="button" type="button" [disabled]="!hasNext()" (click)="next()">Next</button>
+    </div>
+  }
 </div>

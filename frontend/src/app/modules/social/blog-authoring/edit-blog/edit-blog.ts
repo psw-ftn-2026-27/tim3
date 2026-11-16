@@ -1,7 +1,7 @@
 import { httpResource } from '@angular/common/http';
 import { Component, effect, inject, input, signal } from '@angular/core';
 import { FormField, form, required } from '@angular/forms/signals';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ImagePicker } from '../../../../shared/images/image-picker/image-picker';
 import { ImageUploading } from '../../../../shared/images/image-uploading';
 import { serverMessage } from '../../../../shared/util/server-message';
@@ -9,7 +9,7 @@ import { BlogDto } from '../../api/social-api-types';
 import { BlogAuthoring } from '../blog-authoring';
 
 @Component({
-  imports: [FormField, ImagePicker],
+  imports: [FormField, ImagePicker, RouterLink],
   selector: 'app-edit-blog',
   styleUrl: './edit-blog.scss',
   templateUrl: './edit-blog.html',

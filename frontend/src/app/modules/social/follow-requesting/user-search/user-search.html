@@ -16,77 +16,81 @@
   @if (searchedText() === null) {
     <p>You have not searched yet.</p>
   } @else if (users.isLoading()) {
-    <p>Loading users...</p>
+    <p class="loading">Loading users...</p>
   } @else if (users.error()) {
-    <p class="error">Could not load users. Log in and try again.</p>
+    <p class="error" role="alert">Could not load users. <a routerLink="/login">Log in</a> and try again.</p>
   } @else {
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Username</th>
-          <th scope="col">Relation</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (user of users.value()?.items ?? []; track user.userId) {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
           <tr>
-            <td>{{ user.displayName }}</td>
-            <td>
-              @switch (user.relation.kind) {
-                @case ('CanFollow') {
-                  <button
-                    class="button button--primary"
-                    type="button"
-                    [disabled]="pending()"
-                    (click)="follow(user)"
-                  >
-                    Follow
-                  </button>
-                }
-                @case ('Pending') {
-                  <span class="relation">
-                    Pending
-                    @if (user.relation.requestId; as requestId) {
-                      <button
-                        class="button"
-                        type="button"
-                        [disabled]="pending()"
-                        (click)="cancel(user, requestId)"
-                      >
-                        Cancel
-                      </button>
+            <th scope="col">Username</th>
+            <th scope="col">Relation</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users.value()?.items ?? []; track user.userId) {
+            <tr>
+              <td>{{ user.displayName }}</td>
+              <td>
+                @switch (user.relation.kind) {
+                  @case ('CanFollow') {
+                    <button
+                      class="button button--primary"
+                      type="button"
+                      [disabled]="pending()"
+                      (click)="follow(user)"
+                    >
+                      Follow
+                    </button>
+                  }
+                  @case ('Pending') {
+                    <span class="relation">
+                      Pending
+                      @if (user.relation.requestId; as requestId) {
+                        <button
+                          class="button"
+                          type="button"
+                          [disabled]="pending()"
+                          (click)="cancel(user, requestId)"
+                        >
+                          Cancel
+                        </button>
+                      }
+                    </span>
+                  }
+                  @case ('Following') {
+                    Following
+                  }
+                  @case ('BlockedUntil') {
+                    @if (user.relation.availableFrom; as availableFrom) {
+                      Can send from {{ date(availableFrom) }}
                     }
-                  </span>
-                }
-                @case ('Following') {
-                  Following
-                }
-                @case ('BlockedUntil') {
-                  @if (user.relation.availableFrom; as availableFrom) {
-                    Can send from {{ date(availableFrom) }}
                   }
                 }
-              }
-              <!-- A user cannot message themselves, so their own row has no link. -->
-              @if (currentUserId() && user.userId !== currentUserId()) {
-                <a class="button" [routerLink]="['/chat/users', currentUserId(), user.userId]">
-                  Send message
-                </a>
-              }
-            </td>
-          </tr>
-          @if (rowError()?.userId === user.userId) {
+                <!-- A user cannot message themselves, so their own row has no link. -->
+                @if (currentUserId() && user.userId !== currentUserId()) {
+                  <a class="button" [routerLink]="['/chat/users', currentUserId(), user.userId]">
+                    Send message
+                  </a>
+                }
+              </td>
+            </tr>
+            @if (rowError()?.userId === user.userId) {
+              <tr>
+                <td colspan="2"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
+              </tr>
+            }
+          } @empty {
             <tr>
-              <td colspan="2"><p class="error">{{ rowError()?.message }}</p></td>
+              <td colspan="2">
+                <p class="empty">No users match the search. Try a different username.</p>
+              </td>
             </tr>
           }
-        } @empty {
-          <tr>
-            <td colspan="2">No users match the search.</td>
-          </tr>
-        }
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
 
     <div class="paging">
       <button

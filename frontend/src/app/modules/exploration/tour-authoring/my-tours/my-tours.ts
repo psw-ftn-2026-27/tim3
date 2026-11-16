@@ -19,7 +19,11 @@ export class MyTours {
 
   protected readonly selectedTourId = signal<string | null>(null);
   protected readonly pending = signal(false);
-  protected readonly error = signal<string | null>(null);
+  // A failed row command (archive, reactivate) shows under its row, a failed form command
+  // inside its form. A saved form closes, so its success shows below the table instead.
+  protected readonly rowError = signal<{ rowId: string; message: string } | null>(null);
+  protected readonly formError = signal<string | null>(null);
+  protected readonly success = signal<string | null>(null);
 
   private readonly model = signal({ transport: 'Walking' as TransportMode, minutes: 30 });
 
@@ -50,14 +54,14 @@ export class MyTours {
   });
 
   protected select(tourId: string): void {
-    this.error.set(null);
+    this.clearMessages();
     this.publishTourId.set(null);
     this.selectedTourId.set(tourId);
     this.form().reset({ transport: 'Walking', minutes: 30 });
   }
 
   protected selectForPublish(tourId: string): void {
-    this.error.set(null);
+    this.clearMessages();
     this.selectedTourId.set(null);
     this.publishTourId.set(tourId);
     this.publishForm().reset({ price: '', amount: null });
@@ -71,7 +75,7 @@ export class MyTours {
     }
     const isFree = this.publishForm.price().value() === 'Free';
     this.pending.set(true);
-    this.error.set(null);
+    this.clearMessages();
     try {
       await this.tourAuthoring.publish(tourId, {
         isFree,
@@ -79,8 +83,9 @@ export class MyTours {
       });
       this.tours.reload();
       this.publishTourId.set(null);
+      this.success.set('Tura je objavljena.');
     } catch (failure) {
-      this.error.set(serverMessage(failure, 'Could not publish the tour.'));
+      this.formError.set(serverMessage(failure, 'Could not publish the tour.'));
     } finally {
       this.pending.set(false);
     }
@@ -88,12 +93,15 @@ export class MyTours {
 
   protected async archive(tourId: string): Promise<void> {
     this.pending.set(true);
-    this.error.set(null);
+    this.clearMessages();
     try {
       await this.tourAuthoring.archive(tourId);
       this.tours.reload();
     } catch (failure) {
-      this.error.set(serverMessage(failure, 'Could not archive the tour.'));
+      this.rowError.set({
+        rowId: tourId,
+        message: serverMessage(failure, 'Could not archive the tour.'),
+      });
     } finally {
       this.pending.set(false);
     }
@@ -101,12 +109,15 @@ export class MyTours {
 
   protected async reactivate(tourId: string): Promise<void> {
     this.pending.set(true);
-    this.error.set(null);
+    this.clearMessages();
     try {
       await this.tourAuthoring.reactivate(tourId);
       this.tours.reload();
     } catch (failure) {
-      this.error.set(serverMessage(failure, 'Could not reactivate the tour.'));
+      this.rowError.set({
+        rowId: tourId,
+        message: serverMessage(failure, 'Could not reactivate the tour.'),
+      });
     } finally {
       this.pending.set(false);
     }
@@ -123,7 +134,7 @@ export class MyTours {
       return;
     }
     this.pending.set(true);
-    this.error.set(null);
+    this.clearMessages();
     try {
       await this.tourAuthoring.addTransportTime(tourId, {
         transport: this.form.transport().value(),
@@ -131,10 +142,18 @@ export class MyTours {
       });
       this.tours.reload();
       this.selectedTourId.set(null);
+      this.success.set('Vreme prevoza je dodato.');
     } catch (failure) {
-      this.error.set(serverMessage(failure, 'Could not add the transport time.'));
+      this.formError.set(serverMessage(failure, 'Could not add the transport time.'));
     } finally {
       this.pending.set(false);
     }
+  }
+
+  // The next command, or opening a form, clears the messages of the previous one.
+  private clearMessages(): void {
+    this.rowError.set(null);
+    this.formError.set(null);
+    this.success.set(null);
   }
 }

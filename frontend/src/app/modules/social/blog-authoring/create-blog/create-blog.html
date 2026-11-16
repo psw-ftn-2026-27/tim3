@@ -30,7 +30,7 @@
           <button class="button" type="button" (click)="removeImage($index)">x</button>
         </div>
       } @empty {
-        <p class="meta">No images.</p>
+        <p class="empty">No images. Add one below.</p>
       }
     </div>
 
@@ -45,7 +45,7 @@
     </div>
 
     @if (error()) {
-      <p class="error">{{ error() }}</p>
+      <p class="error" role="alert">{{ error() }}</p>
     }
 
     <button class="button button--primary" type="submit" [disabled]="!form().valid() || pending()">

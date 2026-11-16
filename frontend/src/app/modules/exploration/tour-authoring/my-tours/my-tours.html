@@ -8,106 +8,123 @@
     </div>
   </div>
 
-  @if (error()) {
-    <p class="error">{{ error() }}</p>
+  @if (tours.isLoading()) {
+    <p class="loading">Loading your tours...</p>
+  } @else if (tours.error()) {
+    <p class="error" role="alert">Could not load your tours. <a routerLink="/login">Log in</a> and try again.</p>
+  } @else {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Difficulty</th>
+            <th scope="col">Group size</th>
+            <th scope="col">Status</th>
+            <th scope="col">Transport times</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (tour of tours.value() ?? []; track tour.id) {
+            <tr>
+              <td>{{ tour.name }}</td>
+              <td>{{ tour.difficulty }}</td>
+              <td>
+                @if (tour.recommendedGroupSize; as size) {
+                  @if (size.from === size.to) {
+                    {{ size.from }}
+                  } @else {
+                    {{ size.from }}–{{ size.to }}
+                  }
+                } @else {
+                  <span class="meta">not specified</span>
+                }
+              </td>
+              <td>
+                <span class="badge">{{ tour.status }}</span>
+                @if (tour.archivedAt) {
+                  <br />
+                  <span class="meta">{{ archivedAt(tour.archivedAt) }}</span>
+                }
+              </td>
+              <td>
+                @for (time of tour.transportTimes; track time.transport) {
+                  <span class="time">{{ time.transport }} {{ time.minutes }} min</span>
+                } @empty {
+                  <span class="empty">
+                    none
+                    @if (tour.status !== 'Archived') {
+                      (use Add time)
+                    }
+                  </span>
+                }
+              </td>
+              <td class="actions">
+                @if (tour.status !== 'Archived') {
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="select(tour.id)"
+                  >
+                    Add time
+                  </button>
+                }
+                @if (tour.status === 'Draft') {
+                  <button
+                    class="button button--primary"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="selectForPublish(tour.id)"
+                  >
+                    Publish
+                  </button>
+                }
+                @if (tour.status === 'Published') {
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="archive(tour.id)"
+                  >
+                    Archive
+                  </button>
+                }
+                @if (tour.status === 'Archived') {
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="reactivate(tour.id)"
+                  >
+                    Reactivate
+                  </button>
+                }
+              </td>
+            </tr>
+            @if (rowError()?.rowId === tour.id) {
+              <tr>
+                <td colspan="6"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
+              </tr>
+            }
+          } @empty {
+            <tr>
+              <td colspan="6">
+                <p class="empty">
+                  You have no tours yet.
+                  <a routerLink="/exploration/create">Create your first tour.</a>
+                </p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
 
-  @if (tours.isLoading()) {
-    <p>Loading your tours...</p>
-  } @else if (tours.error()) {
-    <p class="error">Could not load your tours. Log in and try again.</p>
-  } @else {
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Difficulty</th>
-          <th scope="col">Group size</th>
-          <th scope="col">Status</th>
-          <th scope="col">Transport times</th>
-          <th scope="col">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (tour of tours.value() ?? []; track tour.id) {
-          <tr>
-            <td>{{ tour.name }}</td>
-            <td>{{ tour.difficulty }}</td>
-            <td>
-              @if (tour.recommendedGroupSize; as size) {
-                @if (size.from === size.to) {
-                  {{ size.from }}
-                } @else {
-                  {{ size.from }}–{{ size.to }}
-                }
-              } @else {
-                <span class="meta">not specified</span>
-              }
-            </td>
-            <td>
-              <span class="badge">{{ tour.status }}</span>
-              @if (tour.archivedAt) {
-                <br />
-                <span class="meta">{{ archivedAt(tour.archivedAt) }}</span>
-              }
-            </td>
-            <td>
-              @for (time of tour.transportTimes; track time.transport) {
-                <span class="time">{{ time.transport }} {{ time.minutes }} min</span>
-              } @empty {
-                <span class="meta">none</span>
-              }
-            </td>
-            <td class="actions">
-              @if (tour.status !== 'Archived') {
-                <button
-                  class="button"
-                  type="button"
-                  [disabled]="pending()"
-                  (click)="select(tour.id)"
-                >
-                  Add time
-                </button>
-              }
-              @if (tour.status === 'Draft') {
-                <button
-                  class="button button--primary"
-                  type="button"
-                  [disabled]="pending()"
-                  (click)="selectForPublish(tour.id)"
-                >
-                  Publish
-                </button>
-              }
-              @if (tour.status === 'Published') {
-                <button
-                  class="button"
-                  type="button"
-                  [disabled]="pending()"
-                  (click)="archive(tour.id)"
-                >
-                  Archive
-                </button>
-              }
-              @if (tour.status === 'Archived') {
-                <button
-                  class="button"
-                  type="button"
-                  [disabled]="pending()"
-                  (click)="reactivate(tour.id)"
-                >
-                  Reactivate
-                </button>
-              }
-            </td>
-          </tr>
-        } @empty {
-          <tr>
-            <td colspan="6">You have no tours yet.</td>
-          </tr>
-        }
-      </tbody>
-    </table>
+  @if (success()) {
+    <p class="success" role="status">{{ success() }}</p>
   }
 
   @if (selectedTourId()) {
@@ -132,6 +149,10 @@
           }
         }
       </div>
+
+      @if (formError()) {
+        <p class="error" role="alert">{{ formError() }}</p>
+      }
 
       <button
         class="button button--primary"
@@ -169,6 +190,10 @@
             }
           }
         </div>
+      }
+
+      @if (formError()) {
+        <p class="error" role="alert">{{ formError() }}</p>
       }
 
       <button

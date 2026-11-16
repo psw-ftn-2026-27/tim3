@@ -63,6 +63,15 @@ a:hover {
   color: var(--color-exploration-ink);
 }
 
+// A link inside running text ("No account yet? Register", "Create your first blog.") is
+// underlined, so the user sees that it can be clicked. A link styled as a button, and links
+// on their own such as the nav and card titles, are not.
+p a:not(.button) {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
 ::placeholder {
   color: var(--color-text-muted);
 }

@@ -60,8 +60,9 @@ h1 {
   margin: 0;
 }
 
-// The empty state: a small dot in apricot, lilac and mint rings, then the message.
-.empty {
+// The empty card: a small dot in apricot, lilac and mint rings, then the message. Only the
+// card is decorated here; the message itself uses the shared .empty class.
+.empty-card {
   align-items: center;
   background:
     radial-gradient(30rem 16rem at 50% 0%, var(--color-games), transparent 70%), var(--glass);
@@ -84,6 +85,6 @@ h1 {
   width: 0.875rem;
 }
 
-.empty h2 {
+.empty-card h2 {
   margin: 0;
 }

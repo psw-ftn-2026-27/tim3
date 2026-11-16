@@ -16,15 +16,20 @@
   </div>
 
   @if (blogs.isLoading()) {
-    <p>Loading blogs...</p>
+    <p class="loading">Loading blogs...</p>
   } @else if (blogs.error()) {
-    <p class="error">Could not load blogs. Log in and try again.</p>
+    <p class="error" role="alert">Could not load blogs. <a routerLink="/login">Log in</a> and try again.</p>
   } @else {
     <div class="grid">
       @for (blog of blogs.value()?.items ?? []; track blog.id) {
         <app-blog-card [blog]="blog" />
       } @empty {
-        <p>No blogs published yet.</p>
+        <p class="empty">
+          No blogs published yet.
+          @if (auth.isLoggedIn()) {
+            <a routerLink="/social/create">Write the first one.</a>
+          }
+        </p>
       }
     </div>
   }

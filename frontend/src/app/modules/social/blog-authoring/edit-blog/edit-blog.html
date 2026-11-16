@@ -2,9 +2,9 @@
   <h1>Edit blog</h1>
 
   @if (blog.isLoading()) {
-    <p>Loading blog...</p>
+    <p class="loading">Loading blog...</p>
   } @else if (blog.error()) {
-    <p class="error">Could not load the blog. Log in and try again.</p>
+    <p class="error" role="alert">Could not load the blog. <a routerLink="/login">Log in</a> and try again.</p>
   } @else {
     <form class="stack" (submit)="submit($event)">
       <div class="field">
@@ -35,7 +35,7 @@
             <button class="button" type="button" (click)="removeImage($index)">x</button>
           </div>
         } @empty {
-          <p class="meta">No images.</p>
+          <p class="empty">No images. Add one below.</p>
         }
       </div>
 
@@ -50,7 +50,7 @@
       </div>
 
       @if (error()) {
-        <p class="error">{{ error() }}</p>
+        <p class="error" role="alert">{{ error() }}</p>
       }
 
       <button class="button button--primary" type="submit" [disabled]="!form().valid() || pending()">
