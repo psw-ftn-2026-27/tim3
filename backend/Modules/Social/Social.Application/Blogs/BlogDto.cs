@@ -12,4 +12,5 @@ public sealed record BlogDto(
     List<string> Images,
     BlogStatus Status,
     List<CommentDto> Comments,
-    VoteType? CurrentUserVote);
+    VoteType? CurrentUserVote,
+    int Score);

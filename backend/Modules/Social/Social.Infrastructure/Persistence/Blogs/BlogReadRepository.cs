@@ -57,6 +57,7 @@ internal sealed class BlogReadRepository : IBlogReadRepository
                 blog.Votes
                     .Where(vote => vote.UserId == currentUserId)
                     .Select(vote => (VoteType?)vote.VoteType)
-                    .FirstOrDefault()));
+                    .FirstOrDefault(),
+                blog.Votes.Count(vote => vote.VoteType == VoteType.Up) - blog.Votes.Count(vote => vote.VoteType == VoteType.Down)));
     }
 }
