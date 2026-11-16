@@ -27,6 +27,14 @@ export class BlogDetail {
     return blog ? (marked.parse(blog.description) as string) : '';
   });
 
+  protected readonly scoreLabel = computed(() => {
+    const blog = this.detail.value();
+    if (!blog) {
+      return '';
+    }
+    return Math.abs(blog.score) === 1 ? `${blog.score} point` : `${blog.score} points`;
+  });
+
   protected readonly error = signal<string | null>(null);
 
   protected async add(text: string): Promise<void> {

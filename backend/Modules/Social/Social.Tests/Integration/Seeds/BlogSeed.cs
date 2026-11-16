@@ -13,6 +13,9 @@ internal static class BlogSeed
     public static readonly Blog CommentedByExplorer;
     public static readonly Blog ArchivedFestival;
     public static readonly Blog VotedCoastline;
+    public static readonly Blog HighlyRatedViewpoint;
+    public static readonly Blog UnratedTrail;
+    public static readonly Blog PoorlyRatedDetour;
 
     static BlogSeed()
     {
@@ -34,7 +37,22 @@ internal static class BlogSeed
         VotedCoastline = new(WellKnownUsers.Explorer, "Obala u sumrak", "Utisci sa šetnje obalom u sumrak.", []);
         VotedCoastline.Publish();
         VotedCoastline.CastVote(WellKnownUsers.SecondExplorer, VoteType.Up);
+
+        HighlyRatedViewpoint = new(WellKnownUsers.Explorer, "Vidikovac na brdu", "Panorama grada sa najvišeg vidikovca.", []);
+        HighlyRatedViewpoint.Publish();
+        HighlyRatedViewpoint.CastVote(WellKnownUsers.Administrator, VoteType.Up);
+        HighlyRatedViewpoint.CastVote(WellKnownUsers.SecondExplorer, VoteType.Up);
+        HighlyRatedViewpoint.CastVote(WellKnownUsers.ThirdExplorer, VoteType.Down);
+
+        UnratedTrail = new(WellKnownUsers.Explorer, "Staza bez ocene", "Opis šetnje stazom koju još niko nije ocenio.", []);
+        UnratedTrail.Publish();
+
+        PoorlyRatedDetour = new(WellKnownUsers.Explorer, "Zaobilaznica", "Utisci sa zaobilaznog puta koji nije ispunio očekivanja.", []);
+        PoorlyRatedDetour.Publish();
+        PoorlyRatedDetour.CastVote(WellKnownUsers.Administrator, VoteType.Up);
+        PoorlyRatedDetour.CastVote(WellKnownUsers.SecondExplorer, VoteType.Down);
+        PoorlyRatedDetour.CastVote(WellKnownUsers.ThirdExplorer, VoteType.Down);
     }
 
-    public static Blog[] All => [FortressImpressions, CityNotes, SecondExplorersDiary, PublishedRiverbank, CommentedMuseumVisit, CommentedByExplorer, ArchivedFestival, VotedCoastline];
+    public static Blog[] All => [FortressImpressions, CityNotes, SecondExplorersDiary, PublishedRiverbank, CommentedMuseumVisit, CommentedByExplorer, ArchivedFestival, VotedCoastline, HighlyRatedViewpoint, UnratedTrail, PoorlyRatedDetour];
 }

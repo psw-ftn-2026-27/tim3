@@ -23,6 +23,7 @@ export interface BlogDto {
   status: BlogStatus;
   comments: CommentDto[];
   currentUserVote: VoteType | null;
+  score: number;
 }
 
 export interface CastVoteDto {

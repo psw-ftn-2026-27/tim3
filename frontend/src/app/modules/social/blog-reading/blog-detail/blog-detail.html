@@ -17,6 +17,7 @@
         <p class="meta">
           <span class="badge">{{ blog.status }}</span>
           Poslednja izmena: {{ lastModified(blog.lastModifiedAt) }}
+          · {{ scoreLabel() }}
         </p>
 
         <div class="description" [innerHTML]="descriptionHtml()"></div>
