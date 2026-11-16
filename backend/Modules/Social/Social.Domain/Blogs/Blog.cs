@@ -93,18 +93,20 @@ public sealed class Blog : AggregateRoot
         _comments.Add(new Comment(userId, text));
     }
 
-    public void UpdateComment(Guid commentId, Guid userId, string text)
+    public void UpdateComment(Guid commentId, Guid userId, string text, DateTime now)
     {
         EnsurePublished();
 
-        GetOwnComment(commentId, userId).Update(text);
+        GetOwnComment(commentId, userId).Update(text, now);
     }
 
-    public void DeleteComment(Guid commentId, Guid userId)
+    public void DeleteComment(Guid commentId, Guid userId, DateTime now)
     {
         EnsurePublished();
 
-        _comments.Remove(GetOwnComment(commentId, userId));
+        var comment = GetOwnComment(commentId, userId);
+        comment.EnsureWithinEditWindow(now);
+        _comments.Remove(comment);
     }
 
     public void CastVote(Guid userId, VoteType type)

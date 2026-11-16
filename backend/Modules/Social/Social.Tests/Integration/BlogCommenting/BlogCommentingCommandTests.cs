@@ -46,6 +46,48 @@ public class BlogCommentingCommandTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Editing_a_comment_records_a_new_last_modified_date()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+        var commentId = BlogSeed.CommentedMuseumVisit.Comments.Single().Id;
+        var request = new UpdateCommentDto("Ipak prosečan blog.");
+
+        var response = await client.PutAsJsonAsync(
+            $"/api/social/blogs/{BlogSeed.CommentedMuseumVisit.Id}/comments/{commentId}", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var assertContext = Factory.CreateContext<SocialDbContext>();
+        var stored = assertContext.Blogs.Single(blog => blog.Id == BlogSeed.CommentedMuseumVisit.Id);
+        var comment = stored.Comments.Single();
+        comment.LastModifiedAt.Should().BeAfter(comment.CreatedAt);
+    }
+
+    [Fact]
+    public async Task Anonymous_user_cannot_edit_a_comment()
+    {
+        var client = Factory.CreateClient();
+        var commentId = BlogSeed.CommentedMuseumVisit.Comments.Single().Id;
+        var request = new UpdateCommentDto("Anonimna izmena.");
+
+        var response = await client.PutAsJsonAsync(
+            $"/api/social/blogs/{BlogSeed.CommentedMuseumVisit.Id}/comments/{commentId}", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Anonymous_user_cannot_delete_a_comment()
+    {
+        var client = Factory.CreateClient();
+        var commentId = BlogSeed.CommentedMuseumVisit.Comments.Single().Id;
+
+        var response = await client.DeleteAsync(
+            $"/api/social/blogs/{BlogSeed.CommentedMuseumVisit.Id}/comments/{commentId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task User_cannot_edit_another_users_comment()
     {
         var client = Factory.CreateClientFor(Guid.NewGuid(), "explorer");

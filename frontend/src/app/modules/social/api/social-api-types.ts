@@ -7,6 +7,8 @@ export interface CommentDto {
   userId: string;
   text: string;
   createdAt: string;
+  authorDisplayName: string;
+  lastModifiedAt: string;
 }
 
 export interface BlogDto {

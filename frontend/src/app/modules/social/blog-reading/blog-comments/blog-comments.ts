@@ -43,6 +43,18 @@ export class BlogComments {
     });
   }
 
+  // True when the comment was edited after it was created.
+  protected wasEdited(comment: CommentDto): boolean {
+    return new Date(comment.lastModifiedAt).getTime() !== new Date(comment.createdAt).getTime();
+  }
+
+  // UX only: Edit and Delete stay visible for 15 minutes after creation; the server
+  // enforces the rule regardless.
+  protected withinEditWindow(createdAt: string): boolean {
+    const fifteenMinutes = 15 * 60 * 1000;
+    return Date.now() - new Date(createdAt).getTime() <= fifteenMinutes;
+  }
+
   protected submitComment(event: Event): void {
     event.preventDefault();
     this.addComment.emit(this.form.text().value());

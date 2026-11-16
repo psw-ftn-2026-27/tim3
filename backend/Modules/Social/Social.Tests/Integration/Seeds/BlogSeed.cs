@@ -10,6 +10,7 @@ internal static class BlogSeed
     public static readonly Blog SecondExplorersDiary = new(WellKnownUsers.SecondExplorer, "Tuđi dnevnik", "Beleške drugog autora, vidljive samo njemu.", []);
     public static readonly Blog PublishedRiverbank;
     public static readonly Blog CommentedMuseumVisit;
+    public static readonly Blog CommentedByExplorer;
     public static readonly Blog ArchivedFestival;
     public static readonly Blog VotedCoastline;
 
@@ -22,6 +23,10 @@ internal static class BlogSeed
         CommentedMuseumVisit.Publish();
         CommentedMuseumVisit.AddComment(WellKnownUsers.Administrator, "Odlična preporuka!");
 
+        CommentedByExplorer = new(WellKnownUsers.SecondExplorer, "Šetnja parkom", "Utisci sa šetnje gradskim parkom.", []);
+        CommentedByExplorer.Publish();
+        CommentedByExplorer.AddComment(WellKnownUsers.Explorer, "Divno mesto za predah.");
+
         ArchivedFestival = new(WellKnownUsers.Explorer, "Dani festivala", "Zaokružen izveštaj sa gradskog festivala, sadržaj je završen.", []);
         ArchivedFestival.Publish();
         ArchivedFestival.Archive();
@@ -31,5 +36,5 @@ internal static class BlogSeed
         VotedCoastline.CastVote(WellKnownUsers.SecondExplorer, VoteType.Up);
     }
 
-    public static Blog[] All => [FortressImpressions, CityNotes, SecondExplorersDiary, PublishedRiverbank, CommentedMuseumVisit, ArchivedFestival, VotedCoastline];
+    public static Blog[] All => [FortressImpressions, CityNotes, SecondExplorersDiary, PublishedRiverbank, CommentedMuseumVisit, CommentedByExplorer, ArchivedFestival, VotedCoastline];
 }
