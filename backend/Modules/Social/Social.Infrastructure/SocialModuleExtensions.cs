@@ -7,6 +7,7 @@ using Social.Application.BlogCommenting;
 using Social.Application.BlogReading;
 using Social.Application.Blogs;
 using Social.Application.ClubManagement;
+using Social.Application.ClubMembership;
 using Social.Application.Clubs;
 using Social.Application.FollowManagement;
 using Social.Application.FollowRequesting;
@@ -40,6 +41,8 @@ public static class SocialModuleExtensions
         services.AddScoped<BlogCommentingService>();
         services.AddScoped<ClubManagementService>();
         services.AddScoped<ClubManagementQueries>();
+        services.AddScoped<ClubMembershipService>();
+        services.AddScoped<ClubMembershipQueries>();
         services.AddScoped<FollowRequestingService>();
         services.AddScoped<FollowRequestingQueries>();
         services.AddScoped<FollowManagementService>();
