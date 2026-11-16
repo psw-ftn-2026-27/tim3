@@ -46,7 +46,7 @@ export class EditQuiz {
   protected readonly detailsError = signal<string | null>(null);
   protected readonly questionError = signal<string | null>(null);
   protected readonly transitionError = signal<string | null>(null);
-  // The message for the last successful status transition, or null before any.
+  // The message for the last successful status transition; the next command clears it.
   protected readonly transitionMessage = signal<string | null>(null);
   // True while the section asking to confirm the deletion is open.
   protected readonly confirmingDelete = signal(false);
@@ -71,7 +71,7 @@ export class EditQuiz {
   protected async saveDetails(event: Event): Promise<void> {
     event.preventDefault();
     this.pending.set(true);
-    this.detailsError.set(null);
+    this.clearMessages();
     try {
       await this.quizAuthoring.updateDetails(this.id(), {
         title: this.detailsForm.title().value(),
@@ -101,7 +101,7 @@ export class EditQuiz {
   protected async saveQuestion(event: Event): Promise<void> {
     event.preventDefault();
     this.pending.set(true);
-    this.questionError.set(null);
+    this.clearMessages();
     const dto = {
       text: this.questionForm.text().value(),
       // An answer field left empty and unmarked is not one of the offered answers.
@@ -129,7 +129,7 @@ export class EditQuiz {
 
   protected async removeQuestion(questionId: string): Promise<void> {
     this.pending.set(true);
-    this.questionError.set(null);
+    this.clearMessages();
     try {
       await this.quizAuthoring.removeQuestion(this.id(), questionId);
       if (this.selectedQuestionId() === questionId) {
@@ -146,8 +146,7 @@ export class EditQuiz {
 
   protected async publish(): Promise<void> {
     this.pending.set(true);
-    this.transitionError.set(null);
-    this.transitionMessage.set(null);
+    this.clearMessages();
     this.confirmingDelete.set(false);
     try {
       await this.quizAuthoring.publish(this.id());
@@ -162,8 +161,7 @@ export class EditQuiz {
 
   protected async retire(): Promise<void> {
     this.pending.set(true);
-    this.transitionError.set(null);
-    this.transitionMessage.set(null);
+    this.clearMessages();
     this.confirmingDelete.set(false);
     try {
       await this.quizAuthoring.retire(this.id());
@@ -178,8 +176,7 @@ export class EditQuiz {
 
   protected async archive(): Promise<void> {
     this.pending.set(true);
-    this.transitionError.set(null);
-    this.transitionMessage.set(null);
+    this.clearMessages();
     this.confirmingDelete.set(false);
     try {
       await this.quizAuthoring.archive(this.id());
@@ -204,7 +201,7 @@ export class EditQuiz {
 
   protected async remove(): Promise<void> {
     this.pending.set(true);
-    this.transitionError.set(null);
+    this.clearMessages();
     try {
       await this.quizAuthoring.remove(this.id());
       // A deleted quiz has no page to show, so the administrator returns to all quizzes.
@@ -215,6 +212,14 @@ export class EditQuiz {
     } finally {
       this.pending.set(false);
     }
+  }
+
+  // Every command starts by clearing the messages of the previous one.
+  private clearMessages(): void {
+    this.detailsError.set(null);
+    this.questionError.set(null);
+    this.transitionError.set(null);
+    this.transitionMessage.set(null);
   }
 
   // The question form always has four answer fields; unused ones stay empty.

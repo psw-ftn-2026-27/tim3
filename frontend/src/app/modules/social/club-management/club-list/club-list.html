@@ -1,18 +1,18 @@
 <div class="stack">
-  <h1>Clubs</h1>
+  <div class="page-head">
+    <h1>Clubs</h1>
 
-  @if (isExplorer()) {
-    <p><a routerLink="/social/clubs/create">Create club</a></p>
-  }
-
-  @if (error()) {
-    <p class="error">{{ error() }}</p>
-  }
+    @if (isExplorer()) {
+      <div class="page-actions">
+        <a class="button button--primary" routerLink="/social/clubs/create">Create club</a>
+      </div>
+    }
+  </div>
 
   @if (clubs.isLoading()) {
-    <p>Loading clubs...</p>
+    <p class="loading">Loading clubs...</p>
   } @else if (clubs.error()) {
-    <p class="error">Could not load the clubs. Log in and try again.</p>
+    <p class="error" role="alert">Could not load the clubs. <a routerLink="/login">Log in</a> and try again.</p>
   } @else {
     <div class="grid">
       @for (club of clubs.value()?.items ?? []; track club.id) {
@@ -20,13 +20,23 @@
           [club]="club"
           [canManage]="club.ownerId === auth.user()?.id"
           [pending]="pending()"
+          [error]="deleteErrorFor(club.id)"
           (editClub)="select($event)"
           (deleteClub)="remove($event)"
         />
       } @empty {
-        <p>There are no clubs yet.</p>
+        <p class="empty">
+          There are no clubs yet.
+          @if (isExplorer()) {
+            <a routerLink="/social/clubs/create">Create the first club.</a>
+          }
+        </p>
       }
     </div>
+  }
+
+  @if (success()) {
+    <p class="success" role="status">{{ success() }}</p>
   }
 
   @if (selectedClubId()) {
@@ -61,7 +71,7 @@
       />
 
       @if (imageError()) {
-        <p class="error">{{ imageError() }}</p>
+        <p class="error" role="alert">{{ imageError() }}</p>
       }
 
       <ul class="images">
@@ -71,12 +81,12 @@
             <button class="button" type="button" (click)="removeImage($index)">Remove</button>
           </li>
         } @empty {
-          <li class="meta">No images added yet.</li>
+          <li class="empty">No images added yet. Add one with the picker above.</li>
         }
       </ul>
 
       @if (formError()) {
-        <p class="error">{{ formError() }}</p>
+        <p class="error" role="alert">{{ formError() }}</p>
       }
 
       <div class="actions">

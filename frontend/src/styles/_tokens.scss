@@ -76,6 +76,16 @@
   // for example one of the module colours above.
   --card-glow: var(--glow-exploration);
   --card-shadow: var(--shadow-exploration);
+  // How strongly the white spot under the pointer (lens) and the module colour (glow) light
+  // a card. The dark theme keeps the same colours but dims both, so the card's light text
+  // stays readable under the pointer.
+  --card-lens-strength: 0.9;
+  --card-glow-strength: 0.55;
+  // Dims the page behind the phone and tablet menu panel while it is open.
+  --backdrop: rgba(29, 29, 31, 0.28);
+  // The phone and tablet menu panel: the page colour, a little denser than the bar's glass,
+  // so the links stay readable over whatever is behind it.
+  --menu-panel: rgba(245, 245, 247, 0.9);
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -120,7 +130,7 @@
   --color-hairline: #2c2c31;
   --color-fill: #232327;
   --color-text: #f5f5f7;
-  --color-text-muted: #a1a1a8;
+  --color-text-muted: #bcbcc3;
   --color-accent: #f5f5f7;
   --color-accent-text: #1d1d1f;
   --color-danger: #ff6b61;
@@ -150,6 +160,10 @@
   --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --highlight-soft: inset 0 1px 0 rgba(255, 255, 255, 0.6);
   --lens: 70 70 82;
+  --card-lens-strength: 0.15;
+  --card-glow-strength: 0.32;
+  --backdrop: rgba(0, 0, 0, 0.55);
+  --menu-panel: rgba(12, 12, 15, 0.88);
   --line: rgba(245, 245, 247, 0.14);
   --line-strong: rgba(245, 245, 247, 0.28);
 

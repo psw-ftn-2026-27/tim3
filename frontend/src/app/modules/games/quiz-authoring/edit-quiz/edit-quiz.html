@@ -1,12 +1,8 @@
 <div class="stack">
-  @if (transitionMessage()) {
-    <p>{{ transitionMessage() }}</p>
-  }
-
   @if (quiz.isLoading()) {
-    <p>Loading quiz...</p>
+    <p class="loading">Loading quiz...</p>
   } @else if (quiz.error()) {
-    <p class="error">This quiz does not exist or you are not logged in.</p>
+    <p class="error" role="alert">This quiz does not exist or you are not logged in.</p>
   } @else if (quiz.value(); as current) {
     <h1>{{ current.title }}</h1>
     <p class="meta">Status: {{ current.status }}</p>
@@ -46,8 +42,11 @@
         </div>
       </div>
     }
+    @if (transitionMessage()) {
+      <p class="success" role="status">{{ transitionMessage() }}</p>
+    }
     @if (transitionError()) {
-      <p class="error">{{ transitionError() }}</p>
+      <p class="error" role="alert">{{ transitionError() }}</p>
     }
 
     <div class="layout">
@@ -57,7 +56,7 @@
             <h2>Quiz details</h2>
 
             @if (detailsError()) {
-              <p class="error">{{ detailsError() }}</p>
+              <p class="error" role="alert">{{ detailsError() }}</p>
             }
 
             <div class="field">
@@ -98,7 +97,7 @@
             <h2>{{ selectedQuestionId() ? 'Edit question' : 'Add question' }}</h2>
 
             @if (questionError()) {
-              <p class="error">{{ questionError() }}</p>
+              <p class="error" role="alert">{{ questionError() }}</p>
             }
 
             <div class="field">
@@ -187,7 +186,12 @@
               }
             </li>
           } @empty {
-            <li class="meta">The quiz has no questions yet.</li>
+            <li class="empty">
+              The quiz has no questions yet.
+              @if (isDraft()) {
+                Add the first one with the question form.
+              }
+            </li>
           }
         </ol>
       </div>

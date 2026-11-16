@@ -8,64 +8,72 @@
     </div>
   </div>
 
-  @if (error()) {
-    <p class="error">{{ error() }}</p>
-  }
-
   @if (blogs.isLoading()) {
-    <p>Loading your blogs...</p>
+    <p class="loading">Loading your blogs...</p>
   } @else if (blogs.error()) {
-    <p class="error">Could not load your blogs. Log in and try again.</p>
+    <p class="error" role="alert">Could not load your blogs. <a routerLink="/login">Log in</a> and try again.</p>
   } @else {
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Title</th>
-          <th scope="col">Status</th>
-          <th scope="col">Comments</th>
-          <th scope="col">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (blog of blogs.value() ?? []; track blog.id) {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
           <tr>
-            <td>{{ blog.title }}</td>
-            <td>
-              <span class="badge">{{ blog.status }}</span>
-            </td>
-            <td>{{ blog.comments.length }}</td>
-            <td>
-              @if (blog.status !== 'Closed') {
-                <a class="button" [routerLink]="['/social', blog.id, 'edit']">Edit</a>
-              }
-              @if (blog.status === 'Draft') {
-                <button
-                  class="button button--primary"
-                  type="button"
-                  [disabled]="pending()"
-                  (click)="publish(blog.id)"
-                >
-                  Publish
-                </button>
-              }
-              @if (blog.status === 'Published') {
-                <button
-                  class="button button--primary"
-                  type="button"
-                  [disabled]="pending()"
-                  (click)="archive(blog.id)"
-                >
-                  Archive
-                </button>
-              }
-            </td>
+            <th scope="col">Title</th>
+            <th scope="col">Status</th>
+            <th scope="col">Comments</th>
+            <th scope="col">Actions</th>
           </tr>
-        } @empty {
-          <tr>
-            <td colspan="4">You have no blogs yet.</td>
-          </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (blog of blogs.value() ?? []; track blog.id) {
+            <tr>
+              <td>{{ blog.title }}</td>
+              <td>
+                <span class="badge">{{ blog.status }}</span>
+              </td>
+              <td>{{ blog.comments.length }}</td>
+              <td>
+                @if (blog.status !== 'Closed') {
+                  <a class="button" [routerLink]="['/social', blog.id, 'edit']">Edit</a>
+                }
+                @if (blog.status === 'Draft') {
+                  <button
+                    class="button button--primary"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="publish(blog.id)"
+                  >
+                    Publish
+                  </button>
+                }
+                @if (blog.status === 'Published') {
+                  <button
+                    class="button button--primary"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="archive(blog.id)"
+                  >
+                    Archive
+                  </button>
+                }
+              </td>
+            </tr>
+            @if (rowError()?.rowId === blog.id) {
+              <tr>
+                <td colspan="4"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
+              </tr>
+            }
+          } @empty {
+            <tr>
+              <td colspan="4">
+                <p class="empty">
+                  You have no blogs yet.
+                  <a routerLink="/social/create">Create your first blog.</a>
+                </p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
 </div>

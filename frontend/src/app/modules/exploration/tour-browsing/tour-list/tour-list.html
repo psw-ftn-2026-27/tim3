@@ -28,11 +28,11 @@
   </div>
 
   @if (tours.isLoading()) {
-    <p>Loading tours...</p>
+    <p class="loading">Loading tours...</p>
   } @else if (tours.error()) {
-    <p class="error">Could not load tours. Log in and try again.</p>
+    <p class="error" role="alert">Could not load tours. <a routerLink="/login">Log in</a> and try again.</p>
   } @else if (visibleTours().length === 0) {
-    <p>No tours match the filter.</p>
+    <p class="empty">No tours match the filter. Change the name or the difficulty above.</p>
   } @else {
     <div class="grid">
       @for (tour of visibleTours(); track tour.id) {

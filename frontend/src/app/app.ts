@@ -18,6 +18,7 @@ const TILTING = 'a.card, article.card';
     '(document:pointerdown)': 'pressCard()',
     '(document:pointerup)': 'releaseCard()',
     '(document:pointerout)': 'leaveWindow($event)',
+    '(document:keydown.escape)': 'closeMenu()',
   },
 })
 export class App {
@@ -31,6 +32,10 @@ export class App {
   protected readonly indicatorShown = signal(false);
   // True when the pill moves from one link to another instead of appearing.
   protected readonly indicatorSliding = signal(false);
+
+  // Whether the side panel with the links is open. Only a phone or a tablet shows the panel
+  // and the button that opens it (see app.scss); Escape, a link or a click beside it closes it.
+  protected readonly menuOpen = signal(false);
 
   // The glass element under the pointer, and whether the mouse button is held on it.
   private lit: HTMLElement | null = null;
@@ -57,6 +62,19 @@ export class App {
     if (!links.contains(event.relatedTarget as Node | null)) {
       this.hideIndicator();
     }
+  }
+
+  protected toggleMenu() {
+    this.menuOpen.update((open) => !open);
+  }
+
+  protected closeMenu() {
+    this.menuOpen.set(false);
+  }
+
+  protected logout() {
+    this.closeMenu();
+    this.auth.logout();
   }
 
   protected toggleTheme(event: Event) {

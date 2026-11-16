@@ -8,7 +8,7 @@
       <h2 id="own-wallet-title">Moj novčanik</h2>
 
       @if (ownWallet.isLoading()) {
-        <p role="status">Učitavanje novčanika…</p>
+        <p class="loading" role="status">Učitavanje novčanika…</p>
       } @else if (ownWalletErrorStatus() === 401) {
         <p class="error" role="alert">
           Sesija je istekla. <a routerLink="/login">Prijavi se ponovo</a>.
@@ -57,7 +57,7 @@
           </form>
 
           @if (users.isLoading()) {
-            <p role="status">Učitavanje korisnika…</p>
+            <p class="loading" role="status">Učitavanje korisnika…</p>
           } @else if (users.error()) {
             <p class="error" role="alert">Listu korisnika trenutno nije moguće učitati.</p>
             <button class="button" type="button" [disabled]="pending()" (click)="users.reload()">
@@ -65,7 +65,9 @@
             </button>
           } @else if (users.value(); as usersResult) {
             @if (usersResult.items.length === 0) {
-              <p>Nema korisnika koji odgovaraju pretrazi.</p>
+              <p class="empty">
+                Nema korisnika koji odgovaraju pretrazi. Pokušaj sa drugim prikaznim imenom.
+              </p>
             } @else {
               <div class="table-wrapper">
                 <table class="table" aria-label="Stanja korisničkih novčanika">
@@ -114,11 +116,11 @@
           <section class="card stack" aria-labelledby="selected-wallet-title">
             <h2 id="selected-wallet-title">Novčanik korisnika {{ user.displayName }}</h2>
             @if (confirmation(); as message) {
-              <p role="status">{{ message }}</p>
+              <p class="success" role="status">{{ message }}</p>
             }
 
             @if (selectedWallet.isLoading()) {
-              <p role="status">Učitavanje novčanika korisnika…</p>
+              <p class="loading" role="status">Učitavanje novčanika korisnika…</p>
             } @else if (selectedWallet.error()) {
               <p class="error" role="alert">Novčanik korisnika trenutno nije moguće učitati.</p>
               <button
@@ -156,10 +158,10 @@
                 >
                   Uplati EC
                 </button>
+                @if (depositError(); as message) {
+                  <p class="error" role="alert">{{ message }}</p>
+                }
               </form>
-              @if (depositError(); as message) {
-                <p class="error" role="alert">{{ message }}</p>
-              }
 
               <app-wallet-history
                 [transactions]="wallet.transactions.items"

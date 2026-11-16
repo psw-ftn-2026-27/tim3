@@ -1,9 +1,20 @@
-// The nav is a frosted glass bar over the page background.
+// The nav is a frosted glass bar over the page background. The glass is drawn by ::before
+// and not by the header itself: a backdrop-filter on the header would keep the phone menu
+// panel (position: fixed) inside the header instead of letting it cover the screen.
 header {
-  backdrop-filter: var(--glass-blur);
-  background: var(--glass);
   border-bottom: 1px solid var(--glass-border);
   margin-bottom: calc(var(--space-6) * 1.75);
+  position: relative;
+  z-index: 10;
+}
+
+header::before {
+  backdrop-filter: var(--glass-blur);
+  background: var(--glass);
+  content: '';
+  inset: 0;
+  position: absolute;
+  z-index: -1;
 }
 
 nav {
@@ -39,6 +50,12 @@ nav a.active {
 // Focus is shown by the shared pill below, so the outline ring is not needed.
 nav a:focus-visible {
   outline: none;
+}
+
+// On a wide screen the panel has no box of its own: its links and user part are laid out in
+// the bar as if they were the bar's own children. The theme toggle closes the row.
+.nav-menu {
+  display: contents;
 }
 
 .nav-links {
@@ -100,8 +117,10 @@ nav a:focus-visible {
   font-size: var(--font-size-sm);
 }
 
-// A round glass button with a moon (light theme) or a sun (dark theme).
-.theme-toggle {
+// Round glass buttons: the theme toggle, with a moon (light theme) or a sun (dark theme), and
+// the menu toggle, with three lines or a cross.
+.theme-toggle,
+.menu-toggle {
   align-items: center;
   background: var(--glass-button);
   border: 1px solid var(--line);
@@ -116,11 +135,13 @@ nav a:focus-visible {
   width: 2rem;
 }
 
-.theme-toggle:hover {
+.theme-toggle:hover,
+.menu-toggle:hover {
   border-color: var(--line-strong);
 }
 
-.theme-toggle svg {
+.theme-toggle svg,
+.menu-toggle svg {
   fill: none;
   height: 1rem;
   stroke: currentColor;
@@ -185,48 +206,147 @@ header:has(nav a.active[href^='/payment']) .module-strip.payment {
   width: 0.5rem;
 }
 
-// On a phone the brand and the user share the first row, and the links get a row of their
-// own that scrolls sideways when it does not fit.
-@media (max-width: 40rem) {
+// The menu toggle and the backdrop exist only on a phone or a tablet.
+.menu-toggle,
+.nav-backdrop {
+  display: none;
+}
+
+// On a phone or a tablet the bar keeps only the brand, the theme toggle and the menu toggle.
+// The links and the user part move into a panel that slides in from the right edge; the
+// rest of the page is dimmed behind it.
+@media (max-width: 64rem) {
   nav {
-    flex-wrap: wrap;
-    gap: 0 var(--space-4);
+    gap: var(--space-3);
   }
 
   .brand {
     margin-right: auto;
   }
 
+  // Both round buttons are larger here, so they are easy to tap, and the same size.
+  .theme-toggle,
+  .menu-toggle {
+    height: 2.75rem;
+    width: 2.75rem;
+  }
+
+  .theme-toggle svg,
+  .menu-toggle svg {
+    height: 1.375rem;
+    width: 1.375rem;
+  }
+
+  // Above the panel, so its cross stays visible and closes it.
+  .menu-toggle {
+    display: inline-flex;
+    position: relative;
+    z-index: 3;
+  }
+
+  // The three lines turn around the centre of the icon. Opening moves the top and bottom
+  // lines to the middle and turns them into a cross, while the middle line shrinks away.
+  .menu-toggle .line {
+    transform-origin: 12px 12px;
+    transition:
+      transform 240ms var(--ease-out),
+      opacity 160ms ease;
+  }
+
+  .menu-toggle.open .top {
+    transform: rotate(45deg) translateY(5px);
+  }
+
+  .menu-toggle.open .middle {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  .menu-toggle.open .bottom {
+    transform: rotate(-45deg) translateY(-5px);
+  }
+
+  .nav-menu {
+    backdrop-filter: var(--glass-blur);
+    background: var(--menu-panel);
+    border-left: 1px solid var(--glass-border);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    height: 100dvh;
+    overflow-y: auto;
+    padding: calc(3.5rem + var(--space-4)) var(--space-5) var(--space-6);
+    position: fixed;
+    right: 0;
+    top: 0;
+    transform: translateX(100%);
+    transition:
+      transform 320ms var(--ease-out),
+      visibility 320ms;
+    visibility: hidden;
+    width: min(18rem, 85vw);
+    z-index: 2;
+  }
+
+  .nav-menu.open {
+    transform: none;
+    visibility: visible;
+  }
+
   .nav-links {
-    flex-basis: 100%;
-    order: 1;
-    overflow-x: auto;
-    padding-block: var(--space-2);
-    scrollbar-width: none;
+    align-items: stretch;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: var(--space-1);
   }
 
   .nav-links a {
-    white-space: nowrap;
+    font-size: var(--font-size-md);
+    padding: var(--space-3) var(--space-4);
   }
 
-  // The user part takes the rest of the first row instead of wrapping below the brand;
-  // a long email is cut with an ellipsis.
+  .nav-links a.active {
+    background: var(--glass-border);
+  }
+
+  // The pill that follows the mouse is for the bar; in the panel the open link is marked.
+  .nav-indicator {
+    display: none;
+  }
+
   .nav-user {
-    flex: 1 1 0;
-    gap: var(--space-2);
-    justify-content: flex-end;
-    min-width: 0;
-  }
-
-  .nav-user > * {
-    flex-shrink: 0;
+    align-items: flex-start;
+    border-top: 1px solid var(--line);
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-4) 0;
   }
 
   .nav-user span {
-    flex-shrink: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+  }
+
+  .nav-user a {
+    font-size: var(--font-size-md);
+  }
+
+  .nav-backdrop {
+    background: var(--backdrop);
+    border: 0;
+    cursor: default;
+    display: block;
+    inset: 0;
+    padding: 0;
+    position: fixed;
+    z-index: 1;
+  }
+}
+
+@media (max-width: 64rem) and (prefers-reduced-motion: reduce) {
+  .nav-menu,
+  .menu-toggle .line {
+    transition: none;
   }
 }
 

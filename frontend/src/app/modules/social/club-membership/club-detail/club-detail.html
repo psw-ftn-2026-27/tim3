@@ -2,9 +2,9 @@
   <p><a class="button" routerLink="/social/clubs">Back to clubs</a></p>
 
   @if (club.isLoading()) {
-    <p>Loading club...</p>
+    <p class="loading">Loading club...</p>
   } @else if (club.error()) {
-    <p class="error">Could not load the club. Log in and try again.</p>
+    <p class="error" role="alert">Could not load the club. <a routerLink="/login">Log in</a> and try again.</p>
   } @else {
     @if (club.value(); as details) {
       <section class="card stack">
@@ -27,7 +27,7 @@
           @case ('Pending') {
             <p class="meta">Your join request is pending.</p>
             @if (withdrawError()) {
-              <p class="error">{{ withdrawError() }}</p>
+              <p class="error" role="alert">{{ withdrawError() }}</p>
             }
             <div class="actions">
               <button
@@ -43,7 +43,7 @@
           @case ('None') {
             @if (isExplorer()) {
               @if (requestError()) {
-                <p class="error">{{ requestError() }}</p>
+                <p class="error" role="alert">{{ requestError() }}</p>
               }
               <div class="actions">
                 <button
@@ -66,7 +66,14 @@
           @for (member of details.members; track member.userId) {
             <li>{{ member.displayName }}</li>
           } @empty {
-            <li class="meta">The club has no members yet.</li>
+            <li class="empty">
+              The club has no members yet.
+              @if (isOwner()) {
+                Accept join requests below.
+              } @else {
+                Explorers join by sending a join request.
+              }
+            </li>
           }
         </ul>
       </section>
@@ -76,7 +83,7 @@
           <h2>Join requests</h2>
 
           @if (resolveError()) {
-            <p class="error">{{ resolveError() }}</p>
+            <p class="error" role="alert">{{ resolveError() }}</p>
           }
 
           <ul class="users">
@@ -103,7 +110,9 @@
                 </div>
               </li>
             } @empty {
-              <li class="meta">There are no pending join requests.</li>
+              <li class="empty">
+                There are no pending join requests. New requests from explorers appear here.
+              </li>
             }
           </ul>
         </section>
