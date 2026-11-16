@@ -1,0 +1,12 @@
+<ul class="messages">
+  @for (message of messages(); track message.id) {
+    <li class="message">
+      <p class="meta">
+        <span class="sender">{{ message.senderName }}</span> · {{ when(message.sentAt) }}
+      </p>
+      <p class="text">{{ message.text }}</p>
+    </li>
+  } @empty {
+    <li class="meta">No messages yet.</li>
+  }
+</ul>

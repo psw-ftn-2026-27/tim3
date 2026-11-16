@@ -1,0 +1,5 @@
+// The chat is a narrow column, so lines of text stay short enough to read.
+.chat {
+  margin-inline: auto;
+  max-width: 48rem;
+}
