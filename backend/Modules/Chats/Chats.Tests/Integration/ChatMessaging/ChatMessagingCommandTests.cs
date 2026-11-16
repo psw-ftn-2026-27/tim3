@@ -55,6 +55,40 @@ public class ChatMessagingCommandTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Message_in_a_challenge_chat_is_stored_in_the_chat_of_that_challenge()
+    {
+        var challengeId = Guid.NewGuid();
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+        var request = new SendMessageDto("Two more people are needed at the fountain.");
+
+        var response = await client.PostAsJsonAsync($"/api/chat/challenges/{challengeId}/messages", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var context = Factory.CreateContext<ChatsDbContext>();
+        var chat = await context.Chats.SingleAsync(chat =>
+            chat.Subject.Kind == SubjectKind.Challenge && chat.Subject.FirstId == challengeId);
+        (await context.Messages.AnyAsync(message => message.ChatId == chat.Id && message.Text == request.Text))
+            .Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Member_of_a_pair_sends_a_message_and_it_is_stored_in_their_conversation()
+    {
+        var conversation = ChatSeed.ConversationOfExplorerAndSecondExplorer;
+        var client = Factory.CreateClientFor(WellKnownUsers.SecondExplorer, "explorer");
+        var request = new SendMessageDto("Yes, last weekend.");
+
+        var response = await client.PostAsJsonAsync(
+            $"/api/chat/users/{WellKnownUsers.SecondExplorer}/{WellKnownUsers.Explorer}/messages", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var context = Factory.CreateContext<ChatsDbContext>();
+        (await context.Messages.AnyAsync(message => message.ChatId == conversation.Id
+            && message.SenderId == WellKnownUsers.SecondExplorer && message.Text == request.Text))
+            .Should().BeTrue();
+    }
+
+    [Fact]
     public async Task User_outside_the_pair_cannot_send_a_message_and_nothing_is_stored()
     {
         var conversation = ChatSeed.ConversationOfExplorerAndSecondExplorer;

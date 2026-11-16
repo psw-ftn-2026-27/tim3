@@ -3,6 +3,7 @@ using Shared.Domain.Exceptions;
 namespace Chats.Core.Chats;
 
 // What a chat belongs to: one tour, one challenge, or one pair of users.
+// Each kind has its own named method, so a tour with two IDs or a pair with one cannot be written.
 public sealed record Subject
 {
     public SubjectKind Kind { get; private init; }
@@ -11,30 +12,28 @@ public sealed record Subject
 
     private Subject() { }
 
-    public Subject(SubjectKind kind, Guid id, Guid? secondId = null)
+    private Subject(SubjectKind kind, Guid firstId, Guid? secondId)
     {
-        if (kind != SubjectKind.Pair)
-        {
-            if (secondId is not null)
-            {
-                throw new DomainException("A tour or challenge chat belongs to exactly one tour or challenge.");
-            }
+        Kind = kind;
+        FirstId = firstId;
+        SecondId = secondId;
+    }
 
-            Kind = kind;
-            FirstId = id;
-            return;
-        }
+    public static Subject ForTour(Guid tourId) => new(SubjectKind.Tour, tourId, null);
 
-        if (secondId is null || secondId.Value == id)
+    public static Subject ForChallenge(Guid challengeId) => new(SubjectKind.Challenge, challengeId, null);
+
+    public static Subject ForPair(Guid oneUserId, Guid otherUserId)
+    {
+        if (oneUserId == otherUserId)
         {
             throw new DomainException("A conversation needs two different users.");
         }
 
         // The smaller ID always comes first, so (A, B) and (B, A) are the same subject.
-        var idComesFirst = id.CompareTo(secondId.Value) < 0;
-        Kind = kind;
-        FirstId = idComesFirst ? id : secondId.Value;
-        SecondId = idComesFirst ? secondId.Value : id;
+        return oneUserId.CompareTo(otherUserId) < 0
+            ? new Subject(SubjectKind.Pair, oneUserId, otherUserId)
+            : new Subject(SubjectKind.Pair, otherUserId, oneUserId);
     }
 
     public bool Admits(Guid userId)

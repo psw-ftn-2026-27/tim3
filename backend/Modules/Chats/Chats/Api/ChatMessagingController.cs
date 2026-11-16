@@ -27,13 +27,13 @@ public sealed class ChatMessagingController : ControllerBase
         Guid id, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         return await _messagingQueries.GetMessagesAsync(
-            new Subject(SubjectKind.Tour, id), User.GetUserId(), page, pageSize);
+            Subject.ForTour(id), User.GetUserId(), page, pageSize);
     }
 
     [HttpPost("tours/{id:guid}/messages")]
     public async Task<ActionResult> SendTourMessage(Guid id, SendMessageDto dto)
     {
-        await _messagingService.SendMessageAsync(new Subject(SubjectKind.Tour, id), User.GetUserId(), dto.Text);
+        await _messagingService.SendMessageAsync(Subject.ForTour(id), User.GetUserId(), dto.Text);
         return NoContent();
     }
 
@@ -42,13 +42,13 @@ public sealed class ChatMessagingController : ControllerBase
         Guid id, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         return await _messagingQueries.GetMessagesAsync(
-            new Subject(SubjectKind.Challenge, id), User.GetUserId(), page, pageSize);
+            Subject.ForChallenge(id), User.GetUserId(), page, pageSize);
     }
 
     [HttpPost("challenges/{id:guid}/messages")]
     public async Task<ActionResult> SendChallengeMessage(Guid id, SendMessageDto dto)
     {
-        await _messagingService.SendMessageAsync(new Subject(SubjectKind.Challenge, id), User.GetUserId(), dto.Text);
+        await _messagingService.SendMessageAsync(Subject.ForChallenge(id), User.GetUserId(), dto.Text);
         return NoContent();
     }
 
@@ -57,14 +57,14 @@ public sealed class ChatMessagingController : ControllerBase
         Guid firstUserId, Guid secondUserId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         return await _messagingQueries.GetMessagesAsync(
-            new Subject(SubjectKind.Pair, firstUserId, secondUserId), User.GetUserId(), page, pageSize);
+            Subject.ForPair(firstUserId, secondUserId), User.GetUserId(), page, pageSize);
     }
 
     [HttpPost("users/{firstUserId:guid}/{secondUserId:guid}/messages")]
     public async Task<ActionResult> SendPairMessage(Guid firstUserId, Guid secondUserId, SendMessageDto dto)
     {
         await _messagingService.SendMessageAsync(
-            new Subject(SubjectKind.Pair, firstUserId, secondUserId), User.GetUserId(), dto.Text);
+            Subject.ForPair(firstUserId, secondUserId), User.GetUserId(), dto.Text);
         return NoContent();
     }
 }

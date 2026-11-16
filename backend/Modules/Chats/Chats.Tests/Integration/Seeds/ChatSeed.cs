@@ -14,11 +14,11 @@ internal static class ChatSeed
     static ChatSeed()
     {
         TourChatWithTwoMessages = new Chat(
-            new Subject(SubjectKind.Tour, Guid.Parse("10000000-0000-0000-0000-000000000001")));
+            Subject.ForTour(Guid.Parse("10000000-0000-0000-0000-000000000001")));
         OtherTourChatWithOneMessage = new Chat(
-            new Subject(SubjectKind.Tour, Guid.Parse("10000000-0000-0000-0000-000000000002")));
+            Subject.ForTour(Guid.Parse("10000000-0000-0000-0000-000000000002")));
         ConversationOfExplorerAndSecondExplorer = new Chat(
-            new Subject(SubjectKind.Pair, WellKnownUsers.Explorer, WellKnownUsers.SecondExplorer));
+            Subject.ForPair(WellKnownUsers.Explorer, WellKnownUsers.SecondExplorer));
 
         All = [TourChatWithTwoMessages, OtherTourChatWithOneMessage, ConversationOfExplorerAndSecondExplorer];
     }

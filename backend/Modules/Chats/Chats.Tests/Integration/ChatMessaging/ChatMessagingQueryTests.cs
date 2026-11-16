@@ -45,6 +45,19 @@ public class ChatMessagingQueryTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Member_of_a_pair_reads_their_conversation()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.SecondExplorer, "explorer");
+
+        var response = await client.GetAsync(
+            $"/api/chat/users/{WellKnownUsers.SecondExplorer}/{WellKnownUsers.Explorer}/messages");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<PageResult<MessageDto>>(JsonOptions);
+        body!.Items.Select(message => message.Id).Should().Contain(MessageSeed.ExplorerGreetsSecondExplorer.Id);
+    }
+
+    [Fact]
     public async Task User_outside_the_pair_cannot_read_their_conversation()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.ThirdExplorer, "explorer");
