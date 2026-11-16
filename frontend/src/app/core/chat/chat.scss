@@ -3,3 +3,11 @@
   margin-inline: auto;
   max-width: 48rem;
 }
+
+// Each muted user is a name with its Unmute button at the end of the row.
+.muted-user {
+  align-items: center;
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+}
