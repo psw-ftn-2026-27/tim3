@@ -1,6 +1,6 @@
 import { httpResource } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
-import { FormField, form, min, required } from '@angular/forms/signals';
+import { FormField, form, min, required, validate } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { TourDto, TransportMode } from '../../api/exploration-api-types';
@@ -28,18 +28,57 @@ export class MyTours {
     min(path.minutes, 1, { message: 'Minutes must be at least 1.' });
   });
 
+  protected readonly publishTourId = signal<string | null>(null);
+
+  private readonly publishModel = signal({
+    price: '' as '' | 'Free' | 'Paid',
+    amount: null as number | null,
+  });
+
+  protected readonly publishForm = form(this.publishModel, (path) => {
+    required(path.price);
+    required(path.amount, {
+      message: 'Amount is required.',
+      when: ({ valueOf }) => valueOf(path.price) === 'Paid',
+    });
+    validate(path.amount, ({ value, valueOf }) => {
+      const amount = value();
+      return valueOf(path.price) !== 'Paid' || amount === null || amount > 0
+        ? null
+        : { kind: 'positive', message: 'Amount must be greater than zero.' };
+    });
+  });
+
   protected select(tourId: string): void {
     this.error.set(null);
+    this.publishTourId.set(null);
     this.selectedTourId.set(tourId);
     this.form().reset({ transport: 'Walking', minutes: 30 });
   }
 
-  protected async publish(tourId: string): Promise<void> {
+  protected selectForPublish(tourId: string): void {
+    this.error.set(null);
+    this.selectedTourId.set(null);
+    this.publishTourId.set(tourId);
+    this.publishForm().reset({ price: '', amount: null });
+  }
+
+  protected async publish(event: Event): Promise<void> {
+    event.preventDefault();
+    const tourId = this.publishTourId();
+    if (tourId === null || !this.publishForm().valid()) {
+      return;
+    }
+    const isFree = this.publishForm.price().value() === 'Free';
     this.pending.set(true);
     this.error.set(null);
     try {
-      await this.tourAuthoring.publish(tourId);
+      await this.tourAuthoring.publish(tourId, {
+        isFree,
+        amount: isFree ? null : this.publishForm.amount().value(),
+      });
       this.tours.reload();
+      this.publishTourId.set(null);
     } catch (failure) {
       this.error.set(serverMessage(failure, 'Could not publish the tour.'));
     } finally {

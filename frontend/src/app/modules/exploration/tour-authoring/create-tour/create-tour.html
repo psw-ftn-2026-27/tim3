@@ -36,6 +36,30 @@
       <input id="tags" type="text" [formField]="form.tags" />
     </div>
 
+    <fieldset class="group-size">
+      <legend>Recommended group size</legend>
+
+      <div class="field">
+        <label for="group-size-from">From</label>
+        <input id="group-size-from" type="number" [formField]="form.groupSizeFrom" />
+        @if (form.groupSizeFrom().touched()) {
+          @for (message of form.groupSizeFrom().errors(); track $index) {
+            <p class="error">{{ message.message }}</p>
+          }
+        }
+      </div>
+
+      <div class="field">
+        <label for="group-size-to">To</label>
+        <input id="group-size-to" type="number" [formField]="form.groupSizeTo" />
+        @if (form.groupSizeTo().touched()) {
+          @for (message of form.groupSizeTo().errors(); track $index) {
+            <p class="error">{{ message.message }}</p>
+          }
+        }
+      </div>
+    </fieldset>
+
     @if (error()) {
       <p class="error">{{ error() }}</p>
     }

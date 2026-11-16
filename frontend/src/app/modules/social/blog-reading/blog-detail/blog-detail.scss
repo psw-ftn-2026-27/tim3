@@ -12,6 +12,11 @@
   gap: 0.5rem;
 }
 
+.votes {
+  display: flex;
+  gap: var(--space-3);
+}
+
 .blog-image {
   border-radius: var(--radius);
   height: auto;

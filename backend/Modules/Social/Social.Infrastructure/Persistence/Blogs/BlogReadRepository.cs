@@ -14,14 +14,14 @@ internal sealed class BlogReadRepository : IBlogReadRepository
         _dbContext = dbContext;
     }
 
-    public Task<BlogDto?> GetByIdAsync(Guid id)
+    public Task<BlogDto?> GetByIdAsync(Guid id, Guid currentUserId)
     {
-        return ProjectToDtos(_dbContext.Blogs.Where(blog => blog.Id == id)).FirstOrDefaultAsync();
+        return ProjectToDtos(_dbContext.Blogs.Where(blog => blog.Id == id), currentUserId).FirstOrDefaultAsync();
     }
 
     public Task<List<BlogDto>> GetByAuthorAsync(Guid authorId)
     {
-        return ProjectToDtos(_dbContext.Blogs.Where(blog => blog.AuthorId == authorId)).ToListAsync();
+        return ProjectToDtos(_dbContext.Blogs.Where(blog => blog.AuthorId == authorId), Guid.Empty).ToListAsync();
     }
 
     public async Task<PageResult<BlogDto>> GetPublishedAsync(int page, int pageSize)
@@ -31,7 +31,7 @@ internal sealed class BlogReadRepository : IBlogReadRepository
             .OrderByDescending(blog => blog.CreatedAt);
 
         var totalCount = await published.CountAsync();
-        var items = await ProjectToDtos(published)
+        var items = await ProjectToDtos(published, Guid.Empty)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -39,7 +39,7 @@ internal sealed class BlogReadRepository : IBlogReadRepository
         return new PageResult<BlogDto>(items, totalCount);
     }
 
-    private static IQueryable<BlogDto> ProjectToDtos(IQueryable<Blog> blogs)
+    private static IQueryable<BlogDto> ProjectToDtos(IQueryable<Blog> blogs, Guid currentUserId)
     {
         return blogs
             .Select(blog => new BlogDto(
@@ -53,6 +53,10 @@ internal sealed class BlogReadRepository : IBlogReadRepository
                 blog.Status,
                 blog.Comments
                     .Select(comment => new CommentDto(comment.Id, comment.UserId, comment.Text, comment.CreatedAt))
-                    .ToList()));
+                    .ToList(),
+                blog.Votes
+                    .Where(vote => vote.UserId == currentUserId)
+                    .Select(vote => (VoteType?)vote.VoteType)
+                    .FirstOrDefault()));
     }
 }

@@ -28,6 +28,27 @@
             }
           </div>
         }
+
+        @if (blog.status === 'Published') {
+          <div class="votes">
+            <button
+              class="button"
+              type="button"
+              [class.button--primary]="blog.currentUserVote === 'Up'"
+              (click)="vote('Up')"
+            >
+              Upvote
+            </button>
+            <button
+              class="button"
+              type="button"
+              [class.button--primary]="blog.currentUserVote === 'Down'"
+              (click)="vote('Down')"
+            >
+              Downvote
+            </button>
+          </div>
+        }
       </section>
 
       <app-blog-comments
