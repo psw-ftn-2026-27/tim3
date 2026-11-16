@@ -1,0 +1,113 @@
+<div class="stack">
+  <p><a class="button" routerLink="/social/clubs">Back to clubs</a></p>
+
+  @if (club.isLoading()) {
+    <p>Loading club...</p>
+  } @else if (club.error()) {
+    <p class="error">Could not load the club. Log in and try again.</p>
+  } @else {
+    @if (club.value(); as details) {
+      <section class="card stack">
+        <h1>{{ details.name }}</h1>
+
+        <p>{{ details.description }}</p>
+
+        @if (details.images.length) {
+          <div class="images">
+            @for (image of details.images; track $index) {
+              <img class="thumbnail" [src]="image" alt="Image of club {{ details.name }}" />
+            }
+          </div>
+        }
+
+        @switch (details.membership) {
+          @case ('Member') {
+            <p class="meta">You are a member of this club.</p>
+          }
+          @case ('Pending') {
+            <p class="meta">Your join request is pending.</p>
+            @if (withdrawError()) {
+              <p class="error">{{ withdrawError() }}</p>
+            }
+            <div class="actions">
+              <button
+                class="button"
+                type="button"
+                [disabled]="pending()"
+                (click)="withdrawRequest()"
+              >
+                Withdraw request
+              </button>
+            </div>
+          }
+          @case ('None') {
+            @if (isExplorer()) {
+              @if (requestError()) {
+                <p class="error">{{ requestError() }}</p>
+              }
+              <div class="actions">
+                <button
+                  class="button button--primary"
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="requestToJoin()"
+                >
+                  Request to join
+                </button>
+              </div>
+            }
+          }
+        }
+      </section>
+
+      <section class="card stack">
+        <h2>Members</h2>
+        <ul class="users">
+          @for (member of details.members; track member.userId) {
+            <li>{{ member.displayName }}</li>
+          } @empty {
+            <li class="meta">The club has no members yet.</li>
+          }
+        </ul>
+      </section>
+
+      @if (isOwner()) {
+        <section class="card stack">
+          <h2>Join requests</h2>
+
+          @if (resolveError()) {
+            <p class="error">{{ resolveError() }}</p>
+          }
+
+          <ul class="users">
+            @for (requester of details.pendingRequests; track requester.userId) {
+              <li class="request">
+                <span>{{ requester.displayName }}</span>
+                <div class="actions">
+                  <button
+                    class="button button--primary"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="accept(requester.userId)"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="reject(requester.userId)"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </li>
+            } @empty {
+              <li class="meta">There are no pending join requests.</li>
+            }
+          </ul>
+        </section>
+      }
+    }
+  }
+</div>

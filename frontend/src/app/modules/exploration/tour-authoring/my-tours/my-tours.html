@@ -1,7 +1,12 @@
 <div class="stack">
-  <h1>My tours</h1>
+  <div class="page-head">
+    <h1>My tours</h1>
 
-  <p><a routerLink="/exploration/create">Create tour</a></p>
+    <div class="page-actions">
+      <a class="button" routerLink="/exploration">All tours</a>
+      <a class="button button--primary" routerLink="/exploration/create">Create tour</a>
+    </div>
+  </div>
 
   @if (error()) {
     <p class="error">{{ error() }}</p>
@@ -40,7 +45,7 @@
               }
             </td>
             <td>
-              {{ tour.status }}
+              <span class="badge">{{ tour.status }}</span>
               @if (tour.archivedAt) {
                 <br />
                 <span class="meta">{{ archivedAt(tour.archivedAt) }}</span>

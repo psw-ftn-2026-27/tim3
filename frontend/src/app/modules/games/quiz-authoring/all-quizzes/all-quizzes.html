@@ -1,7 +1,12 @@
 <div class="stack">
-  <h1>All quizzes</h1>
+  <div class="page-head">
+    <h1>All quizzes</h1>
 
-  <p><a routerLink="/games/quizzes/create">New quiz</a></p>
+    <div class="page-actions">
+      <a class="button" routerLink="/games">Games</a>
+      <a class="button button--primary" routerLink="/games/quizzes/create">New quiz</a>
+    </div>
+  </div>
 
   @if (quizzes.isLoading()) {
     <p>Loading quizzes...</p>
@@ -20,8 +25,12 @@
       <tbody>
         @for (quiz of quizzes.value()?.items ?? []; track quiz.id) {
           <tr>
-            <td><a [routerLink]="['/games/quizzes', quiz.id]">{{ quiz.title }}</a></td>
-            <td>{{ quiz.status }}</td>
+            <td>
+              <a [routerLink]="['/games/quizzes', quiz.id]">{{ quiz.title }}</a>
+            </td>
+            <td>
+              <span class="badge">{{ quiz.status }}</span>
+            </td>
             <td>{{ quiz.experiencePoints }}</td>
             <td>{{ quiz.questions.length }}</td>
           </tr>

@@ -7,6 +7,7 @@ public sealed class Quiz : AggregateRoot
 {
     public const int MinExperiencePoints = 1;
     public const int MaxExperiencePoints = 5000;
+    public const int MinQuestionsToPublish = 3;
 
     private readonly List<Question> _questions = [];
 
@@ -63,6 +64,52 @@ public sealed class Quiz : AggregateRoot
     {
         EnsureDraft();
         _questions.Remove(GetQuestion(questionId));
+    }
+
+    public void Publish()
+    {
+        if (Status != QuizStatus.Draft && Status != QuizStatus.Retired)
+        {
+            throw new DomainException("Only a draft or retired quiz can be published.");
+        }
+        if (_questions.Count < MinQuestionsToPublish)
+        {
+            throw new DomainException($"A quiz requires at least {MinQuestionsToPublish} questions to be published.");
+        }
+        if (string.IsNullOrWhiteSpace(Description))
+        {
+            throw new DomainException("A quiz requires instructions to be published.");
+        }
+
+        Status = QuizStatus.Published;
+    }
+
+    public void Retire()
+    {
+        if (Status != QuizStatus.Published)
+        {
+            throw new DomainException("Only a published quiz can be retired.");
+        }
+
+        Status = QuizStatus.Retired;
+    }
+
+    public void Archive()
+    {
+        if (Status != QuizStatus.Retired)
+        {
+            throw new DomainException("Only a retired quiz can be archived.");
+        }
+
+        Status = QuizStatus.Archived;
+    }
+
+    public void EnsureCanBeDeleted()
+    {
+        if (Status != QuizStatus.Draft && Status != QuizStatus.Archived)
+        {
+            throw new DomainException("Only a draft or archived quiz can be deleted.");
+        }
     }
 
     private Question GetQuestion(Guid questionId)

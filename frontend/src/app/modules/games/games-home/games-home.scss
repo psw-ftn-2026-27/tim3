@@ -1,20 +1,89 @@
+// The Games title shades from clay through rose to violet.
+h1 {
+  -webkit-background-clip: text;
+  background: var(--games-gradient);
+  background-clip: text;
+  color: transparent;
+  width: fit-content;
+}
+
+// The tabs are one glass pill; the open tab is a brighter pill inside it.
 .tabs {
-  border-bottom: 1px solid var(--color-border);
+  backdrop-filter: var(--glass-blur);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow), var(--highlight);
   display: flex;
-  gap: var(--space-2);
+  gap: var(--space-1);
+  padding: var(--space-1);
+  width: fit-content;
 }
 
 .tab {
   background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
   color: var(--color-text-muted);
   cursor: pointer;
   font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
   padding: var(--space-2) var(--space-4);
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+
+.tab:hover {
+  color: var(--color-text);
 }
 
 .tab--active {
-  border-bottom-color: var(--color-accent);
-  color: var(--color-text);
+  background: var(--color-games);
+  border-color: var(--glass-border);
+  box-shadow: var(--highlight);
+  color: var(--color-games-ink);
+}
+
+// Tiles glow apricot under the pointer.
+.tile {
+  --card-glow: var(--glow-games);
+  --card-shadow: var(--shadow-games);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-5);
+}
+
+.tile h2 {
+  margin: 0;
+}
+
+// The empty state: a small dot in apricot, lilac and mint rings, then the message.
+.empty {
+  align-items: center;
+  background:
+    radial-gradient(30rem 16rem at 50% 0%, var(--color-games), transparent 70%), var(--glass);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 4rem var(--space-6);
+  text-align: center;
+}
+
+.rings {
+  background: var(--games-gradient);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 7px var(--color-games),
+    0 0 0 14px var(--color-social),
+    0 0 0 21px var(--color-exploration);
+  height: 0.875rem;
+  margin-bottom: var(--space-5);
+  width: 0.875rem;
+}
+
+.empty h2 {
+  margin: 0;
 }

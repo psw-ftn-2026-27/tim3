@@ -1,30 +1,42 @@
+// The nav is a frosted glass bar over the page background.
 header {
-  background: var(--color-surface);
-  border-bottom: var(--border);
-  margin-bottom: var(--space-5);
+  backdrop-filter: var(--glass-blur);
+  background: var(--glass);
+  border-bottom: 1px solid var(--glass-border);
+  margin-bottom: calc(var(--space-6) * 1.75);
 }
 
 nav {
   align-items: center;
   display: flex;
-  gap: var(--space-4);
-  min-height: 3.75rem;
-  padding-block: var(--space-3);
+  gap: var(--space-6);
+  min-height: 3.5rem;
+}
+
+.brand {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 nav a {
-  color: var(--color-text);
+  color: var(--color-text-muted);
   font-size: var(--font-size-sm);
-  font-weight: 600;
   text-decoration: none;
 }
 
-// The link of the open section is bold.
-nav a.active {
-  font-weight: 700;
+nav a:hover {
+  color: var(--color-text);
 }
 
-// Focus is shown by the shared line below, so the outline ring is not needed.
+// The link of the open section is ink and semibold.
+nav a.active {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+// Focus is shown by the shared pill below, so the outline ring is not needed.
 nav a:focus-visible {
   outline: none;
 }
@@ -32,32 +44,55 @@ nav a:focus-visible {
 .nav-links {
   align-items: center;
   display: flex;
-  gap: var(--space-4);
+  flex: 1;
+  gap: var(--space-1);
   position: relative;
 }
 
-// One line for all links. app.ts sets its left and width from the link under the mouse.
-// It only grows when it appears, and slides (left and width) when it moves between links.
-.nav-indicator {
-  background: var(--color-border);
-  bottom: calc(-1 * var(--space-1));
-  height: 3px;
-  pointer-events: none;
-  position: absolute;
-  transition: width 300ms ease-out;
+.nav-links a {
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-3);
+  position: relative;
 }
 
-.nav-indicator.sliding {
+// One pill for all links. app.ts sets its left and width from the link under the mouse.
+// It grows from the centre of the first link, glides on a spring between links (sliding),
+// and shrinks back to the centre when the mouse leaves.
+.nav-indicator {
+  background: var(--glass-border);
+  border-radius: var(--radius-pill);
+  box-shadow:
+    0 4px 14px -6px var(--line-strong),
+    inset 0 1px 0 var(--color-surface);
+  height: 2rem;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: calc(50% - 1rem);
+  transform: scaleX(0);
   transition:
-    left 300ms ease-out,
-    width 300ms ease-out;
+    transform 320ms var(--ease-out),
+    opacity 280ms ease 40ms;
+}
+
+.nav-indicator.shown {
+  opacity: 1;
+  transform: none;
+  transition:
+    transform 320ms var(--ease-out),
+    opacity 160ms ease;
+}
+
+.nav-indicator.shown.sliding {
+  transition:
+    left 380ms var(--ease-out),
+    width 380ms var(--ease-out);
 }
 
 .nav-user {
   align-items: center;
   display: flex;
   gap: var(--space-4);
-  margin-left: auto;
 }
 
 .nav-user span {
@@ -65,34 +100,45 @@ nav a:focus-visible {
   font-size: var(--font-size-sm);
 }
 
-// Logout does not lift like other buttons; its background only fades.
+// A round glass button with a moon (light theme) or a sun (dark theme).
+.theme-toggle {
+  align-items: center;
+  background: var(--glass-button);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--color-text);
+  cursor: pointer;
+  display: inline-flex;
+  height: 2rem;
+  justify-content: center;
+  padding: 0;
+  transition: border-color 200ms ease;
+  width: 2rem;
+}
+
+.theme-toggle:hover {
+  border-color: var(--line-strong);
+}
+
+.theme-toggle svg {
+  fill: none;
+  height: 1rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 1rem;
+}
+
 .nav-user .button {
-  font-size: var(--font-size-sm);
-  padding: var(--space-1) var(--space-3);
-  transition:
-    background-color 200ms ease-out,
-    color 200ms ease-out;
-}
-
-.nav-user .button:hover,
-.nav-user .button:focus-visible {
-  background: var(--color-bg);
-  box-shadow: none;
-  transform: none;
-}
-
-// Keyboard focus fills the button with Midnight Violet, because the hover change alone is too faint.
-.nav-user .button:focus-visible {
-  background: var(--color-border);
-  color: var(--color-surface);
+  padding: var(--space-1) var(--space-4);
 }
 
 // The strip under the nav is the only element whose colour depends on the module.
 // It is hidden until the nav link of its module is active (routerLinkActive adds "active").
 .module-strip {
-  border-top: var(--border);
   display: none;
-  padding-block: var(--space-3);
+  padding-block: var(--space-2);
 }
 
 header:has(nav a.active[href^='/exploration']) .module-strip.exploration,
@@ -103,31 +149,83 @@ header:has(nav a.active[href^='/payment']) .module-strip.payment {
 }
 
 .module-strip.exploration {
+  --strip-ink: var(--color-exploration-ink);
   background: var(--color-exploration);
 }
 
 .module-strip.games {
+  --strip-ink: var(--color-games-ink);
   background: var(--color-games);
 }
 
 .module-strip.social {
+  --strip-ink: var(--color-social-ink);
   background: var(--color-social);
 }
 
 .module-strip.payment {
+  --strip-ink: var(--color-payment-ink);
   background: var(--color-payment);
 }
 
+// The label starts with a small dot in the module's ink.
 .module-strip-label {
-  background: var(--color-surface);
-  border: var(--border);
-  border-radius: var(--radius);
-  box-shadow: 2px 2px 0 var(--color-border);
-  color: var(--color-text);
-  display: inline-block;
+  align-items: center;
+  display: inline-flex;
   font-size: var(--font-size-sm);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  padding: var(--space-1) var(--space-3);
-  text-transform: uppercase;
+  font-weight: 600;
+  gap: var(--space-2);
+}
+
+.module-strip-label::before {
+  background: var(--strip-ink);
+  border-radius: 50%;
+  content: '';
+  height: 0.5rem;
+  width: 0.5rem;
+}
+
+// On a phone the brand and the user share the first row, and the links get a row of their
+// own that scrolls sideways when it does not fit.
+@media (max-width: 40rem) {
+  nav {
+    flex-wrap: wrap;
+    gap: 0 var(--space-4);
+  }
+
+  .brand {
+    margin-right: auto;
+  }
+
+  .nav-links {
+    flex-basis: 100%;
+    order: 1;
+    overflow-x: auto;
+    padding-block: var(--space-2);
+    scrollbar-width: none;
+  }
+
+  .nav-links a {
+    white-space: nowrap;
+  }
+
+  // The user part takes the rest of the first row instead of wrapping below the brand;
+  // a long email is cut with an ellipsis.
+  .nav-user {
+    flex: 1 1 0;
+    gap: var(--space-2);
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  .nav-user > * {
+    flex-shrink: 0;
+  }
+
+  .nav-user span {
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }

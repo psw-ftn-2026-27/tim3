@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { TourDto } from '../../api/exploration-api-types';
 
 @Component({
@@ -8,4 +8,10 @@ import { TourDto } from '../../api/exploration-api-types';
 })
 export class TourCard {
   readonly tour = input.required<TourDto>();
+
+  // How many of the three difficulty bars are filled.
+  protected readonly level = computed(() => {
+    const levels = { Easy: 1, Moderate: 2, Hard: 3 };
+    return levels[this.tour().difficulty];
+  });
 }
