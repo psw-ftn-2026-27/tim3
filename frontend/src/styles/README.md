@@ -295,6 +295,14 @@ Vrh stranice: naslov levo, akcije cele stranice desno, a na uskom ekranu akcije 
 </div>
 ```
 
+### `.meta`
+
+Sitan sivi tekst sa dodatnim podacima o stavci: datum, broj komentara, ocena, veličina grupe. Stoji uz naslov ili ispod njega i ne nosi glavni sadržaj. Prazan spisak nije `.meta`, nego `.empty`, jer kaže i šta korisnik može da uradi (`blog-card.html`):
+
+```html
+<p class="meta">{{ published() }} · {{ commentCount() }} · {{ score() }}</p>
+```
+
 ### Link u tekstu
 
 Link unutar rečenice je podvučen, pa korisnik vidi da može da klikne. Klasa nije potrebna: dovoljno je da `<a>` stoji u `<p>`. Link koji stoji sam (navigacija, naslov kartice) i link kao dugme (`class="button"`) nisu podvučeni (`login.html`):
