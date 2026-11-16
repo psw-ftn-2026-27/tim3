@@ -14,6 +14,7 @@ public class SharedKernelTests : BaseArchitectureTests
             .Append("Identity")
             .Append("Media")
             .Append("Maps")
+            .Append("Chats")
             .ToArray();
         AssertNoDependency(sharedProject, moduleAssemblies);
     }

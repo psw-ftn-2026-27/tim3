@@ -67,6 +67,12 @@
                   }
                 }
               }
+              <!-- A user cannot message themselves, so their own row has no link. -->
+              @if (currentUserId() && user.userId !== currentUserId()) {
+                <a class="button" [routerLink]="['/chat/users', currentUserId(), user.userId]">
+                  Send message
+                </a>
+              }
             </td>
           </tr>
           @if (rowError()?.userId === user.userId) {

@@ -1,7 +1,8 @@
 import { httpResource } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormField, form, required } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
+import { Auth } from '../../../../core/auth/auth';
 import { PageResult } from '../../../../shared/api/page-result';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { FoundUserDto } from '../../api/social-api-types';
@@ -16,7 +17,10 @@ const PAGE_SIZE = 20;
   templateUrl: './user-search.html',
 })
 export class UserSearch {
+  private readonly auth = inject(Auth);
   private readonly followRequesting = inject(FollowRequesting);
+
+  protected readonly currentUserId = computed(() => this.auth.user()?.id ?? null);
 
   protected readonly form = form(signal({ text: '' }), (path) => {
     required(path.text, { message: 'Enter a username.' });
