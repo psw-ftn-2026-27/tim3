@@ -2,8 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Payment.Application;
 using Payment.Domain.Products;
+using Payment.Domain.ShoppingCarts;
+using Payment.Domain.TourPurchases;
 using Payment.Domain.Wallets;
 using Payment.Infrastructure.Persistence.Products;
+using Payment.Infrastructure.Persistence.ShoppingCarts;
+using Payment.Infrastructure.Persistence.TourPurchases;
 using Payment.Infrastructure.Persistence.Wallets;
 using Shared.Domain.Exceptions;
 
@@ -17,12 +21,18 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
 
     public DbSet<Wallet> Wallets => Set<Wallet>();
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<ShoppingCart> ShoppingCarts => Set<ShoppingCart>();
+    public DbSet<TourPurchaseToken> TourPurchaseTokens => Set<TourPurchaseToken>();
 
     async Task<int> IUnitOfWork.SaveChangesAsync(CancellationToken cancellationToken)
     {
         try
         {
             return await SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException exception) when (exception.Entries.Any(entry => entry.Entity is ShoppingCart or OrderItem))
+        {
+            throw new DomainException("Korpa je izmenjena. Osveži je i pokušaj ponovo.");
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -32,6 +42,33 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
         {
             // A concurrent first deposit created the recipient's wallet after our existence check.
             throw new DomainException(ConcurrentWalletChangeMessage);
+        }
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            SchemaName: "payment",
+            ConstraintName: "IX_ShoppingCarts_UserId"
+        })
+        {
+            throw new DomainException("Korpa je izmenjena. Osveži je i pokušaj ponovo.");
+        }
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            SchemaName: "payment",
+            ConstraintName: "PK_OrderItems"
+        })
+        {
+            throw new DomainException("Tura je već u korpi.");
+        }
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            SchemaName: "payment",
+            ConstraintName: "IX_TourPurchaseTokens_BuyerId_TourId"
+        })
+        {
+            throw new DomainException("Već poseduješ ovu turu.");
         }
         catch (DbUpdateException exception) when (IsDuplicateProductCreation(exception))
         {
@@ -77,5 +114,7 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
         builder.HasDefaultSchema("payment");
         builder.ConfigureWallets();
         builder.ConfigureProducts();
+        builder.ConfigureShoppingCarts();
+        builder.ConfigureTourPurchaseTokens();
     }
 }

@@ -36,7 +36,7 @@ internal sealed class WalletReadRepository : IWalletReadRepository
                         .Skip(offset)
                         .Take(pageSize)
                         .Select(transaction => new WalletTransactionDto(
-                            transaction.Id, transaction.Amount, transaction.OccurredAt, transaction.Kind))
+                            transaction.Id, transaction.Amount, transaction.OccurredAt, transaction.Kind, transaction.TourId))
                         .ToList(),
                     wallet.Transactions.Count)))
             .SingleOrDefaultAsync();

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Payment.Application.Products;
+using Payment.Application.ShoppingCart;
 
 namespace Payment.Infrastructure.Persistence.Products;
 
@@ -18,5 +19,13 @@ internal sealed class ProductReadRepository : IProductReadRepository
             .Where(product => tourIds.Contains(product.TourId))
             .Select(product => new { product.TourId, product.PriceInEc })
             .ToDictionaryAsync(product => product.TourId, product => product.PriceInEc);
+    }
+
+    public Task<ProductForCartDto?> GetProductForCartAsync(Guid tourId)
+    {
+        return _dbContext.Products
+            .Where(product => product.TourId == tourId)
+            .Select(product => new ProductForCartDto(product.TourId, product.Name, product.PriceInEc))
+            .SingleOrDefaultAsync();
     }
 }
