@@ -1,5 +1,5 @@
 <article class="card stack">
-  <h3>{{ club().name }}</h3>
+  <h3><a [routerLink]="['/social/clubs', club().id]">{{ club().name }}</a></h3>
 
   <p>{{ club().description }}</p>
 
