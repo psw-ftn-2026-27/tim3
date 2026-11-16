@@ -18,6 +18,8 @@ namespace Social.Infrastructure.Persistence.Migrations
                 type: "timestamp with time zone",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+
+            migrationBuilder.Sql(@"UPDATE social.""Comments"" SET ""LastModifiedAt"" = ""CreatedAt"";");
         }
 
         /// <inheritdoc />

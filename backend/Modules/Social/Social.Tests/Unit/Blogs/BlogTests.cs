@@ -220,6 +220,19 @@ public class BlogTests
     }
 
     [Fact]
+    public void Editing_a_comment_exactly_on_the_window_boundary_is_allowed()
+    {
+        var blog = CreatePublishedBlog();
+        blog.AddComment(WellKnownUsers.Administrator, "Odlična tura!");
+        var comment = blog.Comments.Single();
+        var editedAt = comment.CreatedAt.AddMinutes(15);
+
+        blog.UpdateComment(comment.Id, WellKnownUsers.Administrator, "Izmena tačno na granici.", editedAt);
+
+        comment.LastModifiedAt.Should().Be(editedAt);
+    }
+
+    [Fact]
     public void User_cannot_edit_another_users_comment()
     {
         var blog = CreatePublishedBlog();
