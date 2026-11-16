@@ -11,6 +11,10 @@ public sealed class Club : AggregateRoot
     public string Name { get; private set; }
     public string Description { get; private set; }
     public List<string> Images { get; private set; }
+    private readonly List<ClubMember> _members = [];
+    public IReadOnlyList<ClubMember> Members => _members;
+    private readonly List<JoinRequest> _joinRequests = [];
+    public IReadOnlyList<JoinRequest> JoinRequests => _joinRequests;
 
     private Club()
     {
@@ -28,6 +32,9 @@ public sealed class Club : AggregateRoot
         Name = name;
         Description = description;
         Images = images;
+
+        // P7: the owner is a member from the founding.
+        _members.Add(new ClubMember(ownerId));
     }
 
     public void Update(Guid userId, string name, string description, List<string> images)
@@ -43,6 +50,55 @@ public sealed class Club : AggregateRoot
     public void EnsureCanBeDeletedBy(Guid userId)
     {
         EnsureOwnedBy(userId);
+    }
+
+    public void RequestToJoin(Guid userId)
+    {
+        if (_members.Any(member => member.UserId == userId))
+        {
+            throw new DomainException("You are already a member of this club.");
+        }
+        if (_joinRequests.Any(request => request.UserId == userId))
+        {
+            throw new DomainException("Your request to join this club is already pending.");
+        }
+
+        _joinRequests.Add(new JoinRequest(userId));
+    }
+
+    // P3: a user can withdraw only the request they sent, so the request is found by their ID.
+    public void WithdrawRequest(Guid userId)
+    {
+        var request = GetRequestFrom(userId);
+
+        _joinRequests.Remove(request);
+    }
+
+    public void AcceptRequest(Guid userId, Guid requesterId)
+    {
+        EnsureOwnedBy(userId);
+        var request = GetRequestFrom(requesterId);
+
+        _joinRequests.Remove(request);
+        _members.Add(new ClubMember(requesterId));
+    }
+
+    public void RejectRequest(Guid userId, Guid requesterId)
+    {
+        EnsureOwnedBy(userId);
+        var request = GetRequestFrom(requesterId);
+
+        _joinRequests.Remove(request);
+    }
+
+    private JoinRequest GetRequestFrom(Guid userId)
+    {
+        var request = _joinRequests.FirstOrDefault(request => request.UserId == userId);
+        if (request is null)
+        {
+            throw new NotFoundException("This join request no longer exists.");
+        }
+        return request;
     }
 
     private void EnsureOwnedBy(Guid userId)
