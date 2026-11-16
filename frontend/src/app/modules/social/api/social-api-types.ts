@@ -9,6 +9,7 @@ export interface CommentDto {
   createdAt: string;
   authorDisplayName: string;
   lastModifiedAt: string;
+  editableUntil: string;
 }
 
 export interface BlogDto {

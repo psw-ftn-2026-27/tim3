@@ -30,7 +30,7 @@
           @if (
             comment.userId === currentUserId() &&
             editingCommentId() !== comment.id &&
-            withinEditWindow(comment.createdAt)
+            withinEditWindow(comment)
           ) {
             <span class="comment-actions">
               <button class="button" type="button" (click)="startEdit(comment)">Edit</button>

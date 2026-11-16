@@ -52,7 +52,7 @@ internal sealed class BlogReadRepository : IBlogReadRepository
                 blog.Images,
                 blog.Status,
                 blog.Comments
-                    .Select(comment => new CommentDto(comment.Id, comment.UserId, comment.Text, comment.CreatedAt, "", comment.LastModifiedAt))
+                    .Select(comment => new CommentDto(comment.Id, comment.UserId, comment.Text, comment.CreatedAt, "", comment.LastModifiedAt, comment.CreatedAt.AddMinutes(Comment.EditWindow.TotalMinutes)))
                     .ToList(),
                 blog.Votes
                     .Where(vote => vote.UserId == currentUserId)
