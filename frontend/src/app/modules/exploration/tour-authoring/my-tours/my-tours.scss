@@ -11,3 +11,18 @@
 form.card {
   max-width: 24rem;
 }
+
+.price {
+  border: none;
+  display: flex;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+}
+
+.price legend {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+  padding: 0;
+}

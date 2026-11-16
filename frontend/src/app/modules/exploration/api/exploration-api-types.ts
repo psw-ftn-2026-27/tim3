@@ -9,6 +9,11 @@ export interface TransportTimeDto {
   minutes: number;
 }
 
+export interface GroupSizeDto {
+  from: number;
+  to: number;
+}
+
 export interface TourDto {
   id: string;
   authorId: string;
@@ -19,6 +24,7 @@ export interface TourDto {
   status: TourStatus;
   publishedAt: string | null;
   archivedAt: string | null;
+  recommendedGroupSize: GroupSizeDto | null;
   transportTimes: TransportTimeDto[];
 }
 
@@ -27,4 +33,10 @@ export interface CreateTourDto {
   description: string;
   difficulty: TourDifficulty;
   tags: string[];
+  recommendedGroupSize: GroupSizeDto | null;
+}
+
+export interface PublishTourDto {
+  isFree: boolean | null;
+  amount: number | null;
 }
