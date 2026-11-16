@@ -95,6 +95,18 @@ public class BlogReadingQueryTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task The_published_list_shows_each_blogs_total_score()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+
+        var blogs = await client.GetFromJsonAsync<PageResult<BlogDto>>("/api/social/blogs/published?pageSize=100", JsonOptions);
+
+        blogs!.Items.Should().ContainSingle(blog => blog.Id == BlogSeed.HighlyRatedViewpoint.Id).Which.Score.Should().BePositive();
+        blogs.Items.Should().ContainSingle(blog => blog.Id == BlogSeed.UnratedTrail.Id).Which.Score.Should().Be(0);
+        blogs.Items.Should().ContainSingle(blog => blog.Id == BlogSeed.PoorlyRatedDetour.Id).Which.Score.Should().BeNegative();
+    }
+
+    [Fact]
     public async Task Draft_blog_cannot_be_read()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");

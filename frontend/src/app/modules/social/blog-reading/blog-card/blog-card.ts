@@ -24,4 +24,10 @@ export class BlogCard {
     const count = this.blog().comments.length;
     return count === 1 ? '1 comment' : `${count} comments`;
   });
+
+  // Total score: sum of upvotes minus sum of downvotes, straight from the DTO.
+  protected readonly score = computed(() => {
+    const score = this.blog().score;
+    return Math.abs(score) === 1 ? `${score} point` : `${score} points`;
+  });
 }
