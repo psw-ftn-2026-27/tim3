@@ -28,3 +28,14 @@
   gap: var(--space-3);
   justify-content: space-between;
 }
+
+.search,
+.paging {
+  align-items: flex-end;
+  display: flex;
+  gap: var(--space-3);
+}
+
+.search .field {
+  flex: 1;
+}

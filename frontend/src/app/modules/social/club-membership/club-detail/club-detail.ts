@@ -1,13 +1,17 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
+import { FormField, form, required } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../../../../core/auth/auth';
+import { PageResult } from '../../../../shared/api/page-result';
 import { serverMessage } from '../../../../shared/util/server-message';
-import { ClubDetailsDto } from '../../api/social-api-types';
+import { ClubDetailsDto, ClubUserDto } from '../../api/social-api-types';
 import { ClubMembership } from '../club-membership';
 
+const PAGE_SIZE = 20;
+
 @Component({
-  imports: [RouterLink],
+  imports: [FormField, RouterLink],
   selector: 'app-club-detail',
   styleUrl: './club-detail.scss',
   templateUrl: './club-detail.html',
@@ -28,11 +32,34 @@ export class ClubDetail {
     () => this.club.value()?.ownerId === this.auth.user()?.id,
   );
 
+  // Only the owner sees the pending invitations, so nobody else sends this request.
+  protected readonly invitations = httpResource<ClubUserDto[]>(() =>
+    this.isOwner() ? `/api/social/clubs/${this.id()}/invitations` : undefined,
+  );
+
+  protected readonly form = form(signal({ text: '' }), (path) => {
+    required(path.text, { message: 'Enter a username.' });
+  });
+
+  protected readonly searchedText = signal<string | null>(null);
+  protected readonly page = signal(1);
+
+  protected readonly invitees = httpResource<PageResult<ClubUserDto>>(() => {
+    const text = this.searchedText();
+    if (text === null) {
+      return undefined;
+    }
+    return `/api/social/clubs/invitees?text=${encodeURIComponent(text)}&page=${this.page()}&pageSize=${PAGE_SIZE}`;
+  });
+
   protected readonly pending = signal(false);
   // Each message is shown next to the part of the page whose command failed.
   protected readonly requestError = signal<string | null>(null);
   protected readonly withdrawError = signal<string | null>(null);
   protected readonly resolveError = signal<string | null>(null);
+  protected readonly removeError = signal<string | null>(null);
+  protected readonly invitationError = signal<string | null>(null);
+  protected readonly inviteError = signal<{ userId: string; message: string } | null>(null);
 
   protected async requestToJoin(): Promise<void> {
     this.clearErrors();
@@ -86,9 +113,80 @@ export class ClubDetail {
     }
   }
 
+  protected async removeMember(memberId: string): Promise<void> {
+    this.clearErrors();
+    this.pending.set(true);
+    try {
+      await this.clubMembership.removeMember(this.id(), memberId);
+      this.reload();
+    } catch (failure) {
+      this.removeError.set(serverMessage(failure, 'Could not remove the member.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected search(event: Event): void {
+    event.preventDefault();
+    this.clearErrors();
+    this.page.set(1);
+    this.searchedText.set(this.form.text().value());
+  }
+
+  protected hasNextPage(): boolean {
+    return this.page() * PAGE_SIZE < (this.invitees.value()?.totalCount ?? 0);
+  }
+
+  protected previousPage(): void {
+    this.clearErrors();
+    this.page.update((page) => page - 1);
+  }
+
+  protected nextPage(): void {
+    this.clearErrors();
+    this.page.update((page) => page + 1);
+  }
+
+  protected async invite(user: ClubUserDto): Promise<void> {
+    this.clearErrors();
+    this.pending.set(true);
+    try {
+      await this.clubMembership.invite(this.id(), user.userId);
+      this.reload();
+    } catch (failure) {
+      this.inviteError.set({
+        userId: user.userId,
+        message: `${user.displayName}: ${serverMessage(failure, 'Could not send the invitation.')}`,
+      });
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected async withdrawInvitation(inviteeId: string): Promise<void> {
+    this.clearErrors();
+    this.pending.set(true);
+    try {
+      await this.clubMembership.withdrawInvitation(this.id(), inviteeId);
+      this.reload();
+    } catch (failure) {
+      this.invitationError.set(serverMessage(failure, 'Could not withdraw the invitation.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  private reload(): void {
+    this.club.reload();
+    this.invitations.reload();
+  }
+
   private clearErrors(): void {
     this.requestError.set(null);
     this.withdrawError.set(null);
     this.resolveError.set(null);
+    this.removeError.set(null);
+    this.invitationError.set(null);
+    this.inviteError.set(null);
   }
 }

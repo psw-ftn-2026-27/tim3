@@ -7,6 +7,7 @@ import { BlogList } from './blog-reading/blog-list/blog-list';
 import { ClubList } from './club-management/club-list/club-list';
 import { CreateClub } from './club-management/create-club/create-club';
 import { ClubDetail } from './club-membership/club-detail/club-detail';
+import { MyInvitations } from './club-roster/my-invitations/my-invitations';
 import { Profile } from './follow-management/profile/profile';
 import { UserSearch } from './follow-requesting/user-search/user-search';
 
@@ -16,6 +17,8 @@ export const socialRoutes: Routes = [
   { path: 'create', component: CreateBlog },
   { path: 'clubs', component: ClubList },
   { path: 'clubs/create', component: CreateClub },
+  // Before 'clubs/:id', or "invitations" would be read as a club ID.
+  { path: 'clubs/invitations', component: MyInvitations },
   { path: 'clubs/:id', component: ClubDetail },
   { path: 'users', component: UserSearch },
   { path: 'profile', component: Profile },

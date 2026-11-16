@@ -1,0 +1,43 @@
+<div class="stack">
+  <p><a class="button" routerLink="/social/clubs">Back to clubs</a></p>
+
+  <h1>Club invitations</h1>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (invitations.isLoading()) {
+    <p>Loading invitations...</p>
+  } @else if (invitations.error()) {
+    <p class="error">Could not load the invitations. Log in and try again.</p>
+  } @else {
+    <ul class="invitations">
+      @for (invitation of invitations.value() ?? []; track invitation.clubId) {
+        <li class="invitation">
+          <a [routerLink]="['/social/clubs', invitation.clubId]">{{ invitation.clubName }}</a>
+          <div class="actions">
+            <button
+              class="button button--primary"
+              type="button"
+              [disabled]="pending()"
+              (click)="accept(invitation.clubId)"
+            >
+              Accept
+            </button>
+            <button
+              class="button"
+              type="button"
+              [disabled]="pending()"
+              (click)="decline(invitation.clubId)"
+            >
+              Decline
+            </button>
+          </div>
+        </li>
+      } @empty {
+        <li class="meta">You have no club invitations.</li>
+      }
+    </ul>
+  }
+</div>
