@@ -2,6 +2,7 @@ using Exploration.Application;
 using Exploration.Application.TourAuthoring;
 using Exploration.Application.TourBrowsing;
 using Exploration.Application.Tours;
+using Exploration.Contracts;
 using Exploration.Infrastructure.Persistence;
 using Exploration.Infrastructure.Persistence.Tours;
 using Microsoft.Extensions.Configuration;
@@ -25,6 +26,8 @@ public static class ExplorationModuleExtensions
         services.AddScoped<TourAuthoringService>();
         services.AddScoped<TourAuthoringQueries>();
         services.AddScoped<TourBrowsingQueries>();
+
+        services.AddScoped<IExplorationApi, ExplorationApi>();
 
         return services;
     }
