@@ -19,7 +19,7 @@ public sealed class BlogAuthoringQueries
 
     public async Task<BlogDto> GetOwnByIdAsync(Guid blogId, Guid authorId)
     {
-        var blog = await _blogReadRepository.GetByIdAsync(blogId);
+        var blog = await _blogReadRepository.GetByIdAsync(blogId, authorId);
         if (blog is null || blog.AuthorId != authorId)
         {
             throw new NotFoundException($"Blog {blogId} does not exist.");

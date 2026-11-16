@@ -54,6 +54,21 @@ public class BlogReadingQueryTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Each_reader_sees_their_own_vote_on_the_blog()
+    {
+        var voterClient = Factory.CreateClientFor(WellKnownUsers.SecondExplorer, "explorer");
+        var otherClient = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+
+        var asVoter = await voterClient.GetFromJsonAsync<BlogDto>(
+            $"/api/social/blogs/{BlogSeed.VotedCoastline.Id}", JsonOptions);
+        var asOther = await otherClient.GetFromJsonAsync<BlogDto>(
+            $"/api/social/blogs/{BlogSeed.VotedCoastline.Id}", JsonOptions);
+
+        asVoter!.CurrentUserVote.Should().Be(VoteType.Up);
+        asOther!.CurrentUserVote.Should().BeNull();
+    }
+
+    [Fact]
     public async Task Draft_blog_cannot_be_read()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
