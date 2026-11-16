@@ -111,6 +111,10 @@ construct means adding a lesson, so treat it as a platform decision.
 - State: `signal()` and `computed()`. `effect()` only when a signal must
   drive something outside the component tree, and it needs a reason. Page-scoped state, including its read resources, lives in the page.
   State that outlives a page lives in a service holding signals, `providedIn: 'root'`.
+- Timers: a page that must repeat something on its own (the chat reloading its messages,
+  a position check every 10 seconds) starts one `setInterval` in its constructor and clears
+  it with `inject(DestroyRef).onDestroy(...)`, so the timer stops when the user leaves the
+  page. Only pages hold timers; presentational components and services never do.
 - HTTP: `httpResource()` in the page for reads (it carries loading and error state as
   signals, and a fresh one is created on every visit); `HttpClient` with
   `firstValueFrom` in the group's service for writes. Functional interceptors

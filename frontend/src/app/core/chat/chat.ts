@@ -1,5 +1,5 @@
 import { HttpErrorResponse, httpResource } from '@angular/common/http';
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
 import { FormField, form, maxLength, required } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { MessageDto } from '../../shared/api/chats';
@@ -10,6 +10,7 @@ import { ChatMessaging } from './chat-messaging';
 import { MessageList } from './message-list/message-list';
 
 const PAGE_SIZE = 20;
+const REFRESH_INTERVAL_MS = 5000;
 
 // One page serves every chat. Exactly one route matches, so exactly one kind of input is set:
 // tourId, challengeId, or the two users of a conversation.
@@ -66,6 +67,17 @@ export class Chat {
     const failure = this.messages.error();
     return failure instanceof HttpErrorResponse && failure.status === 400;
   });
+
+  // The chat reloads its messages on its own every few seconds, so new messages from others
+  // appear without clicking Refresh. The timer stops when the user leaves the page.
+  constructor() {
+    const timer = setInterval(() => {
+      if (!this.accessDenied()) {
+        this.messages.reload();
+      }
+    }, REFRESH_INTERVAL_MS);
+    inject(DestroyRef).onDestroy(() => clearInterval(timer));
+  }
 
   protected readonly form = form(signal({ text: '' }), (path) => {
     required(path.text, { message: 'A message cannot be empty.' });
