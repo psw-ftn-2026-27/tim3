@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Auth } from './core/auth/auth';
+import { Consent } from './core/consent/consent';
 import { Theme } from './core/theme/theme';
 
 // Elements that light up under the pointer, and the cards among them that also tilt.
@@ -22,6 +23,7 @@ const TILTING = 'a.card, article.card';
 export class App {
   protected readonly auth = inject(Auth);
   protected readonly theme = inject(Theme);
+  protected readonly consent = inject(Consent);
 
   // Position and width of the shared pill behind the nav links, in pixels.
   protected readonly indicatorLeft = signal(0);

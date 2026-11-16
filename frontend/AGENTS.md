@@ -21,6 +21,7 @@ opt out of either).
 
 ```
 frontend/src/
+  environments/              build-time settings, see Conventions             [platform]
   styles.scss                @use of the four partials below, nothing else   [platform]
   styles/
     _tokens.scss             colours, spacing, radius, type as CSS custom properties
@@ -29,7 +30,8 @@ frontend/src/
     _components.scss         global classes: button, card, form field, table
   app/
     core/                    auth (state, interceptor, login, register), home,
-                             theme (light/dark toggle), app.routes.ts         [platform]
+                             theme (light/dark toggle), consent (analytics
+                             cookie choice), app.routes.ts                    [platform]
     shared/
       util/
       api/                   shared types (PageResult, ProblemDetails),
@@ -167,5 +169,11 @@ assigned to the platform team, and misalignment is an accepted learning experien
 - A page component owns the interaction: it declares its read resource, injects its
   group's service for commands, and passes plain values down to presentational
   components, which take `input()`s and raise `output()`s and inject nothing.
+- Build-time settings live in `src/environments/`: `environment.ts` for production and
+  `environment.development.ts`, which `fileReplacements` in `angular.json` swaps in for
+  the development build (`npm start`). Code imports only `environment`. Today it holds
+  `analyticsMeasurementId`, the Google Analytics 4 measurement ID; an empty string means
+  analytics is off. A developer may put a test property's ID in the development file
+  locally, but never commits it. Adding a setting is a platform decision.
 - Do not produce Vitest tests unless specifically instructed. Frontend testing is not
   taught; it is a platform-team assignment.

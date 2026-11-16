@@ -113,3 +113,28 @@
 <main class="container stack">
   <router-outlet />
 </main>
+
+@if (consent.configured) {
+  <footer>
+    <div class="container">
+      <button class="footer-link" type="button" (click)="consent.reopen()">Cookie settings</button>
+    </div>
+  </footer>
+}
+
+<!-- The consent bar sticks to the bottom of the screen until the user chooses (see app.scss).
+     It is part of the page, not a dialog, so the page stays usable while it is shown. -->
+@if (consent.barShown()) {
+  <section class="consent-bar" aria-label="Cookie consent">
+    <div class="container consent-content">
+      <p>
+        We would like to use analytics cookies to learn how Explorer is used and make it better. You
+        can change your choice at any time with "Cookie settings" at the bottom of the page.
+      </p>
+      <span class="consent-actions">
+        <button class="button" type="button" (click)="consent.accept()">Accept</button>
+        <button class="button" type="button" (click)="consent.decline()">Decline</button>
+      </span>
+    </div>
+  </section>
+}
