@@ -19,6 +19,14 @@ internal sealed class TourReadRepository : ITourReadRepository
         return ProjectToDtos(_dbContext.Tours.Where(tour => tour.AuthorId == authorId)).ToListAsync();
     }
 
+    public Task<Guid?> GetAuthorIdAsync(Guid tourId)
+    {
+        return _dbContext.Tours
+            .Where(tour => tour.Id == tourId)
+            .Select(tour => (Guid?)tour.AuthorId)
+            .SingleOrDefaultAsync();
+    }
+
     public async Task<PageResult<TourDto>> GetPublishedAsync(int page, int pageSize)
     {
         var published = _dbContext.Tours
