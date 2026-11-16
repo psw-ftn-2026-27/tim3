@@ -168,6 +168,37 @@ namespace Social.Infrastructure.Persistence.Migrations
                     b.ToTable("Profiles", "social");
                 });
 
+            modelBuilder.Entity("Social.Domain.Blogs.Blog", b =>
+                {
+                    b.OwnsMany("Social.Domain.Blogs.Vote", "Votes", b1 =>
+                        {
+                            b1.Property<Guid>("BlogId");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd();
+
+                            b1.Property<Guid>("UserId");
+
+                            b1.Property<string>("VoteType")
+                                .IsRequired();
+
+                            b1.Property<DateTime>("VotedAt");
+
+                            b1.HasKey("BlogId", "__synthesizedOrdinal");
+
+                            b1.ToTable("Blogs", "social");
+
+                            b1
+                                .ToJson("Votes")
+                                .HasColumnType("jsonb");
+
+                            b1.WithOwner()
+                                .HasForeignKey("BlogId");
+                        });
+
+                    b.Navigation("Votes");
+                });
+
             modelBuilder.Entity("Social.Domain.Blogs.Comment", b =>
                 {
                     b.HasOne("Social.Domain.Blogs.Blog", null)
