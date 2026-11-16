@@ -42,11 +42,28 @@ public sealed class ChatMessagingQueries
         var readerIsPrivileged = privileges.Includes(readerId);
         var shownMutedUserIds = readerIsPrivileged ? mutedUserIds : [];
 
-        var userIds = rows.Items.Select(row => row.SenderId).Concat(shownMutedUserIds).Distinct().ToList();
-        var names = await _identityApi.GetDisplayNamesAsync(userIds);
-        var namesById = names.ToDictionary(name => name.UserId, name => name.DisplayName);
+        var namesById = await GetNamesAsync(rows.Items.Select(row => row.SenderId).Concat(shownMutedUserIds));
+        var mutedUsers = shownMutedUserIds
+            .Select(userId => new MutedUserDto(userId, namesById.GetValueOrDefault(userId, "")))
+            .ToList();
 
-        var items = rows.Items
+        return new ChatMessagesDto(
+            new PageResult<MessageDto>(ToMessageDtos(rows.Items, namesById, privileges), rows.TotalCount),
+            readerIsPrivileged,
+            mutedUserIds.Contains(readerId),
+            mutedUsers);
+    }
+
+    private async Task<Dictionary<Guid, string>> GetNamesAsync(IEnumerable<Guid> userIds)
+    {
+        var names = await _identityApi.GetDisplayNamesAsync(userIds.Distinct().ToList());
+        return names.ToDictionary(name => name.UserId, name => name.DisplayName);
+    }
+
+    private static List<MessageDto> ToMessageDtos(
+        List<MessageRowDto> rows, Dictionary<Guid, string> namesById, Privileges privileges)
+    {
+        return rows
             .Select(row => new MessageDto(
                 row.Id,
                 row.SenderId,
@@ -55,14 +72,5 @@ public sealed class ChatMessagingQueries
                 row.SentAt,
                 privileges.Includes(row.SenderId)))
             .ToList();
-        var mutedUsers = shownMutedUserIds
-            .Select(userId => new MutedUserDto(userId, namesById.GetValueOrDefault(userId, "")))
-            .ToList();
-
-        return new ChatMessagesDto(
-            new PageResult<MessageDto>(items, rows.TotalCount),
-            readerIsPrivileged,
-            mutedUserIds.Contains(readerId),
-            mutedUsers);
     }
 }
