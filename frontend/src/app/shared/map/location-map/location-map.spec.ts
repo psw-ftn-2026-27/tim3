@@ -25,6 +25,7 @@ describe('LocationMap', () => {
   let addedCircles: ReturnType<typeof vi.spyOn>;
   let fittedBounds: ReturnType<typeof vi.spyOn>;
   let centers: MapLocation[];
+  let picks: number[];
 
   function show(locations: MapLocation[], route: RouteKind): void {
     fixture.componentRef.setInput('locations', locations);
@@ -100,6 +101,20 @@ describe('LocationMap', () => {
     fixture.detectChanges();
   }
 
+  // Mapa u izboru pina, bez izbora niza osim ako ga test ne uključi.
+  function pickPins(locations: MapLocation[], selectable = false): void {
+    fixture.componentRef.setInput('pickingPin', true);
+    fixture.componentRef.setInput('selectable', selectable);
+    show(locations, 'none');
+  }
+
+  // Indeksi istaknutih pinova sa trenutno prikazane mape.
+  function pickedPins(): number[] {
+    return currentPins()
+      .map((pin, i) => (pin.getElement()!.classList.contains('map-pin--picked') ? i : -1))
+      .filter((i) => i !== -1);
+  }
+
   function walkingRouteRequests(): number {
     return httpTesting.match((request) => request.url.startsWith(WALKING_ROUTES_URL)).length;
   }
@@ -120,6 +135,8 @@ describe('LocationMap', () => {
     changes = [];
     positions = [];
     centers = [];
+    picks = [];
+    fixture.componentInstance.pinPicked.subscribe((index) => picks.push(index));
     fixture.componentInstance.circleCenterSet.subscribe((center) => centers.push(center));
     fixture.componentInstance.positionSet.subscribe((position) => positions.push(position));
     fixture.componentInstance.locationsChange.subscribe((locations) => changes.push(locations));
@@ -587,5 +604,111 @@ describe('LocationMap', () => {
     clickOnMap({ latitude: 2, longitude: 2 });
     expect(centers).toEqual([]);
     expect(positions).toEqual([{ latitude: 2, longitude: 2 }]);
+  });
+
+  it('bez izbora pina klik na pin ga ne ističe i ne javlja indeks', () => {
+    show(
+      [
+        { latitude: 0, longitude: 0 },
+        { latitude: 0, longitude: 1 },
+      ],
+      'none',
+    );
+    const map = addedTiles.mock.calls.at(-1)![0] as L.Map;
+    const pins: L.CircleMarker[] = [];
+    map.eachLayer((layer) => {
+      if (layer instanceof L.CircleMarker) {
+        pins.push(layer);
+      }
+    });
+    expect(pins.length).toBe(2);
+
+    pins[1].fire('click', { latlng: pins[1].getLatLng() });
+    fixture.detectChanges();
+    expect(picks).toEqual([]);
+    expect(count('.map-pin--picked')).toBe(0);
+  });
+
+  it('u izboru pina klik na pin ga ističe i javlja njegov indeks, a niz se ne javlja i pin ostaje', () => {
+    pickPins([
+      { latitude: 0, longitude: 0 },
+      { latitude: 0, longitude: 1 },
+      { latitude: 0, longitude: 2 },
+    ]);
+    expect(pickedPins()).toEqual([]);
+    expect(pinNumbers()).toEqual(['', '', '']);
+
+    currentPins()[1].fire('click');
+    fixture.detectChanges();
+    expect(picks).toEqual([1]);
+    expect(pickedPins()).toEqual([1]);
+    expect(changes).toEqual([]);
+    expect(currentPins().map((pin) => pin.getLatLng().lng)).toEqual([0, 1, 2]);
+  });
+
+  it('u izboru pina klik na drugi pin ističe samo njega i javlja nov indeks', () => {
+    pickPins([
+      { latitude: 0, longitude: 0 },
+      { latitude: 0, longitude: 1 },
+      { latitude: 0, longitude: 2 },
+    ]);
+
+    currentPins()[0].fire('click');
+    currentPins()[2].fire('click');
+    fixture.detectChanges();
+    expect(picks).toEqual([0, 2]);
+    expect(pickedPins()).toEqual([2]);
+  });
+
+  it('u izboru pina klik na praznu mapu ne menja istaknut pin i ne javlja ništa', () => {
+    pickPins([
+      { latitude: 0, longitude: 0 },
+      { latitude: 0, longitude: 1 },
+    ]);
+    currentPins()[1].fire('click');
+    fixture.detectChanges();
+
+    clickOnMap({ latitude: 1, longitude: 1 });
+    expect(picks).toEqual([1]);
+    expect(pickedPins()).toEqual([1]);
+    expect(changes).toEqual([]);
+    expect(centers).toEqual([]);
+    expect(positions).toEqual([]);
+  });
+
+  it('kada stranica preda nove lokacije, nijedan pin nije istaknut', () => {
+    pickPins([
+      { latitude: 0, longitude: 0 },
+      { latitude: 0, longitude: 1 },
+    ]);
+    currentPins()[1].fire('click');
+    fixture.detectChanges();
+    expect(pickedPins()).toEqual([1]);
+
+    fixture.componentRef.setInput('locations', [
+      { latitude: 1, longitude: 0 },
+      { latitude: 1, longitude: 1 },
+    ]);
+    fixture.detectChanges();
+    expect(currentPins().length).toBe(2);
+    expect(pickedPins()).toEqual([]);
+    expect(count('.map-pin--picked')).toBe(0);
+  });
+
+  it('uz izbor niza i izbor pina klik na pin ga uklanja kao u izboru niza i ne javlja indeks', () => {
+    pickPins(
+      [
+        { latitude: 0, longitude: 0 },
+        { latitude: 0, longitude: 1 },
+      ],
+      true,
+    );
+    expect(pinNumbers()).toEqual(['1', '2']);
+
+    currentPins()[0].fire('click');
+    fixture.detectChanges();
+    expect(changes).toEqual([[{ latitude: 0, longitude: 1 }]]);
+    expect(picks).toEqual([]);
+    expect(count('.map-pin--picked')).toBe(0);
   });
 });

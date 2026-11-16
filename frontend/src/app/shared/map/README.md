@@ -1,6 +1,6 @@
 # Mapa sa lokacijama
 
-Komponenta `LocationMap` (`app-location-map`) je deljena prikazna komponenta platforme. Prikazuje mapu sa po jednim pinom na svakoj predatoj lokaciji, po želji i putanju između njih (pravim linijama ili po ulicama), i javlja dužinu te putanje. Po želji prikazuje i krug oko zadatog centra. Po želji korisnik na njoj bira niz lokacija ili centar kruga. Moduli je koriste na svojim stranicama, ali je ne menjaju. Primer upotrebe je platformska stranica `/map` (`core/map/`).
+Komponenta `LocationMap` (`app-location-map`) je deljena prikazna komponenta platforme. Prikazuje mapu sa po jednim pinom na svakoj predatoj lokaciji, po želji i putanju između njih (pravim linijama ili po ulicama), i javlja dužinu te putanje. Po želji prikazuje i krug oko zadatog centra. Po želji korisnik na njoj bira niz lokacija, centar kruga ili jedan od prikazanih pinova. Moduli je koriste na svojim stranicama, ali je ne menjaju. Primer upotrebe je platformska stranica `/map` (`core/map/`).
 
 ## Ulazi i izlaz
 
@@ -22,6 +22,8 @@ Komponenta `LocationMap` (`app-location-map`) je deljena prikazna komponenta pla
 - `circle: MapCircle | null` (podrazumevano `null`, bez kruga) je krug koji mapa crta (vidi ispod). `MapCircle` je `{ center: MapLocation; radiusInMetres: number }` i uvozi se iz `location-map.ts`.
 - `pickingCircle: boolean` (podrazumevano `false`) je režim klika: dok je uključen, klik na mapu bira centar kruga umesto da menja niz.
 - `circleCenterSet` je izlaz sa mestom klika (`MapLocation`) u izboru kruga.
+- `pickingPin: boolean` (podrazumevano `false`) uključuje izbor pina (vidi ispod): klik na pin ga ističe.
+- `pinPicked` je izlaz sa indeksom (`number`) izabrane lokacije u nizu `locations` koji je stranica predala. Javlja se samo u izboru pina.
 
 Mapa uvek obuhvata sve pinove, i pin pozicije, i ceo krug. Izuzetak je pomeranje pina pozicije koji je već bio na mapi: korisnik ga postavlja klikom na deo mape koji vidi, pa mapa tada zadržava pogled (pomeranje i zum) koji je korisnik namestio. Bez ijedne lokacije prikazuje Novi Sad. Podloga je OpenStreetMap, sa navodom autora u uglu mape. Visina mape je 24rem.
 
@@ -139,7 +141,7 @@ Komponenta poziciju ne čuva. Stranica mesto klika šalje serveru (`PUT /api/map
 />
 ```
 
-Režim klika bira stranica, na `/map` dugmadima „Biranje niza", „Postavljanje pozicije" i „Biranje kruga".
+Režim klika bira stranica, na `/map` dugmadima „Biranje niza", „Postavljanje pozicije", „Biranje kruga" i „Biranje pina".
 
 ## Krug i izbor centra
 
@@ -168,7 +170,51 @@ protected readonly circle = computed<MapCircle | null>(() => {
 />
 ```
 
-Koje su tačke ili entiteti u krugu mapa ne javlja, jer ne poznaje entitete modula; to odlučuje server modula (na primer Exploration u lokacijskoj pretrazi tura). Na stranici `/map` režim klika bira se dugmadima „Biranje niza", „Postavljanje pozicije" i „Biranje kruga", pa je uvek uključen tačno jedan; poluprečnik se zadaje poljem „Poluprečnik (m)", a krug se uklanja dugmetom „Ukloni krug".
+Koje su tačke ili entiteti u krugu mapa ne javlja, jer ne poznaje entitete modula; to odlučuje server modula (na primer Exploration u lokacijskoj pretrazi tura). Na stranici `/map` režim klika bira se dugmadima „Biranje niza", „Postavljanje pozicije", „Biranje kruga" i „Biranje pina", pa je uvek uključen tačno jedan; poluprečnik se zadaje poljem „Poluprečnik (m)", a krug se uklanja dugmetom „Ukloni krug".
+
+## Izbor pina
+
+Izbor pina služi da korisnik izabere jedan od prikazanih entiteta klikom na njegov pin, na primer izazov u G22 ili turu u E23. Sa `[pickingPin]="true"`:
+
+- pinovi se prikazuju bez rednih brojeva;
+- klik na pin ga ističe (veći je, sa debljim okvirom u boji akcenta) i javlja indeks te lokacije kroz `pinPicked`; istaknut je samo poslednji izabran pin;
+- klik na pin ne menja lokacije i ne uklanja pin, pa se `locationsChange` ne javlja;
+- klik na praznu mapu ne menja istaknut pin i ne javlja ništa;
+- kada stranica preda nove lokacije (nov niz u `locations`, na primer posle nove pretrage), nijedan pin nije istaknut.
+
+Kada više entiteta ima istu lokaciju, pinovi se ne razdvajaju, a bira se pin koji je na vrhu.
+
+Istaknut pin drži komponenta. Izabran entitet drži stranica: mapa javlja indeks u nizu koji je stranica predala, a ne koordinate, jer je indeks jednoznačan i kada dva entiteta imaju istu lokaciju. Stranica lokacije pravi iz svojih entiteta istim redom, pa preko indeksa nalazi entitet. Komponenta entitete ne poznaje; šta stranica prikaže posle izbora (detalje izazova, aktivaciju) odlučuje modul. Mapa briše istaknut pin čim dobije nov niz, pa stranica briše svoj izabran indeks na svakom mestu gde pokreće nove lokacije (nova pretraga, ponovno čitanje resursa); inače bi indeks pokazivao na drugi entitet u novom spisku. Istaknut pin se ne briše kada stranica preda isti niz, pa stranica koja briše svoj indeks predaje i nov niz (na primer kopiju, `[...LOCATIONS]`).
+
+```ts
+protected readonly challenges = computed(() => this.challengesResource.value() ?? []);
+protected readonly locations = computed<MapLocation[]>(() =>
+  this.challenges().map((challenge) => ({ latitude: challenge.latitude, longitude: challenge.longitude })),
+);
+protected readonly pickedIndex = signal<number | null>(null);
+protected readonly pickedChallenge = computed(() => {
+  const index = this.pickedIndex();
+  return index === null ? null : this.challenges()[index];
+});
+
+// Nova pretraga donosi nov spisak, pa stari indeks više ne važi.
+protected search(): void {
+  this.pickedIndex.set(null);
+  this.challengesResource.reload();
+}
+```
+
+```html
+<app-location-map
+  [locations]="locations()"
+  [pickingPin]="true"
+  (pinPicked)="pickedIndex.set($event)"
+/>
+```
+
+Izbor pina i izbor niza ne uključuju se zajedno na istoj mapi. Ako stranica ipak uključi oba (`selectable` i `pickingPin`), izbor niza ima prednost: pinovi su numerisani i indeks se ne javlja, a klik na pin ga uklanja kao i u izboru niza dok nije uključen ni izbor kruga ni postavljanje pozicije. Prednost ima i postavljanje pozicije: dok je uključeno (`positionSettable` i `settingPosition`), klik na pin ne javlja indeks. Izbor pina i izbor kruga mogu zajedno, kako ih koristi E23: klik na praznu mapu javlja centar kruga, a klik na pin javlja indeks i ne javlja centar.
+
+Na stranici `/map` izbor pina se uključuje dugmetom „Biranje pina"; ispod mape piše izabrana lokacija ili „Pin nije izabran.", a dugme „Druge lokacije" glumi novu pretragu.
 
 ## Čitanje pozicije iz modula
 
@@ -180,12 +226,12 @@ Modul poziciju nikada ne čita kroz krajnje tačke pozicije, jer one služe samo
 |---|---|
 | E21, ključne tačke ture | Izbor niza lokacija (`selectable`), gde je svaka ključna tačka jedan pin; putanja između tačaka (`route`) i njena dužina iz izlaza `routeLength`. |
 | E22, obilazak ture | Pozicija korisnika (`positionSettable`, `position`) i putanja od pozicije do sledeće ključne tačke: stranica preda poziciju i tačku kao dve lokacije u `locations` i izabere `route`. Proveru na svakih 10 sekundi i pravilo blizine radi stranica, odnosno server modula kroz `IMapsApi`. |
-| E23, pretraga tura | Prikaz pinova tura (`locations`) i krug oblasti pretrage (`circle`), čiji centar korisnik bira klikom (`pickingCircle`, `circleCenterSet`). Koje su ture u krugu odlučuje server Exploration-a. Izbor ture klikom na pin mapa danas ne nudi; to je zahtev platformskom timu. |
+| E23, pretraga tura | Prikaz pinova tura (`locations`) i krug oblasti pretrage (`circle`), čiji centar korisnik bira klikom (`pickingCircle`, `circleCenterSet`). Koje su ture u krugu odlučuje server Exploration-a. Izbor ture klikom na njen pin (`pickingPin`, `pinPicked`), uz izbor kruga na istoj mapi. |
 | G21, skrivena lokacija | Pozicija korisnika (`positionSettable`, `position`); blizinu proverava server modula kroz `IMapsApi`. Krug oblasti traženja (`circle`), čiji poluprečnik zadaje Games. |
-| G22, izazov na mapi | Pozicija korisnika (`positionSettable`, `position`) i prikaz pinova izazova (`locations`). Proveru na svakih 10 sekundi radi stranica. Izbor izazova klikom na pin mapa danas ne nudi; to je zahtev platformskom timu. |
+| G22, izazov na mapi | Pozicija korisnika (`positionSettable`, `position`) i prikaz pinova izazova (`locations`). Proveru na svakih 10 sekundi radi stranica. Izbor izazova klikom na njegov pin (`pickingPin`, `pinPicked`). |
 
 ## Pravila
 
 - Mapu koristite samo kroz ulaze i izlaze opisane gore. Ne pristupajte Leaflet-u iz modula i ne dodajte ga u modul; nova mogućnost mape je zahtev platformskom timu.
 - Lokacije komponenti predaje stranica, koja ih čita svojim `httpResource`-om. Jedino što komponenta sama čita sa servera je putanja po ulicama, kroz svoj `httpResource`. To je namerno odobren izuzetak od pravila da resurs postoji samo na stranici: tako je ceo postupak sa greškom (prave linije, poruka, vazdušna dužina, signal) na jednom mestu, a moduli koriste samo ulaze i izlaze. Izuzetak važi samo za platformske komponente u `shared/`; u modulima resurs i dalje postoji samo na stranici.
-- Komponenta crta preko biblioteke Leaflet van stabla komponenti, pa koristi `effect()` i pristup svom elementu (`inject(ElementRef)`). To je odobren izuzetak od Angular podskupa, samo za ovu komponentu; ne prepisujte ga u module. HTML numerisanih pinova pravi Leaflet van šablona, pa stil komponente do njega ne stiže i pinovi su stilizovani inline, vrednostima iz tokena (`var(--color-accent)` i slično).
+- Komponenta crta preko biblioteke Leaflet van stabla komponenti, pa koristi `effect()` i pristup svom elementu (`inject(ElementRef)`). To je odobren izuzetak od Angular podskupa, samo za ovu komponentu; ne prepisujte ga u module. HTML numerisanih pinova i pinova u izboru pina pravi Leaflet van šablona, pa stil komponente do njega ne stiže i pinovi su stilizovani inline, vrednostima iz tokena (`var(--color-accent)` i slično).
