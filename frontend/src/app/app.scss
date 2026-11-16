@@ -26,7 +26,9 @@ nav {
   min-height: 3.5rem;
 }
 
-.brand {
+// The brand is a link, so it needs the nav in its selector to win over "nav a".
+nav .brand {
+  color: var(--color-text);
   font-family: var(--font-family-heading);
   font-size: var(--font-size-lg);
   font-weight: 600;
@@ -52,6 +54,13 @@ nav a.active {
 // Focus is shown by the shared pill below, so the outline ring is not needed.
 nav a:focus-visible {
   outline: none;
+}
+
+// The brand has no pill, so it keeps a visible focus ring.
+nav .brand:focus-visible {
+  border-radius: var(--radius);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 4px;
 }
 
 // On a wide screen the panel has no box of its own: its links and user part are laid out in
