@@ -9,6 +9,7 @@
     <ProjectReference Include="..\..\..\Shared\Shared.Api\Shared.Api.csproj" />
     <ProjectReference Include="..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Identity\Identity.Contracts\Identity.Contracts.csproj" />
+    <ProjectReference Include="..\..\Exploration\Exploration.Contracts\Exploration.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

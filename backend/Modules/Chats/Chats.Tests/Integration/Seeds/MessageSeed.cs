@@ -9,6 +9,8 @@ internal static class MessageSeed
     public static readonly Message SecondExplorerAnswersInTourChat;
     public static readonly Message ThirdExplorerWritesInOtherTourChat;
     public static readonly Message ExplorerGreetsSecondExplorer;
+    public static readonly Message ExplorerWritesInChallengeChat;
+    public static readonly Message SecondExplorerWritesInFortressWalkChat;
 
     public static readonly Message[] All;
 
@@ -22,7 +24,11 @@ internal static class MessageSeed
             .Write(WellKnownUsers.ThirdExplorer, "Where does the tour start?");
         ExplorerGreetsSecondExplorer = ChatSeed.ConversationOfExplorerAndSecondExplorer
             .Write(WellKnownUsers.Explorer, "Hi, did you finish the fortress tour?");
+        ExplorerWritesInChallengeChat = ChatSeed.ChallengeChatWithMutedSecondExplorer
+            .Write(WellKnownUsers.Explorer, "I found the fountain, where is the next clue?");
+        SecondExplorerWritesInFortressWalkChat = ChatSeed.FortressWalkChatWithMutedThirdExplorer
+            .Write(WellKnownUsers.SecondExplorer, "Is the underground gallery open on Mondays?");
 
-        All = [ExplorerAsksInTourChat, SecondExplorerAnswersInTourChat, ThirdExplorerWritesInOtherTourChat, ExplorerGreetsSecondExplorer];
+        All = [ExplorerAsksInTourChat, SecondExplorerAnswersInTourChat, ThirdExplorerWritesInOtherTourChat, ExplorerGreetsSecondExplorer, ExplorerWritesInChallengeChat, SecondExplorerWritesInFortressWalkChat];
     }
 }

@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Chats.Infrastructure.Persistence;
 using Chats.Tests.Integration.Seeds;
+using Exploration.Infrastructure.Persistence;
 using Identity.Infrastructure;
 using Identity.Tests.Integration.Seeds;
 using Shared.Tests;
@@ -29,5 +30,6 @@ public abstract class BaseIntegrationTest
         Factory = factory;
         Factory.Reseed<ChatsDbContext>(ChatsSeed.All);
         Factory.Reseed<IdentityModuleDbContext>(IdentitySeed.All);
+        Factory.Reseed<ExplorationDbContext>(TourSeed.All);
     }
 }

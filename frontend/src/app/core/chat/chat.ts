@@ -2,8 +2,7 @@ import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
 import { FormField, form, maxLength, required } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
-import { MessageDto } from '../../shared/api/chats';
-import { PageResult } from '../../shared/api/page-result';
+import { ChatMessagesDto } from '../../shared/api/chats';
 import { serverMessage } from '../../shared/util/server-message';
 import { Auth } from '../auth/auth';
 import { ChatMessaging } from './chat-messaging';
@@ -53,14 +52,23 @@ export class Chat {
   });
 
   // A logged-out user may not read a chat, so nothing is loaded for them.
-  protected readonly messages = httpResource<PageResult<MessageDto>>(() =>
+  protected readonly messages = httpResource<ChatMessagesDto>(() =>
     this.auth.isLoggedIn() ? `${this.baseUrl()}/messages?page=1&pageSize=${PAGE_SIZE}` : undefined,
   );
 
   // The server returns the newest messages first; the chat shows them oldest first.
   protected readonly oldestFirst = computed(() =>
-    [...(this.messages.value()?.items ?? [])].reverse(),
+    [...(this.messages.value()?.messages.items ?? [])].reverse(),
   );
+
+  // The viewer's standing in this chat, as the server reports it with the messages.
+  protected readonly viewerIsPrivileged = computed(
+    () => this.messages.value()?.viewerIsPrivileged ?? false,
+  );
+  protected readonly viewerIsMuted = computed(() => this.messages.value()?.viewerIsMuted ?? false);
+  // The server fills this list only for a privileged viewer.
+  protected readonly mutedUsers = computed(() => this.messages.value()?.mutedUsers ?? []);
+  protected readonly viewerId = computed(() => this.auth.user()?.id ?? '');
 
   // The server answers 400 when the reader is not one of the two users of a conversation.
   protected readonly accessDenied = computed(() => {
@@ -86,6 +94,8 @@ export class Chat {
 
   protected readonly pending = signal(false);
   protected readonly error = signal<string | null>(null);
+  // The reason a delete, mute or unmute failed, shown above the message list.
+  protected readonly moderationError = signal<string | null>(null);
   // The reason for an empty or too long message shows only after the user tries to send it.
   protected readonly triedToSend = signal(false);
 
@@ -104,6 +114,42 @@ export class Chat {
       this.messages.reload();
     } catch (failure) {
       this.error.set(serverMessage(failure, 'Could not send the message.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected deleteMessage(messageId: string): Promise<void> {
+    return this.moderate(
+      () => this.chatMessaging.deleteMessage(this.baseUrl(), messageId),
+      'Could not delete the message.',
+    );
+  }
+
+  protected muteUser(userId: string): Promise<void> {
+    return this.moderate(
+      () => this.chatMessaging.muteUser(this.baseUrl(), userId),
+      'Could not mute the user.',
+    );
+  }
+
+  protected unmuteUser(userId: string): Promise<void> {
+    return this.moderate(
+      () => this.chatMessaging.unmuteUser(this.baseUrl(), userId),
+      'Could not unmute the user.',
+    );
+  }
+
+  // Runs one moderation command, then reloads the messages and the muted users.
+  // On failure the list stays as it was and the server's reason shows above it.
+  private async moderate(command: () => Promise<void>, fallback: string): Promise<void> {
+    this.pending.set(true);
+    this.moderationError.set(null);
+    try {
+      await command();
+      this.messages.reload();
+    } catch (failure) {
+      this.moderationError.set(serverMessage(failure, fallback));
     } finally {
       this.pending.set(false);
     }
