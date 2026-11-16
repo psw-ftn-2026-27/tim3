@@ -54,6 +54,32 @@ public class BlogReadingQueryTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Comments_are_shown_with_the_authors_display_name_and_last_modified_date()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+
+        var blog = await client.GetFromJsonAsync<BlogDto>(
+            $"/api/social/blogs/{BlogSeed.CommentedByExplorer.Id}", JsonOptions);
+
+        var comment = blog!.Comments.Should().ContainSingle().Subject;
+        comment.UserId.Should().Be(WellKnownUsers.Explorer);
+        comment.AuthorDisplayName.Should().Be("explorer");
+        comment.LastModifiedAt.Should().Be(comment.CreatedAt);
+    }
+
+    [Fact]
+    public async Task A_comment_carries_its_edit_deadline_from_the_server()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+
+        var blog = await client.GetFromJsonAsync<BlogDto>(
+            $"/api/social/blogs/{BlogSeed.CommentedByExplorer.Id}", JsonOptions);
+
+        var comment = blog!.Comments.Should().ContainSingle().Subject;
+        comment.EditableUntil.Should().Be(comment.CreatedAt.AddMinutes(15));
+    }
+
+    [Fact]
     public async Task Each_reader_sees_their_own_vote_on_the_blog()
     {
         var voterClient = Factory.CreateClientFor(WellKnownUsers.SecondExplorer, "explorer");

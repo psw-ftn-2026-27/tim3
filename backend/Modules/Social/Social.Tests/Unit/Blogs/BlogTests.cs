@@ -186,9 +186,50 @@ public class BlogTests
         blog.AddComment(WellKnownUsers.Administrator, "Odlična tura!");
         var comment = blog.Comments.Single();
 
-        blog.UpdateComment(comment.Id, WellKnownUsers.Administrator, "Ipak prosečna tura.");
+        blog.UpdateComment(comment.Id, WellKnownUsers.Administrator, "Ipak prosečna tura.", comment.CreatedAt);
 
         blog.Comments.Single().Text.Should().Be("Ipak prosečna tura.");
+    }
+
+    [Fact]
+    public void Editing_a_comment_within_the_window_moves_the_last_modified_date_and_keeps_the_created_date()
+    {
+        var blog = CreatePublishedBlog();
+        blog.AddComment(WellKnownUsers.Administrator, "Odlična tura!");
+        var comment = blog.Comments.Single();
+        var createdAt = comment.CreatedAt;
+        var editedAt = createdAt.AddMinutes(5);
+
+        blog.UpdateComment(comment.Id, WellKnownUsers.Administrator, "Ipak prosečna tura.", editedAt);
+
+        comment.LastModifiedAt.Should().Be(editedAt);
+        comment.CreatedAt.Should().Be(createdAt);
+    }
+
+    [Fact]
+    public void Editing_a_comment_after_the_window_is_rejected()
+    {
+        var blog = CreatePublishedBlog();
+        blog.AddComment(WellKnownUsers.Administrator, "Odlična tura!");
+        var comment = blog.Comments.Single();
+
+        var update = () => blog.UpdateComment(comment.Id, WellKnownUsers.Administrator, "Prekasna izmena.",
+            comment.CreatedAt.AddMinutes(16));
+
+        update.Should().Throw<DomainException>();
+    }
+
+    [Fact]
+    public void Editing_a_comment_exactly_on_the_window_boundary_is_allowed()
+    {
+        var blog = CreatePublishedBlog();
+        blog.AddComment(WellKnownUsers.Administrator, "Odlična tura!");
+        var comment = blog.Comments.Single();
+        var editedAt = comment.CreatedAt.AddMinutes(15);
+
+        blog.UpdateComment(comment.Id, WellKnownUsers.Administrator, "Izmena tačno na granici.", editedAt);
+
+        comment.LastModifiedAt.Should().Be(editedAt);
     }
 
     [Fact]
@@ -198,7 +239,7 @@ public class BlogTests
         blog.AddComment(WellKnownUsers.Administrator, "Odlična tura!");
         var comment = blog.Comments.Single();
 
-        var update = () => blog.UpdateComment(comment.Id, WellKnownUsers.Explorer, "Izmena tuđeg komentara.");
+        var update = () => blog.UpdateComment(comment.Id, WellKnownUsers.Explorer, "Izmena tuđeg komentara.", comment.CreatedAt);
 
         update.Should().Throw<NotFoundException>();
     }
@@ -210,9 +251,22 @@ public class BlogTests
         blog.AddComment(WellKnownUsers.Administrator, "Odlična tura!");
         var comment = blog.Comments.Single();
 
-        blog.DeleteComment(comment.Id, WellKnownUsers.Administrator);
+        blog.DeleteComment(comment.Id, WellKnownUsers.Administrator, comment.CreatedAt);
 
         blog.Comments.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Deleting_a_comment_after_the_window_is_rejected()
+    {
+        var blog = CreatePublishedBlog();
+        blog.AddComment(WellKnownUsers.Administrator, "Odlična tura!");
+        var comment = blog.Comments.Single();
+
+        var deletion = () => blog.DeleteComment(comment.Id, WellKnownUsers.Administrator, comment.CreatedAt.AddMinutes(16));
+
+        deletion.Should().Throw<DomainException>();
+        blog.Comments.Should().ContainSingle();
     }
 
     [Fact]

@@ -10,6 +10,7 @@ public sealed class SocialMapperProfile : Profile
     {
         CreateMap<Blog, BlogDto>()
             .ForCtorParam(nameof(BlogDto.CurrentUserVote), options => options.MapFrom(_ => (VoteType?)null));
-        CreateMap<Comment, CommentDto>();
+        CreateMap<Comment, CommentDto>()
+            .ForCtorParam(nameof(CommentDto.AuthorDisplayName), options => options.MapFrom(_ => string.Empty));
     }
 }

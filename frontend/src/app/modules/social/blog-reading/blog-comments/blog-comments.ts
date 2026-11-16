@@ -43,6 +43,17 @@ export class BlogComments {
     });
   }
 
+  // True when the comment was edited after it was created.
+  protected wasEdited(comment: CommentDto): boolean {
+    return new Date(comment.lastModifiedAt).getTime() !== new Date(comment.createdAt).getTime();
+  }
+
+  // UX only: Edit and Delete stay visible until the server's edit deadline; the server
+  // enforces the rule regardless.
+  protected withinEditWindow(comment: CommentDto): boolean {
+    return new Date(comment.editableUntil).getTime() >= Date.now();
+  }
+
   protected submitComment(event: Event): void {
     event.preventDefault();
     this.addComment.emit(this.form.text().value());
