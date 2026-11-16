@@ -60,17 +60,11 @@ h1 {
   margin: 0;
 }
 
-// The empty card: a small dot in apricot, lilac and mint rings, then the message. Only the
-// card is decorated here; the message itself uses the shared .empty class.
+// The empty state of the social tab gets a games decoration on top of the shared .empty-state:
+// an apricot glow at the top and a small dot in apricot, lilac and mint rings above the heading.
 .empty-card {
-  align-items: center;
   background:
     radial-gradient(30rem 16rem at 50% 0%, var(--color-games), transparent 70%), var(--glass);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: 4rem var(--space-6);
-  text-align: center;
 }
 
 .rings {
@@ -83,8 +77,4 @@ h1 {
   height: 0.875rem;
   margin-bottom: var(--space-5);
   width: 0.875rem;
-}
-
-.empty-card h2 {
-  margin: 0;
 }

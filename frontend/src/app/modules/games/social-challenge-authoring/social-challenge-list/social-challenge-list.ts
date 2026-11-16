@@ -1,4 +1,4 @@
-import { httpResource } from '@angular/common/http';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../../../../core/auth/auth';
@@ -28,6 +28,11 @@ export class SocialChallengeList {
   protected readonly challenges = httpResource<PageResult<SocialChallengeDto>>(
     () => `/api/games/social-challenges?page=${this.page()}&pageSize=${PAGE_SIZE}`,
   );
+
+  protected readonly challengesErrorStatus = computed(() => {
+    const failure = this.challenges.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 
   protected readonly pending = signal(false);
   // A failed row action shows under its row; a success shows above the table.

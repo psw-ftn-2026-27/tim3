@@ -1,5 +1,5 @@
-import { httpResource } from '@angular/common/http';
-import { Component, effect, inject, input, signal } from '@angular/core';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormField, form, required } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { ImagePicker } from '../../../../shared/images/image-picker/image-picker';
@@ -22,6 +22,11 @@ export class EditBlog {
   readonly id = input.required<string>();
 
   protected readonly blog = httpResource<BlogDto>(() => `/api/social/blogs/${this.id()}/edit`);
+
+  protected readonly blogErrorStatus = computed(() => {
+    const failure = this.blog.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 
   protected readonly form = form(signal({ title: '', description: '' }), (path) => {
     required(path.title, { message: 'Title is required.' });

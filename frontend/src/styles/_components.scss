@@ -286,11 +286,11 @@ article.card:hover {
 // Page states. Every page shows each state with the same class, so it looks the same in
 // every module:
 // - .loading: while a resource is on its way from the server;
-// - .empty: a list with no items and what the user can do (in a table, a <p class="empty">
-//   inside the one cell);
-// - .error: a resource that could not load (role="alert"), a command that failed
-//   (role="alert", where the user finished the action: in its form, or in a line under its
-//   table row) and a field error (in .field);
+// - .empty-state: a page-level list with no items, or a page whose resource could not load
+//   (role="alert"); it stands where the list or the data would be;
+// - .empty: a small list inside a card or a form with no items (a short muted line);
+// - .error: a command that failed (role="alert", where the user finished the action: in its
+//   form, or in a line under its table row) and a field error (in .field);
 // - .success: a command that succeeded when its result is not visible where the user
 //   finished the action (role="status"); the next command clears it.
 .loading {
@@ -319,6 +319,62 @@ article.card:hover {
   margin: 0;
 }
 
+// The empty state is a centred glass card: a heading, one muted line saying why and what the
+// user can do, and a row of buttons (.empty-state-actions) with the action that fits the cause
+// (401: Log in, 403: a page the user may open, other failures: Try again, an empty list: the
+// action that fills it).
+.empty-state {
+  align-items: center;
+  backdrop-filter: var(--glass-blur);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow), var(--highlight);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: calc(var(--space-6) * 2) var(--space-6);
+  text-align: center;
+}
+
+.empty-state h2 {
+  font-size: var(--font-size-xl);
+  font-weight: 500;
+  margin: 0;
+}
+
+.empty-state p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-md);
+  margin: 0;
+  max-width: 26rem;
+}
+
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+  padding-top: var(--space-2);
+}
+
+// A phone has less room around the message.
+@media (max-width: 40rem) {
+  .empty-state {
+    padding: var(--space-6) var(--space-4);
+  }
+}
+
+// Inside a card (a section of a page, or a page that is one card) the card already is the
+// glass, so the empty state only centres its content.
+.card .empty-state {
+  backdrop-filter: none;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: var(--space-5) 0;
+}
+
 // The page states above reset their margin, which would also remove the space a .stack puts
 // between its children; inside a stack they keep that space.
 .stack > * + .loading,
@@ -329,9 +385,9 @@ article.card:hover {
 }
 
 // A page message is a tinted block with a short coloured label above the text, as in the
-// theme: "Error" for a failure (a resource that could not load or a command that failed, both
-// with role="alert") and "Success" for a command that succeeded (role="status"). Only a form
-// field's own error, which has no role, stays a short red line under the field.
+// theme: "Error" for a command that failed (role="alert") and "Success" for a command that
+// succeeded (role="status"). Only a form field's own error, which has no role, stays a short
+// red line under the field.
 .error[role='alert'],
 .success {
   background: var(--color-danger-bg);

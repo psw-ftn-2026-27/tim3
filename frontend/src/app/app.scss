@@ -1,10 +1,12 @@
-// The nav is a frosted glass bar over the page background. The glass is drawn by ::before
-// and not by the header itself: a backdrop-filter on the header would keep the phone menu
-// panel (position: fixed) inside the header instead of letting it cover the screen.
+// The nav is a frosted glass bar that stays at the top of the screen while the page scrolls
+// under it (sticky), on every screen width. The glass is drawn by ::before and not by the
+// header itself: a backdrop-filter on the header would keep the phone menu panel
+// (position: fixed) inside the header instead of letting it cover the screen.
 header {
   border-bottom: 1px solid var(--glass-border);
   margin-bottom: calc(var(--space-6) * 1.75);
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 10;
 }
 

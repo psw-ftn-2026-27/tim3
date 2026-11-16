@@ -12,7 +12,42 @@
   @if (clubs.isLoading()) {
     <p class="loading">Loading clubs...</p>
   } @else if (clubs.error()) {
-    <p class="error" role="alert">Could not load the clubs. <a routerLink="/login">Log in</a> and try again.</p>
+    @switch (clubsErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to see clubs</h2>
+          <p>Clubs are shown to logged-in users, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the clubs</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="clubs.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if ((clubs.value()?.items ?? []).length === 0) {
+    <div class="empty-state">
+      <h2>There are no clubs yet</h2>
+      <p>
+        @if (isExplorer()) {
+          Create the first club so other explorers can ask to join.
+        } @else {
+          Clubs that explorers create appear here.
+        }
+      </p>
+      @if (isExplorer()) {
+        <div class="empty-state-actions">
+          <a class="button button--primary" routerLink="/social/clubs/create">Create club</a>
+        </div>
+      }
+    </div>
   } @else {
     <div class="grid">
       @for (club of clubs.value()?.items ?? []; track club.id) {
@@ -24,13 +59,6 @@
           (editClub)="select($event)"
           (deleteClub)="remove($event)"
         />
-      } @empty {
-        <p class="empty">
-          There are no clubs yet.
-          @if (isExplorer()) {
-            <a routerLink="/social/clubs/create">Create the first club.</a>
-          }
-        </p>
       }
     </div>
   }

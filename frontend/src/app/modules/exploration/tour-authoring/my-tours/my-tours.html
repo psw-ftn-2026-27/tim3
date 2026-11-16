@@ -11,7 +11,43 @@
   @if (tours.isLoading()) {
     <p class="loading">Loading your tours...</p>
   } @else if (tours.error()) {
-    <p class="error" role="alert">Could not load your tours. <a routerLink="/login">Log in</a> and try again.</p>
+    @switch (toursErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to see your tours</h2>
+          <p>Your tours are shown to logged-in explorers, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only explorers can author tours</h2>
+          <p>Explorers create and manage tours. You can still browse the published ones.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/exploration">All tours</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load your tours</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="tours.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if ((tours.value() ?? []).length === 0) {
+    <div class="empty-state">
+      <h2>You have no tours yet</h2>
+      <p>Create your first tour from key points, then publish it for explorers.</p>
+      <div class="empty-state-actions">
+        <a class="button button--primary" routerLink="/exploration/create">Create tour</a>
+      </div>
+    </div>
   } @else {
     <div class="table-wrapper">
       <table class="table">
@@ -108,15 +144,6 @@
                 <td colspan="6"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
               </tr>
             }
-          } @empty {
-            <tr>
-              <td colspan="6">
-                <p class="empty">
-                  You have no tours yet.
-                  <a routerLink="/exploration/create">Create your first tour.</a>
-                </p>
-              </td>
-            </tr>
           }
         </tbody>
       </table>

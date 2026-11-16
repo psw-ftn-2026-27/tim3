@@ -4,7 +4,44 @@
   @if (blog.isLoading()) {
     <p class="loading">Loading blog...</p>
   } @else if (blog.error()) {
-    <p class="error" role="alert">Could not load the blog. <a routerLink="/login">Log in</a> and try again.</p>
+    @switch (blogErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to edit this blog</h2>
+          <p>Blogs are edited by logged-in explorers, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only explorers can edit blogs</h2>
+          <p>Explorers write and manage blogs. You can still read the published ones.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social">All blogs</a>
+          </div>
+        </div>
+      }
+      @case (404) {
+        <div class="empty-state" role="alert">
+          <h2>This blog does not exist</h2>
+          <p>It may have been removed. Pick another blog from your list.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social/mine">My blogs</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the blog</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="blog.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
   } @else {
     <form class="stack" (submit)="submit($event)">
       <div class="field">

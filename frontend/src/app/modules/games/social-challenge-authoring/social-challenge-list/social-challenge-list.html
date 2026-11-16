@@ -17,9 +17,53 @@
   @if (challenges.isLoading()) {
     <p class="loading">Učitavanje izazova...</p>
   } @else if (challenges.error()) {
-    <p class="error" role="alert">
-      Izazovi ne mogu da se učitaju. <a routerLink="/login">Prijavite se</a> kao administrator i pokušajte ponovo.
-    </p>
+    @switch (challengesErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Prijavite se da biste videli izazove</h2>
+          <p>Društvene izazove pregleda administrator, a vaša sesija je možda istekla.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Prijavite se</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Samo administrator može da vidi izazove</h2>
+          <p>Društvene izazove pregleda i objavljuje administrator.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games">Igre</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Izazovi ne mogu da se učitaju</h2>
+          <p>Nešto nije u redu na našoj strani. Pokušajte ponovo za trenutak.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="challenges.reload()">
+              Pokušajte ponovo
+            </button>
+          </div>
+        </div>
+      }
+    }
+  } @else if ((challenges.value()?.totalCount ?? 0) === 0) {
+    <div class="empty-state">
+      <h2>Još nema izazova</h2>
+      <p>
+        @if (isAdministrator()) {
+          Napravite prvi izazov za koji se igrači okupe na istom mestu u isto doba dana.
+        } @else {
+          Izazovi se pojavljuju ovde kada ih administrator napravi.
+        }
+      </p>
+      @if (isAdministrator()) {
+        <div class="empty-state-actions">
+          <a class="button button--primary" routerLink="/games/challenges/create">Novi izazov</a>
+        </div>
+      }
+    </div>
   } @else {
     <div class="table-wrapper">
       <table class="table">
@@ -117,17 +161,6 @@
                 <td colspan="7"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
               </tr>
             }
-          } @empty {
-            <tr>
-              <td colspan="7">
-                <p class="empty">
-                  Još nema izazova.
-                  @if (isAdministrator()) {
-                    <a routerLink="/games/challenges/create">Napravi prvi izazov.</a>
-                  }
-                </p>
-              </td>
-            </tr>
           }
         </tbody>
       </table>

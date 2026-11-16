@@ -1,4 +1,4 @@
-import { httpResource } from '@angular/common/http';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormField, form } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
@@ -20,9 +20,18 @@ export class TourList {
     () => '/api/exploration/tours/published?page=1&pageSize=20',
   );
 
+  protected readonly toursErrorStatus = computed(() => {
+    const failure = this.tours.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
+
   private readonly model = signal({ name: '', difficulty: '' });
 
   protected readonly form = form(this.model);
+
+  protected readonly hasFilters = computed(
+    () => this.model().name !== '' || this.model().difficulty !== '',
+  );
 
   protected readonly visibleTours = computed<TourDto[]>(() => {
     const all = this.tours.value()?.items ?? [];
@@ -34,4 +43,8 @@ export class TourList {
         (difficulty === '' || tour.difficulty === difficulty),
     );
   });
+
+  protected clearFilters(): void {
+    this.form().reset({ name: '', difficulty: '' });
+  }
 }

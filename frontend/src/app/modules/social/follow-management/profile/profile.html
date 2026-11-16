@@ -53,7 +53,40 @@
       @if (followers.isLoading()) {
         <p class="loading">Loading followers...</p>
       } @else if (followers.error()) {
-        <p class="error" role="alert">Could not load followers. <a routerLink="/login">Log in</a> and try again.</p>
+        @switch (followersErrorStatus()) {
+          @case (401) {
+            <div class="empty-state" role="alert">
+              <h2>Log in to see your followers</h2>
+              <p>Your profile is for logged-in explorers, and your session may have expired.</p>
+              <div class="empty-state-actions">
+                <a class="button button--primary" routerLink="/login">Log in</a>
+              </div>
+            </div>
+          }
+          @case (403) {
+            <div class="empty-state" role="alert">
+              <h2>Only explorers have a profile</h2>
+              <p>Explorers follow each other and see their followers here.</p>
+              <div class="empty-state-actions">
+                <a class="button button--primary" routerLink="/social">Blogs</a>
+              </div>
+            </div>
+          }
+          @default {
+            <div class="empty-state" role="alert">
+              <h2>Could not load followers</h2>
+              <p>Something went wrong on our side. Try again in a moment.</p>
+              <div class="empty-state-actions">
+                <button class="button" type="button" (click)="followers.reload()">Try again</button>
+              </div>
+            </div>
+          }
+        }
+      } @else if ((followers.value()?.totalCount ?? 0) === 0) {
+        <div class="empty-state">
+          <h2>You have no followers yet</h2>
+          <p>Users who follow you appear here.</p>
+        </div>
       } @else {
         <div class="table-wrapper">
           <table class="table">
@@ -83,12 +116,6 @@
                     <td colspan="2"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
                   </tr>
                 }
-              } @empty {
-                <tr>
-                  <td colspan="2">
-                    <p class="empty">You have no followers. Users who follow you appear here.</p>
-                  </td>
-                </tr>
               }
             </tbody>
           </table>
@@ -121,7 +148,43 @@
       @if (following.isLoading()) {
         <p class="loading">Loading followed users...</p>
       } @else if (following.error()) {
-        <p class="error" role="alert">Could not load followed users. <a routerLink="/login">Log in</a> and try again.</p>
+        @switch (followingErrorStatus()) {
+          @case (401) {
+            <div class="empty-state" role="alert">
+              <h2>Log in to see your followed users</h2>
+              <p>Your profile is for logged-in explorers, and your session may have expired.</p>
+              <div class="empty-state-actions">
+                <a class="button button--primary" routerLink="/login">Log in</a>
+              </div>
+            </div>
+          }
+          @case (403) {
+            <div class="empty-state" role="alert">
+              <h2>Only explorers have a profile</h2>
+              <p>Explorers follow each other and see their followers here.</p>
+              <div class="empty-state-actions">
+                <a class="button button--primary" routerLink="/social">Blogs</a>
+              </div>
+            </div>
+          }
+          @default {
+            <div class="empty-state" role="alert">
+              <h2>Could not load followed users</h2>
+              <p>Something went wrong on our side. Try again in a moment.</p>
+              <div class="empty-state-actions">
+                <button class="button" type="button" (click)="following.reload()">Try again</button>
+              </div>
+            </div>
+          }
+        }
+      } @else if ((following.value()?.totalCount ?? 0) === 0) {
+        <div class="empty-state">
+          <h2>You are not following anyone</h2>
+          <p>Find users and follow the ones whose blogs you want to read.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social/users">Find users</a>
+          </div>
+        </div>
       } @else {
         <div class="table-wrapper">
           <table class="table">
@@ -151,15 +214,6 @@
                     <td colspan="2"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
                   </tr>
                 }
-              } @empty {
-                <tr>
-                  <td colspan="2">
-                    <p class="empty">
-                      You are not following anyone.
-                      <a routerLink="/social/users">Find users to follow.</a>
-                    </p>
-                  </td>
-                </tr>
               }
             </tbody>
           </table>
@@ -192,7 +246,43 @@
       @if (sent.isLoading()) {
         <p class="loading">Loading sent requests...</p>
       } @else if (sent.error()) {
-        <p class="error" role="alert">Could not load sent requests. <a routerLink="/login">Log in</a> and try again.</p>
+        @switch (sentErrorStatus()) {
+          @case (401) {
+            <div class="empty-state" role="alert">
+              <h2>Log in to see your sent requests</h2>
+              <p>Your profile is for logged-in explorers, and your session may have expired.</p>
+              <div class="empty-state-actions">
+                <a class="button button--primary" routerLink="/login">Log in</a>
+              </div>
+            </div>
+          }
+          @case (403) {
+            <div class="empty-state" role="alert">
+              <h2>Only explorers have a profile</h2>
+              <p>Explorers follow each other and see their followers here.</p>
+              <div class="empty-state-actions">
+                <a class="button button--primary" routerLink="/social">Blogs</a>
+              </div>
+            </div>
+          }
+          @default {
+            <div class="empty-state" role="alert">
+              <h2>Could not load sent requests</h2>
+              <p>Something went wrong on our side. Try again in a moment.</p>
+              <div class="empty-state-actions">
+                <button class="button" type="button" (click)="sent.reload()">Try again</button>
+              </div>
+            </div>
+          }
+        }
+      } @else if ((sent.value()?.totalCount ?? 0) === 0) {
+        <div class="empty-state">
+          <h2>You have not sent any follow requests</h2>
+          <p>Find users to follow; the requests you send appear here.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social/users">Find users</a>
+          </div>
+        </div>
       } @else {
         <div class="table-wrapper">
           <table class="table">
@@ -228,15 +318,6 @@
                     <td colspan="4"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
                   </tr>
                 }
-              } @empty {
-                <tr>
-                  <td colspan="4">
-                    <p class="empty">
-                      You have not sent any follow requests.
-                      <a routerLink="/social/users">Find users to follow.</a>
-                    </p>
-                  </td>
-                </tr>
               }
             </tbody>
           </table>
@@ -269,7 +350,40 @@
       @if (incoming.isLoading()) {
         <p class="loading">Loading incoming requests...</p>
       } @else if (incoming.error()) {
-        <p class="error" role="alert">Could not load incoming requests. <a routerLink="/login">Log in</a> and try again.</p>
+        @switch (incomingErrorStatus()) {
+          @case (401) {
+            <div class="empty-state" role="alert">
+              <h2>Log in to see your incoming requests</h2>
+              <p>Your profile is for logged-in explorers, and your session may have expired.</p>
+              <div class="empty-state-actions">
+                <a class="button button--primary" routerLink="/login">Log in</a>
+              </div>
+            </div>
+          }
+          @case (403) {
+            <div class="empty-state" role="alert">
+              <h2>Only explorers have a profile</h2>
+              <p>Explorers follow each other and see their followers here.</p>
+              <div class="empty-state-actions">
+                <a class="button button--primary" routerLink="/social">Blogs</a>
+              </div>
+            </div>
+          }
+          @default {
+            <div class="empty-state" role="alert">
+              <h2>Could not load incoming requests</h2>
+              <p>Something went wrong on our side. Try again in a moment.</p>
+              <div class="empty-state-actions">
+                <button class="button" type="button" (click)="incoming.reload()">Try again</button>
+              </div>
+            </div>
+          }
+        }
+      } @else if ((incoming.value()?.totalCount ?? 0) === 0) {
+        <div class="empty-state">
+          <h2>You have no pending incoming requests</h2>
+          <p>Follow requests from other users appear here.</p>
+        </div>
       } @else {
         <div class="table-wrapper">
           <table class="table">
@@ -309,14 +423,6 @@
                     <td colspan="2"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
                   </tr>
                 }
-              } @empty {
-                <tr>
-                  <td colspan="2">
-                    <p class="empty">
-                      You have no pending incoming requests. Requests from other users appear here.
-                    </p>
-                  </td>
-                </tr>
               }
             </tbody>
           </table>
