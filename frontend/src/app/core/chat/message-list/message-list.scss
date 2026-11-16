@@ -1,0 +1,26 @@
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+// Each message is its sender and time, then its text, separated from the next by a hairline.
+.message {
+  border-bottom: 1px solid var(--color-hairline);
+  padding-bottom: var(--space-3);
+}
+
+.sender {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+// Line breaks and long words in a message stay inside the card.
+.text {
+  margin: var(--space-1) 0 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
