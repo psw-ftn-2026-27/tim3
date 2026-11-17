@@ -10,11 +10,12 @@ import {
   SentFollowRequestDto,
 } from '../../api/social-api-types';
 import { FollowManagement } from '../follow-management';
+import { ProfileLoadError } from '../profile-load-error/profile-load-error';
 
 const PAGE_SIZE = 20;
 
 @Component({
-  imports: [RouterLink],
+  imports: [ProfileLoadError, RouterLink],
   selector: 'app-profile',
   styleUrl: './profile.scss',
   templateUrl: './profile.html',

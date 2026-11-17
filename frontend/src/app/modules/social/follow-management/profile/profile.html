@@ -10,7 +10,7 @@
       [disabled]="pending()"
       (click)="toggle('followers')"
     >
-      @if (summary.value(); as counts) {
+      @if (!summary.error() && summary.value(); as counts) {
         Followers: {{ counts.followerCount }}
       } @else {
         Followers
@@ -22,7 +22,7 @@
       [disabled]="pending()"
       (click)="toggle('following')"
     >
-      @if (summary.value(); as counts) {
+      @if (!summary.error() && summary.value(); as counts) {
         Following: {{ counts.followingCount }}
       } @else {
         Following
@@ -53,35 +53,11 @@
       @if (followers.isLoading()) {
         <p class="loading">Loading followers...</p>
       } @else if (followers.error()) {
-        @switch (followersErrorStatus()) {
-          @case (401) {
-            <div class="empty-state" role="alert">
-              <h2>Log in to see your followers</h2>
-              <p>Your profile is for logged-in explorers, and your session may have expired.</p>
-              <div class="empty-state-actions">
-                <a class="button button--primary" routerLink="/login">Log in</a>
-              </div>
-            </div>
-          }
-          @case (403) {
-            <div class="empty-state" role="alert">
-              <h2>Only explorers have a profile</h2>
-              <p>Explorers follow each other and see their followers here.</p>
-              <div class="empty-state-actions">
-                <a class="button button--primary" routerLink="/social">Blogs</a>
-              </div>
-            </div>
-          }
-          @default {
-            <div class="empty-state" role="alert">
-              <h2>Could not load followers</h2>
-              <p>Something went wrong on our side. Try again in a moment.</p>
-              <div class="empty-state-actions">
-                <button class="button" type="button" (click)="followers.reload()">Try again</button>
-              </div>
-            </div>
-          }
-        }
+        <app-profile-load-error
+          [status]="followersErrorStatus()"
+          what="followers"
+          (retry)="followers.reload()"
+        />
       } @else if ((followers.value()?.totalCount ?? 0) === 0) {
         <div class="empty-state">
           <h2>You have no followers yet</h2>
@@ -148,35 +124,11 @@
       @if (following.isLoading()) {
         <p class="loading">Loading followed users...</p>
       } @else if (following.error()) {
-        @switch (followingErrorStatus()) {
-          @case (401) {
-            <div class="empty-state" role="alert">
-              <h2>Log in to see your followed users</h2>
-              <p>Your profile is for logged-in explorers, and your session may have expired.</p>
-              <div class="empty-state-actions">
-                <a class="button button--primary" routerLink="/login">Log in</a>
-              </div>
-            </div>
-          }
-          @case (403) {
-            <div class="empty-state" role="alert">
-              <h2>Only explorers have a profile</h2>
-              <p>Explorers follow each other and see their followers here.</p>
-              <div class="empty-state-actions">
-                <a class="button button--primary" routerLink="/social">Blogs</a>
-              </div>
-            </div>
-          }
-          @default {
-            <div class="empty-state" role="alert">
-              <h2>Could not load followed users</h2>
-              <p>Something went wrong on our side. Try again in a moment.</p>
-              <div class="empty-state-actions">
-                <button class="button" type="button" (click)="following.reload()">Try again</button>
-              </div>
-            </div>
-          }
-        }
+        <app-profile-load-error
+          [status]="followingErrorStatus()"
+          what="followed users"
+          (retry)="following.reload()"
+        />
       } @else if ((following.value()?.totalCount ?? 0) === 0) {
         <div class="empty-state">
           <h2>You are not following anyone</h2>
@@ -246,35 +198,11 @@
       @if (sent.isLoading()) {
         <p class="loading">Loading sent requests...</p>
       } @else if (sent.error()) {
-        @switch (sentErrorStatus()) {
-          @case (401) {
-            <div class="empty-state" role="alert">
-              <h2>Log in to see your sent requests</h2>
-              <p>Your profile is for logged-in explorers, and your session may have expired.</p>
-              <div class="empty-state-actions">
-                <a class="button button--primary" routerLink="/login">Log in</a>
-              </div>
-            </div>
-          }
-          @case (403) {
-            <div class="empty-state" role="alert">
-              <h2>Only explorers have a profile</h2>
-              <p>Explorers follow each other and see their followers here.</p>
-              <div class="empty-state-actions">
-                <a class="button button--primary" routerLink="/social">Blogs</a>
-              </div>
-            </div>
-          }
-          @default {
-            <div class="empty-state" role="alert">
-              <h2>Could not load sent requests</h2>
-              <p>Something went wrong on our side. Try again in a moment.</p>
-              <div class="empty-state-actions">
-                <button class="button" type="button" (click)="sent.reload()">Try again</button>
-              </div>
-            </div>
-          }
-        }
+        <app-profile-load-error
+          [status]="sentErrorStatus()"
+          what="sent requests"
+          (retry)="sent.reload()"
+        />
       } @else if ((sent.value()?.totalCount ?? 0) === 0) {
         <div class="empty-state">
           <h2>You have not sent any follow requests</h2>
@@ -350,35 +278,11 @@
       @if (incoming.isLoading()) {
         <p class="loading">Loading incoming requests...</p>
       } @else if (incoming.error()) {
-        @switch (incomingErrorStatus()) {
-          @case (401) {
-            <div class="empty-state" role="alert">
-              <h2>Log in to see your incoming requests</h2>
-              <p>Your profile is for logged-in explorers, and your session may have expired.</p>
-              <div class="empty-state-actions">
-                <a class="button button--primary" routerLink="/login">Log in</a>
-              </div>
-            </div>
-          }
-          @case (403) {
-            <div class="empty-state" role="alert">
-              <h2>Only explorers have a profile</h2>
-              <p>Explorers follow each other and see their followers here.</p>
-              <div class="empty-state-actions">
-                <a class="button button--primary" routerLink="/social">Blogs</a>
-              </div>
-            </div>
-          }
-          @default {
-            <div class="empty-state" role="alert">
-              <h2>Could not load incoming requests</h2>
-              <p>Something went wrong on our side. Try again in a moment.</p>
-              <div class="empty-state-actions">
-                <button class="button" type="button" (click)="incoming.reload()">Try again</button>
-              </div>
-            </div>
-          }
-        }
+        <app-profile-load-error
+          [status]="incomingErrorStatus()"
+          what="incoming requests"
+          (retry)="incoming.reload()"
+        />
       } @else if ((incoming.value()?.totalCount ?? 0) === 0) {
         <div class="empty-state">
           <h2>You have no pending incoming requests</h2>
