@@ -12,7 +12,7 @@ export class GamesHome {
   private readonly auth = inject(Auth);
 
   // The tab the user is looking at; it starts on quizzes on every visit.
-  protected readonly tab = signal<'quizzes' | 'social'>('quizzes');
+  protected readonly tab = signal<'quizzes' | 'social' | 'location'>('quizzes');
 
   protected readonly isAdministrator = computed(
     () => this.auth.user()?.roles.includes('administrator') ?? false,
