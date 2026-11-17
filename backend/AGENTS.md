@@ -98,7 +98,8 @@ Its only surface toward other modules is `Identity.Contracts`: `IIdentityApi` se
 explorers by display name, returns display names by ID, and tells whether a user exists
 and whether a user is an explorer. It is implemented inside `Identity` and registered by
 `AddIdentityModule`. The user name is the e-mail address, so a display name is the part
-before the `@`; the full address, password and list of roles never leave Identity.
+before the `@`, unique regardless of case; the full address, password and list of roles
+never leave Identity.
 
 What matters outside it: token validation is configured in `Host.Api`; role checks are
 `[Authorize(Roles = ...)]` attributes on controllers or actions. Controllers read the
