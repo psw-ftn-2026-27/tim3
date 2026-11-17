@@ -18,7 +18,40 @@
   } @else if (users.isLoading()) {
     <p class="loading">Loading users...</p>
   } @else if (users.error()) {
-    <p class="error" role="alert">Could not load users. <a routerLink="/login">Log in</a> and try again.</p>
+    @switch (usersErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to find users</h2>
+          <p>Finding users is for logged-in explorers, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only explorers can follow users</h2>
+          <p>Explorers find other users and follow the ones whose blogs they like.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social">Blogs</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load users</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="users.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if ((users.value()?.totalCount ?? 0) === 0) {
+    <div class="empty-state">
+      <h2>No users match your search</h2>
+      <p>Try a different username in the search above.</p>
+    </div>
   } @else {
     <div class="table-wrapper">
       <table class="table">
@@ -81,12 +114,6 @@
                 <td colspan="2"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
               </tr>
             }
-          } @empty {
-            <tr>
-              <td colspan="2">
-                <p class="empty">No users match the search. Try a different username.</p>
-              </td>
-            </tr>
           }
         </tbody>
       </table>

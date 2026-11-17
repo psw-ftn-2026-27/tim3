@@ -11,7 +11,43 @@
   @if (blogs.isLoading()) {
     <p class="loading">Loading your blogs...</p>
   } @else if (blogs.error()) {
-    <p class="error" role="alert">Could not load your blogs. <a routerLink="/login">Log in</a> and try again.</p>
+    @switch (blogsErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to see your blogs</h2>
+          <p>Your blogs are shown to logged-in explorers, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only explorers can write blogs</h2>
+          <p>Explorers write and manage blogs. You can still read the published ones.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social">All blogs</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load your blogs</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="blogs.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if ((blogs.value() ?? []).length === 0) {
+    <div class="empty-state">
+      <h2>You have no blogs yet</h2>
+      <p>Write your first blog and publish it when it is ready.</p>
+      <div class="empty-state-actions">
+        <a class="button button--primary" routerLink="/social/create">Create blog</a>
+      </div>
+    </div>
   } @else {
     <div class="table-wrapper">
       <table class="table">
@@ -62,15 +98,6 @@
                 <td colspan="4"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
               </tr>
             }
-          } @empty {
-            <tr>
-              <td colspan="4">
-                <p class="empty">
-                  You have no blogs yet.
-                  <a routerLink="/social/create">Create your first blog.</a>
-                </p>
-              </td>
-            </tr>
           }
         </tbody>
       </table>

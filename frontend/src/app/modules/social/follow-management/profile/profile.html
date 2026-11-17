@@ -10,7 +10,7 @@
       [disabled]="pending()"
       (click)="toggle('followers')"
     >
-      @if (summary.value(); as counts) {
+      @if (!summary.error() && summary.value(); as counts) {
         Followers: {{ counts.followerCount }}
       } @else {
         Followers
@@ -22,7 +22,7 @@
       [disabled]="pending()"
       (click)="toggle('following')"
     >
-      @if (summary.value(); as counts) {
+      @if (!summary.error() && summary.value(); as counts) {
         Following: {{ counts.followingCount }}
       } @else {
         Following
@@ -53,7 +53,16 @@
       @if (followers.isLoading()) {
         <p class="loading">Loading followers...</p>
       } @else if (followers.error()) {
-        <p class="error" role="alert">Could not load followers. <a routerLink="/login">Log in</a> and try again.</p>
+        <app-profile-load-error
+          [status]="followersErrorStatus()"
+          what="followers"
+          (retry)="followers.reload()"
+        />
+      } @else if ((followers.value()?.totalCount ?? 0) === 0) {
+        <div class="empty-state">
+          <h2>You have no followers yet</h2>
+          <p>Users who follow you appear here.</p>
+        </div>
       } @else {
         <div class="table-wrapper">
           <table class="table">
@@ -83,12 +92,6 @@
                     <td colspan="2"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
                   </tr>
                 }
-              } @empty {
-                <tr>
-                  <td colspan="2">
-                    <p class="empty">You have no followers. Users who follow you appear here.</p>
-                  </td>
-                </tr>
               }
             </tbody>
           </table>
@@ -121,7 +124,19 @@
       @if (following.isLoading()) {
         <p class="loading">Loading followed users...</p>
       } @else if (following.error()) {
-        <p class="error" role="alert">Could not load followed users. <a routerLink="/login">Log in</a> and try again.</p>
+        <app-profile-load-error
+          [status]="followingErrorStatus()"
+          what="followed users"
+          (retry)="following.reload()"
+        />
+      } @else if ((following.value()?.totalCount ?? 0) === 0) {
+        <div class="empty-state">
+          <h2>You are not following anyone</h2>
+          <p>Find users and follow the ones whose blogs you want to read.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social/users">Find users</a>
+          </div>
+        </div>
       } @else {
         <div class="table-wrapper">
           <table class="table">
@@ -151,15 +166,6 @@
                     <td colspan="2"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
                   </tr>
                 }
-              } @empty {
-                <tr>
-                  <td colspan="2">
-                    <p class="empty">
-                      You are not following anyone.
-                      <a routerLink="/social/users">Find users to follow.</a>
-                    </p>
-                  </td>
-                </tr>
               }
             </tbody>
           </table>
@@ -192,7 +198,19 @@
       @if (sent.isLoading()) {
         <p class="loading">Loading sent requests...</p>
       } @else if (sent.error()) {
-        <p class="error" role="alert">Could not load sent requests. <a routerLink="/login">Log in</a> and try again.</p>
+        <app-profile-load-error
+          [status]="sentErrorStatus()"
+          what="sent requests"
+          (retry)="sent.reload()"
+        />
+      } @else if ((sent.value()?.totalCount ?? 0) === 0) {
+        <div class="empty-state">
+          <h2>You have not sent any follow requests</h2>
+          <p>Find users to follow; the requests you send appear here.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social/users">Find users</a>
+          </div>
+        </div>
       } @else {
         <div class="table-wrapper">
           <table class="table">
@@ -228,15 +246,6 @@
                     <td colspan="4"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
                   </tr>
                 }
-              } @empty {
-                <tr>
-                  <td colspan="4">
-                    <p class="empty">
-                      You have not sent any follow requests.
-                      <a routerLink="/social/users">Find users to follow.</a>
-                    </p>
-                  </td>
-                </tr>
               }
             </tbody>
           </table>
@@ -269,7 +278,16 @@
       @if (incoming.isLoading()) {
         <p class="loading">Loading incoming requests...</p>
       } @else if (incoming.error()) {
-        <p class="error" role="alert">Could not load incoming requests. <a routerLink="/login">Log in</a> and try again.</p>
+        <app-profile-load-error
+          [status]="incomingErrorStatus()"
+          what="incoming requests"
+          (retry)="incoming.reload()"
+        />
+      } @else if ((incoming.value()?.totalCount ?? 0) === 0) {
+        <div class="empty-state">
+          <h2>You have no pending incoming requests</h2>
+          <p>Follow requests from other users appear here.</p>
+        </div>
       } @else {
         <div class="table-wrapper">
           <table class="table">
@@ -309,14 +327,6 @@
                     <td colspan="2"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
                   </tr>
                 }
-              } @empty {
-                <tr>
-                  <td colspan="2">
-                    <p class="empty">
-                      You have no pending incoming requests. Requests from other users appear here.
-                    </p>
-                  </td>
-                </tr>
               }
             </tbody>
           </table>

@@ -1,5 +1,5 @@
-import { httpResource } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormField, form, min, required, validate } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { serverMessage } from '../../../../shared/util/server-message';
@@ -16,6 +16,11 @@ export class MyTours {
   private readonly tourAuthoring = inject(TourAuthoring);
 
   protected readonly tours = httpResource<TourDto[]>(() => '/api/exploration/tours/mine');
+
+  protected readonly toursErrorStatus = computed(() => {
+    const failure = this.tours.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 
   protected readonly selectedTourId = signal<string | null>(null);
   protected readonly pending = signal(false);

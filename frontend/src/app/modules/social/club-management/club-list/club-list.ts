@@ -1,4 +1,4 @@
-import { httpResource } from '@angular/common/http';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormField, form, required } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
@@ -25,6 +25,11 @@ export class ClubList {
   protected readonly clubs = httpResource<PageResult<ClubDto>>(
     () => '/api/social/clubs?page=1&pageSize=20',
   );
+
+  protected readonly clubsErrorStatus = computed(() => {
+    const failure = this.clubs.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 
   protected readonly isExplorer = computed(
     () => this.auth.user()?.roles.includes('explorer') ?? false,

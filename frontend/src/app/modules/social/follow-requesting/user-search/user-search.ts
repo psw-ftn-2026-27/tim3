@@ -1,4 +1,4 @@
-import { httpResource } from '@angular/common/http';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormField, form, required } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
@@ -35,6 +35,11 @@ export class UserSearch {
       return undefined;
     }
     return `/api/social/users?text=${encodeURIComponent(text)}&page=${this.page()}&pageSize=${PAGE_SIZE}`;
+  });
+
+  protected readonly usersErrorStatus = computed(() => {
+    const failure = this.users.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
   });
 
   protected readonly pending = signal(false);

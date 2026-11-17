@@ -1,4 +1,4 @@
-import { httpResource } from '@angular/common/http';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { marked } from 'marked';
@@ -21,6 +21,11 @@ export class BlogDetail {
   readonly id = input.required<string>();
 
   protected readonly detail = httpResource<BlogDto>(() => `/api/social/blogs/${this.id()}`);
+
+  protected readonly detailErrorStatus = computed(() => {
+    const failure = this.detail.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 
   protected readonly descriptionHtml = computed(() => {
     const blog = this.detail.value();

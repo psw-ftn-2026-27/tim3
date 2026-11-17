@@ -4,7 +4,35 @@
   @if (club.isLoading()) {
     <p class="loading">Loading club...</p>
   } @else if (club.error()) {
-    <p class="error" role="alert">Could not load the club. <a routerLink="/login">Log in</a> and try again.</p>
+    @switch (clubErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to see this club</h2>
+          <p>Clubs are shown to logged-in users, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (404) {
+        <div class="empty-state" role="alert">
+          <h2>This club does not exist</h2>
+          <p>It may have been deleted. Pick another club from the list.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social/clubs">All clubs</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the club</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="club.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
   } @else {
     @if (club.value(); as details) {
       <section class="card stack">

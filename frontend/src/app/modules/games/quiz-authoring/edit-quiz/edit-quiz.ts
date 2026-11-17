@@ -1,7 +1,7 @@
-import { httpResource } from '@angular/common/http';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormField, form, max, min, required } from '@angular/forms/signals';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { AnswerDto, QuestionDto, QuizDto } from '../../api/games-api-types';
 import { QuizAuthoring } from '../quiz-authoring';
@@ -9,7 +9,7 @@ import { QuizAuthoring } from '../quiz-authoring';
 const MAX_ANSWERS = 4;
 
 @Component({
-  imports: [FormField],
+  imports: [FormField, RouterLink],
   selector: 'app-edit-quiz',
   styleUrl: './edit-quiz.scss',
   templateUrl: './edit-quiz.html',
@@ -21,6 +21,11 @@ export class EditQuiz {
   readonly id = input.required<string>();
 
   protected readonly quiz = httpResource<QuizDto>(() => `/api/games/quizzes/${this.id()}/edit`);
+
+  protected readonly quizErrorStatus = computed(() => {
+    const failure = this.quiz.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 
   // A quiz can be changed only as a draft; any other status shows the page read-only.
   protected readonly isDraft = computed(() => this.quiz.value()?.status === 'Draft');

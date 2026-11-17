@@ -11,9 +11,43 @@
   @if (quizzes.isLoading()) {
     <p class="loading">Loading quizzes...</p>
   } @else if (quizzes.error()) {
-    <p class="error" role="alert">
-      Could not load the quizzes. <a routerLink="/login">Log in</a> as an administrator and try again.
-    </p>
+    @switch (quizzesErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to see quizzes</h2>
+          <p>Quizzes are managed by administrators, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only administrators can see quizzes</h2>
+          <p>Administrators compose quizzes and publish them for players.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games">Games</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the quizzes</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="quizzes.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if ((quizzes.value()?.totalCount ?? 0) === 0) {
+    <div class="empty-state">
+      <h2>There are no quizzes yet</h2>
+      <p>Compose the first quiz at a landmark and publish it when it is ready.</p>
+      <div class="empty-state-actions">
+        <a class="button button--primary" routerLink="/games/quizzes/create">New quiz</a>
+      </div>
+    </div>
   } @else {
     <div class="table-wrapper">
       <table class="table">
@@ -36,15 +70,6 @@
               </td>
               <td>{{ quiz.experiencePoints }}</td>
               <td>{{ quiz.questions.length }}</td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="4">
-                <p class="empty">
-                  There are no quizzes yet.
-                  <a routerLink="/games/quizzes/create">Create a new quiz.</a>
-                </p>
-              </td>
             </tr>
           }
         </tbody>

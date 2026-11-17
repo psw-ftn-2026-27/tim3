@@ -123,3 +123,10 @@ p a:not(.button) {
     clip-path: circle(150vmax at var(--reveal-x) var(--reveal-y));
   }
 }
+
+// The pictures of the page that the transition shows have no frosted glass (the browser
+// leaves out backdrop-filter), so the sticky nav would turn see-through over the content
+// while the circle grows. During the switch the nav is drawn solid in the page colour.
+:root:active-view-transition header::before {
+  background: var(--color-bg);
+}
