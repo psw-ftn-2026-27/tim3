@@ -2,6 +2,10 @@
   <div class="page-head">
     <h1>Korpa</h1>
     <div class="page-actions">
+      <a class="button" routerLink="/exploration">Ponuda tura</a>
+      @if (canViewCart()) {
+        <a class="button" routerLink="/exploration/purchased">Moje kupljene ture</a>
+      }
       <a class="button" routerLink="/payment">Novčanik</a>
     </div>
   </div>
@@ -95,6 +99,9 @@
         <div class="empty-state">
           <h2>Korpa je prazna</h2>
           <p>Dodaj ture iz ponude da započneš kupovinu.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/exploration">Ponuda tura</a>
+          </div>
         </div>
       } @else {
         <section class="stack">
@@ -104,7 +111,7 @@
               <thead>
                 <tr>
                   <th scope="col">Tura</th>
-                  <th scope="col">Cena</th>
+                  <th scope="col" [style.text-align]="'right'">Cena</th>
                   <th scope="col">Radnja</th>
                 </tr>
               </thead>
@@ -112,7 +119,7 @@
                 @for (item of contents.items; track item.tourId) {
                   <tr>
                     <td>{{ item.name }}</td>
-                    <td>{{ item.priceInEc }} EC</td>
+                    <td [style.text-align]="'right'">{{ item.priceInEc }} EC</td>
                     <td>
                       <button
                         class="button"
@@ -125,66 +132,95 @@
                       </button>
                     </td>
                   </tr>
+                  @if (removeError()?.tourId === item.tourId) {
+                    <tr>
+                      <td colspan="3">
+                        <p class="error" role="alert">{{ removeError()?.message }}</p>
+                      </td>
+                    </tr>
+                  }
                 }
               </tbody>
             </table>
           </div>
-          <p aria-live="polite">
-            Ukupno <strong>{{ contents.totalInEc }} EC</strong>
-          </p>
-          <div class="page-actions">
-            <button
-              class="button button--primary"
-              type="button"
-              [disabled]="pending() || cart.isLoading()"
-              (click)="checkout()"
-            >
-              Kupi
-            </button>
-          </div>
         </section>
-      }
-      @if (removeError(); as error) {
-        <p class="error" role="alert">{{ error }}</p>
-      }
-      @if (checkoutError(); as error) {
-        <p class="error" role="alert">{{ error }}</p>
       }
     }
 
     @if (checkoutConfirmed()) {
-      <p class="success" role="status">Kupovina je uspešna.</p>
-    }
-    @if (wallet.isLoading()) {
-      <p class="loading">Učitavanje stanja novčanika…</p>
-    } @else if (wallet.error()) {
-      <div class="empty-state" role="alert">
-        @switch (walletErrorStatus()) {
-          @case (401) {
-            <h2>Prijavi se da vidiš novčanik</h2>
-            <p>Sesija je istekla. Prijavi se ponovo.</p>
-            <div class="empty-state-actions">
-              <a class="button button--primary" routerLink="/login">Prijavi se</a>
-            </div>
-          }
-          @case (403) {
-            <h2>Novčanik je dostupan turistima</h2>
-            <p>Za pregled stanja potreban je turistički nalog.</p>
-          }
-          @default {
-            <h2>Stanje novčanika nije moglo da se učita</h2>
-            <p>Pokušaj ponovo za koji trenutak.</p>
-            <div class="empty-state-actions">
-              <button class="button" type="button" (click)="wallet.reload()">Pokušaj ponovo</button>
-            </div>
-          }
-        }
+      <div class="stack">
+        <p class="success" role="status">Kupovina je uspešna.</p>
+        <div class="page-actions">
+          <a class="button button--primary" routerLink="/exploration/purchased"
+            >Otvori kupljene ture</a
+          >
+        </div>
       </div>
-    } @else if (wallet.hasValue()) {
-      <p aria-live="polite">
-        Stanje novčanika <strong>{{ wallet.value().balance }} EC</strong>
-      </p>
     }
+    <section class="card stack" aria-labelledby="checkout-title">
+      <h2 id="checkout-title">Pregled kupovine</h2>
+      @if (cart.hasValue() && !cart.isLoading() && !cart.error() && cart.value().items.length > 0) {
+        <p aria-live="polite">
+          Ukupno <strong>{{ cart.value().totalInEc }} EC</strong>
+        </p>
+      }
+      @if (wallet.isLoading()) {
+        <p class="loading">Učitavanje stanja novčanika…</p>
+      } @else if (wallet.error()) {
+        <div class="empty-state" role="alert">
+          @switch (walletErrorStatus()) {
+            @case (401) {
+              <h2>Prijavi se da vidiš novčanik</h2>
+              <p>Sesija je istekla. Prijavi se ponovo.</p>
+              <div class="empty-state-actions">
+                <a class="button button--primary" routerLink="/login">Prijavi se</a>
+              </div>
+            }
+            @case (403) {
+              <h2>Novčanik je dostupan turistima</h2>
+              <p>Za pregled stanja potreban je turistički nalog.</p>
+            }
+            @default {
+              <h2>Stanje novčanika nije moglo da se učita</h2>
+              <p>Pokušaj ponovo za koji trenutak.</p>
+              <div class="empty-state-actions">
+                <button class="button" type="button" (click)="wallet.reload()">
+                  Pokušaj ponovo
+                </button>
+              </div>
+            }
+          }
+        </div>
+      } @else if (wallet.hasValue()) {
+        <p aria-live="polite">
+          Stanje novčanika <strong>{{ wallet.value().balance }} EC</strong>
+        </p>
+      }
+      @if (cart.hasValue() && !cart.isLoading() && !cart.error() && cart.value().items.length > 0) {
+        @if (missingEc() > 0) {
+          <p role="status">
+            Nemaš dovoljno sredstava. Nedostaje još <strong>{{ missingEc() }} EC</strong>.
+          </p>
+        }
+        @if (checkoutError(); as error) {
+          <p class="error" role="alert">{{ error }}</p>
+        }
+        <div class="page-actions">
+          <button
+            class="button button--primary"
+            type="button"
+            [disabled]="checkoutBlocked()"
+            (click)="checkout()"
+          >
+            @if (purchasing()) {
+              Kupovina…
+            } @else {
+              Kupi za {{ cart.value().totalInEc }} EC
+            }
+          </button>
+        </div>
+      }
+    </section>
   } @else {
     <div class="empty-state">
       <h2>Korpa je dostupna turistima</h2>
