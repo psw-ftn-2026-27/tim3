@@ -29,8 +29,7 @@ public sealed class Quiz : AggregateRoot
     public Quiz(Guid authorId, string title, string description, int experiencePoints)
         : base(Guid.NewGuid())
     {
-        EnsureTitle(title);
-        EnsureExperiencePoints(experiencePoints);
+        EnsureValidDetails(title, experiencePoints);
 
         AuthorId = authorId;
         Title = title;
@@ -42,8 +41,7 @@ public sealed class Quiz : AggregateRoot
     public void UpdateDetails(string title, string description, int experiencePoints, Location? location)
     {
         EnsureDraft();
-        EnsureTitle(title);
-        EnsureExperiencePoints(experiencePoints);
+        EnsureValidDetails(title, experiencePoints);
 
         Title = title;
         Description = description;
@@ -133,16 +131,13 @@ public sealed class Quiz : AggregateRoot
         }
     }
 
-    private static void EnsureTitle(string title)
+    // The details a quiz is created and updated with: a title and the experience points it awards.
+    private static void EnsureValidDetails(string title, int experiencePoints)
     {
         if (string.IsNullOrWhiteSpace(title))
         {
             throw new DomainException("A quiz requires a title.");
         }
-    }
-
-    private static void EnsureExperiencePoints(int experiencePoints)
-    {
         if (experiencePoints < MinExperiencePoints || experiencePoints > MaxExperiencePoints)
         {
             throw new DomainException($"A quiz must award between {MinExperiencePoints} and {MaxExperiencePoints} experience points.");
