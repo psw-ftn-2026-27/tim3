@@ -3,6 +3,9 @@
     <h1>Moje kupljene ture</h1>
     <div class="page-actions">
       <a class="button" routerLink="/exploration">Ponuda tura</a>
+      @if (isExplorer()) {
+        <a class="button" routerLink="/payment/cart">Korpa</a>
+      }
     </div>
   </div>
 
@@ -59,23 +62,26 @@
         }
       </div>
       @if (lastPage() > 1 || page() > 1) {
-        <nav class="page-actions" aria-label="Stranice kupljenih tura">
-          <button
-            class="button"
-            type="button"
-            [disabled]="page() === 1"
-            (click)="page.set(page() - 1)"
-          >
-            Prethodna
-          </button>
-          <button
-            class="button"
-            type="button"
-            [disabled]="page() >= lastPage()"
-            (click)="page.set(page() + 1)"
-          >
-            Sledeća
-          </button>
+        <nav class="stack" aria-label="Stranice kupljenih tura">
+          <p class="meta" role="status">Strana {{ page() }} od {{ lastPage() }}</p>
+          <div class="page-actions">
+            <button
+              class="button"
+              type="button"
+              [disabled]="page() === 1"
+              (click)="page.set(page() - 1)"
+            >
+              Prethodna
+            </button>
+            <button
+              class="button"
+              type="button"
+              [disabled]="page() >= lastPage()"
+              (click)="page.set(page() + 1)"
+            >
+              Sledeća
+            </button>
+          </div>
         </nav>
       }
     }

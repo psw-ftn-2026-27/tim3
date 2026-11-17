@@ -1,6 +1,7 @@
 import { HttpErrorResponse, httpResource } from '@angular/common/http';
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Auth } from '../../../../core/auth/auth';
 import { PageResult } from '../../../../shared/api/page-result';
 import { TourDto } from '../../api/exploration-api-types';
 import { TourCard } from '../tour-card/tour-card';
@@ -12,6 +13,10 @@ import { TourCard } from '../tour-card/tour-card';
   templateUrl: './purchased-tours.html',
 })
 export class PurchasedTours {
+  private readonly auth = inject(Auth);
+  protected readonly isExplorer = computed(
+    () => this.auth.user()?.roles.includes('explorer') ?? false,
+  );
   private readonly pageSize = 20;
   protected readonly page = signal(1);
   protected readonly tours = httpResource<PageResult<TourDto>>(
