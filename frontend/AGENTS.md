@@ -21,15 +21,19 @@ opt out of either).
 
 ```
 frontend/src/
+  environments/              build-time settings, see Conventions             [platform]
   styles.scss                @use of the four partials below, nothing else   [platform]
   styles/
     _tokens.scss             colours, spacing, radius, type as CSS custom properties
     _base.scss               reset, body, headings, links
-    _layout.scss             page container, stack, grid helpers
-    _components.scss         global classes: button, card, form field, table
+    _layout.scss             page container, stack, grid, page head helpers
+    _components.scss         global classes: button, badge, card, form field, table,
+                             page states (loading, empty-state, empty, error,
+                             success), meta
   app/
     core/                    auth (state, interceptor, login, register), home,
-                             app.routes.ts                                    [platform]
+                             theme (light/dark toggle), consent (analytics
+                             cookie choice), app.routes.ts                    [platform]
     shared/
       util/
       api/                   shared types (PageResult, ProblemDetails),
@@ -111,6 +115,10 @@ construct means adding a lesson, so treat it as a platform decision.
 - State: `signal()` and `computed()`. `effect()` only when a signal must
   drive something outside the component tree, and it needs a reason. Page-scoped state, including its read resources, lives in the page.
   State that outlives a page lives in a service holding signals, `providedIn: 'root'`.
+- Timers: a page that must repeat something on its own (the chat reloading its messages,
+  a position check every 10 seconds) starts one `setInterval` in its constructor and clears
+  it with `inject(DestroyRef).onDestroy(...)`, so the timer stops when the user leaves the
+  page. Only pages hold timers; presentational components and services never do.
 - HTTP: `httpResource()` in the page for reads (it carries loading and error state as
   signals, and a fresh one is created on every visit); `HttpClient` with
   `firstValueFrom` in the group's service for writes. Functional interceptors
@@ -133,7 +141,8 @@ No component library. Styling is plain SCSS, deliberately minimal: elegant defau
 lean files that students extend, not a design system. The four global partials in
 `src/styles/` are platform-owned and short. Theming means editing `_tokens.scss` and
 nothing else; every colour, spacing and font value elsewhere refers to a custom property
-defined there.
+defined there. The dark theme is the same tokens redefined under
+`:root[data-theme='dark']`, so a colour that refers to a token works in both themes.
 
 Where a style goes, in order:
 
@@ -142,6 +151,18 @@ Where a style goes, in order:
    global class is shared code and follows the same promotion rule as `shared/`.
 3. Everything else: the component's own `.scss`, under default (emulated) encapsulation.
    Never `::ng-deep`.
+
+Every page shows its states with the shared classes `.loading`, `.empty-state` (a
+page-level list with no items, or a resource that could not load with `role="alert"`: a
+centred card with a heading, one line and the action that fits the cause, so 401 offers
+"Log in", 403 a page the user may open, any other failure "Try again", and an empty list
+the action that fills it), `.empty` (a small list inside a card or form), `.error` (a
+field's own error inside `.field` without a role, a failed command with `role="alert"`)
+and `.success` (`role="status"`), and uses `.button`, `.badge`, `.card`, `.field`,
+`.table` and `.page-head` for what they cover. The guide to follow is
+`src/styles/README.md` (in Serbian): when to use each class, with an example to copy.
+Pages are reviewed against it, and a page never writes its own style for something a
+shared class already covers.
 
 Do not hand-roll a design system, do not add utility-class frameworks, do not introduce
 `shared/ui` wrappers unprompted. Visual consistency across modules is an open problem
@@ -162,5 +183,11 @@ assigned to the platform team, and misalignment is an accepted learning experien
 - A page component owns the interaction: it declares its read resource, injects its
   group's service for commands, and passes plain values down to presentational
   components, which take `input()`s and raise `output()`s and inject nothing.
+- Build-time settings live in `src/environments/`: `environment.ts` for production and
+  `environment.development.ts`, which `fileReplacements` in `angular.json` swaps in for
+  the development build (`npm start`). Code imports only `environment`. Today it holds
+  `analyticsMeasurementId`, the Google Analytics 4 measurement ID; an empty string means
+  analytics is off. A developer may put a test property's ID in the development file
+  locally, but never commits it. Adding a setting is a platform decision.
 - Do not produce Vitest tests unless specifically instructed. Frontend testing is not
   taught; it is a platform-team assignment.

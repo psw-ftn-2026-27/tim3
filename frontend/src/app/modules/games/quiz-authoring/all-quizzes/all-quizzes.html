@@ -1,44 +1,87 @@
 <div class="stack">
-  <h1>All quizzes</h1>
+  <div class="page-head">
+    <h1>All quizzes</h1>
 
-  <p><a routerLink="/games/quizzes/create">New quiz</a></p>
+    <div class="page-actions">
+      <a class="button" routerLink="/games">Games</a>
+      <a class="button button--primary" routerLink="/games/quizzes/create">New quiz</a>
+    </div>
+  </div>
 
   @if (quizzes.isLoading()) {
-    <p>Loading quizzes...</p>
+    <p class="loading">Loading quizzes...</p>
   } @else if (quizzes.error()) {
-    <p class="error">Could not load the quizzes. Log in as an administrator and try again.</p>
+    @switch (quizzesErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to see quizzes</h2>
+          <p>Quizzes are managed by administrators, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only administrators can see quizzes</h2>
+          <p>Administrators compose quizzes and publish them for players.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games">Games</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the quizzes</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="quizzes.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if ((quizzes.value()?.totalCount ?? 0) === 0) {
+    <div class="empty-state">
+      <h2>There are no quizzes yet</h2>
+      <p>Compose the first quiz at a landmark and publish it when it is ready.</p>
+      <div class="empty-state-actions">
+        <a class="button button--primary" routerLink="/games/quizzes/create">New quiz</a>
+      </div>
+    </div>
   } @else {
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Title</th>
-          <th scope="col">Status</th>
-          <th scope="col">XP</th>
-          <th scope="col">Questions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (quiz of quizzes.value()?.items ?? []; track quiz.id) {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
           <tr>
-            <td><a [routerLink]="['/games/quizzes', quiz.id]">{{ quiz.title }}</a></td>
-            <td>{{ quiz.status }}</td>
-            <td>{{ quiz.experiencePoints }}</td>
-            <td>{{ quiz.questions.length }}</td>
+            <th scope="col">Title</th>
+            <th scope="col">Status</th>
+            <th scope="col">XP</th>
+            <th scope="col">Questions</th>
           </tr>
-        } @empty {
-          <tr>
-            <td colspan="4">There are no quizzes yet.</td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  }
+        </thead>
+        <tbody>
+          @for (quiz of quizzes.value()?.items ?? []; track quiz.id) {
+            <tr>
+              <td>
+                <a [routerLink]="['/games/quizzes', quiz.id]">{{ quiz.title }}</a>
+              </td>
+              <td>
+                <span class="badge">{{ quiz.status }}</span>
+              </td>
+              <td>{{ quiz.experiencePoints }}</td>
+              <td>{{ quiz.questions.length }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
 
-  <div class="paging">
-    <button class="button" type="button" [disabled]="!hasPrevious()" (click)="previous()">
-      Previous
-    </button>
-    <span class="meta">Page {{ page() }}</span>
-    <button class="button" type="button" [disabled]="!hasNext()" (click)="next()">Next</button>
-  </div>
+    <div class="paging">
+      <button class="button" type="button" [disabled]="!hasPrevious()" (click)="previous()">
+        Previous
+      </button>
+      <span class="meta">Page {{ page() }}</span>
+      <button class="button" type="button" [disabled]="!hasNext()" (click)="next()">Next</button>
+    </div>
+  }
 </div>

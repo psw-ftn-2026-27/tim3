@@ -1,5 +1,5 @@
 using Payment.Application.Wallets;
-using Shared.Domain.Exceptions;
+using Shared.Domain;
 
 namespace Payment.Application.OwnWallet;
 
@@ -18,6 +18,6 @@ public sealed class OwnWalletQueries
         pageSize = Math.Clamp(pageSize, 1, 100);
 
         return await _walletReadRepository.GetByUserIdAsync(userId, page, pageSize)
-            ?? throw new NotFoundException($"Wallet for user {userId} does not exist.");
+            ?? new WalletDto(0, new PageResult<WalletTransactionDto>([], 0));
     }
 }

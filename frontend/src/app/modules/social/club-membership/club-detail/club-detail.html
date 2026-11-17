@@ -1,0 +1,275 @@
+<div class="stack">
+  <p><a class="button" routerLink="/social/clubs">Back to clubs</a></p>
+
+  @if (club.isLoading()) {
+    <p class="loading">Loading club...</p>
+  } @else if (club.error()) {
+    @switch (clubErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to see this club</h2>
+          <p>Clubs are shown to logged-in users, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (404) {
+        <div class="empty-state" role="alert">
+          <h2>This club does not exist</h2>
+          <p>It may have been deleted. Pick another club from the list.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social/clubs">All clubs</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the club</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="club.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else {
+    @if (club.value(); as details) {
+      <section class="card stack">
+        <h1>{{ details.name }}</h1>
+
+        <p>{{ details.description }}</p>
+
+        @if (details.images.length) {
+          <div class="images">
+            @for (image of details.images; track $index) {
+              <img class="thumbnail" [src]="image" alt="Image of club {{ details.name }}" />
+            }
+          </div>
+        }
+
+        @switch (details.membership) {
+          @case ('Member') {
+            <p class="meta">You are a member of this club.</p>
+          }
+          @case ('Pending') {
+            <p class="meta">Your join request is pending.</p>
+            @if (withdrawError()) {
+              <p class="error" role="alert">{{ withdrawError() }}</p>
+            }
+            <div class="actions">
+              <button
+                class="button"
+                type="button"
+                [disabled]="pending()"
+                (click)="withdrawRequest()"
+              >
+                Withdraw request
+              </button>
+            </div>
+          }
+          @case ('None') {
+            @if (isExplorer()) {
+              @if (requestError()) {
+                <p class="error" role="alert">{{ requestError() }}</p>
+              }
+              <div class="actions">
+                <button
+                  class="button button--primary"
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="requestToJoin()"
+                >
+                  Request to join
+                </button>
+              </div>
+            }
+          }
+        }
+      </section>
+
+      <section class="card stack">
+        <h2>Members</h2>
+
+        @if (removeError()) {
+          <p class="error">{{ removeError() }}</p>
+        }
+
+        <ul class="users">
+          @for (member of details.members; track member.userId) {
+            <li class="request">
+              <span>{{ member.displayName }}</span>
+              @if (isOwner() && member.userId !== details.ownerId) {
+                <button
+                  class="button"
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="removeMember(member.userId)"
+                >
+                  Remove
+                </button>
+              }
+            </li>
+          } @empty {
+            <li class="empty">
+              The club has no members yet.
+              @if (isOwner()) {
+                Accept join requests below.
+              } @else {
+                Explorers join by sending a join request.
+              }
+            </li>
+          }
+        </ul>
+      </section>
+
+      @if (isOwner()) {
+        <section class="card stack">
+          <h2>Join requests</h2>
+
+          @if (resolveError()) {
+            <p class="error" role="alert">{{ resolveError() }}</p>
+          }
+
+          <ul class="users">
+            @for (requester of details.pendingRequests; track requester.userId) {
+              <li class="request">
+                <span>{{ requester.displayName }}</span>
+                <div class="actions">
+                  <button
+                    class="button button--primary"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="accept(requester.userId)"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="reject(requester.userId)"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </li>
+            } @empty {
+              <li class="empty">
+                There are no pending join requests. New requests from explorers appear here.
+              </li>
+            }
+          </ul>
+        </section>
+
+        <section class="card stack">
+          <h2>Pending invitations</h2>
+
+          @if (invitationError()) {
+            <p class="error">{{ invitationError() }}</p>
+          }
+
+          @if (invitations.isLoading()) {
+            <p>Loading invitations...</p>
+          } @else if (invitations.error()) {
+            <p class="error">Could not load the invitations.</p>
+          } @else {
+            <ul class="users">
+              @for (invitee of invitations.value() ?? []; track invitee.userId) {
+                <li class="request">
+                  <span>{{ invitee.displayName }}</span>
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="withdrawInvitation(invitee.userId)"
+                  >
+                    Withdraw
+                  </button>
+                </li>
+              } @empty {
+                <li class="meta">There are no pending invitations.</li>
+              }
+            </ul>
+          }
+        </section>
+
+        <section class="card stack">
+          <h2>Invite explorers</h2>
+
+          <form class="search" (submit)="search($event)">
+            <div class="field">
+              <label for="invitee-text">Username</label>
+              <input id="invitee-text" type="search" [formField]="form.text" />
+            </div>
+            <button class="button button--primary" type="submit" [disabled]="!form().valid()">
+              Search
+            </button>
+          </form>
+
+          @if (searchedText() === null) {
+            <p>You have not searched yet.</p>
+          } @else if (invitees.isLoading()) {
+            <p>Loading explorers...</p>
+          } @else if (invitees.error()) {
+            <p class="error">Could not load explorers. Log in and try again.</p>
+          } @else {
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Username</th>
+                  <th scope="col">Invitation</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (user of invitees.value()?.items ?? []; track user.userId) {
+                  <tr>
+                    <td>{{ user.displayName }}</td>
+                    <td>
+                      <button
+                        class="button button--primary"
+                        type="button"
+                        [disabled]="pending()"
+                        (click)="invite(user)"
+                      >
+                        Invite
+                      </button>
+                    </td>
+                  </tr>
+                  @if (inviteError()?.userId === user.userId) {
+                    <tr>
+                      <td colspan="2"><p class="error">{{ inviteError()?.message }}</p></td>
+                    </tr>
+                  }
+                } @empty {
+                  <tr>
+                    <td colspan="2">No explorers match the search.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+
+            <div class="paging">
+              <button
+                class="button"
+                type="button"
+                [disabled]="page() === 1 || pending()"
+                (click)="previousPage()"
+              >
+                Previous
+              </button>
+              <button
+                class="button"
+                type="button"
+                [disabled]="!hasNextPage() || pending()"
+                (click)="nextPage()"
+              >
+                Next
+              </button>
+            </div>
+          }
+        </section>
+      }
+    }
+  }
+</div>

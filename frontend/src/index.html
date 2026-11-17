@@ -6,6 +6,16 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <script>
+      // Picks the light or dark theme before the app loads, so a dark page never flashes
+      // light: the choice saved by the toggle (core/theme/theme.ts), or else the system setting.
+      {
+        const saved = localStorage.getItem('explorer.theme');
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const dark = saved === null ? systemDark : saved === 'dark';
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      }
+    </script>
   </head>
   <body>
     <app-root></app-root>

@@ -27,3 +27,9 @@
   top: 50%;
   transform: translate(-50%, -50%);
 }
+
+// Poruka da pozicija još nije postavljena stoji pri dnu mape, da se ne preklopi sa porukom o putanji.
+.map-message--bottom {
+  bottom: var(--space-5);
+  top: auto;
+}

@@ -12,4 +12,5 @@ public sealed record TourDto(
     TourStatus Status,
     DateTime? PublishedAt,
     DateTime? ArchivedAt,
+    GroupSizeDto? RecommendedGroupSize,
     List<TransportTimeDto> TransportTimes);

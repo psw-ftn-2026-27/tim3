@@ -1,38 +1,79 @@
-<ul class="comments">
-  @for (comment of comments(); track comment.id) {
-    <li class="stack">
-      <p>{{ comment.text }}</p>
-      <p class="meta">{{ comment.createdAt }}</p>
+<section class="stack">
+  <h2>Comments</h2>
 
-      @if (comment.userId === currentUserId()) {
+  <ul class="comments">
+    @for (comment of comments(); track comment.id) {
+      <li class="comment">
         @if (editingCommentId() === comment.id) {
-          <form class="comment-actions" (submit)="saveEdit($event, comment.id)">
+          <form class="comment-form" (submit)="saveEdit($event, comment.id)">
             <input type="text" aria-label="Edit comment" [formField]="editForm.text" />
-            <button class="button" type="submit" [disabled]="!editForm().valid()">Save</button>
+            <button class="button button--primary" type="submit" [disabled]="!editForm().valid()">
+              Save
+            </button>
             <button class="button" type="button" (click)="editingCommentId.set(null)">
               Cancel
             </button>
+            @if (errorFor(comment.id)) {
+              <p class="error" role="alert">{{ errorFor(comment.id) }}</p>
+            }
           </form>
         } @else {
-          <div class="comment-actions">
-            <button class="button" type="button" (click)="startEdit(comment)">Edit</button>
-            <button class="button" type="button" (click)="deleteComment.emit(comment.id)">
-              Delete
-            </button>
-          </div>
+          <p class="text">{{ comment.text }}</p>
         }
-      }
-    </li>
-  } @empty {
-    <li class="meta">No comments yet.</li>
-  }
-</ul>
 
-@if (currentUserId()) {
-  <form class="comment-form" (submit)="submitComment($event)">
-    <input type="text" aria-label="New comment" [formField]="form.text" />
-    <button class="button button--primary" type="submit" [disabled]="!form().valid()">
-      Comment
-    </button>
-  </form>
-}
+        <div class="footer">
+          <span class="meta">
+            <span class="author">{{ comment.authorDisplayName }}</span>
+            {{ when(comment.createdAt) }}
+            @if (wasEdited(comment)) {
+              <span class="edited">edited {{ when(comment.lastModifiedAt) }}</span>
+            }
+          </span>
+
+          @if (
+            comment.userId === currentUserId() &&
+            editingCommentId() !== comment.id &&
+            withinEditWindow(comment)
+          ) {
+            <span class="comment-actions">
+              <button class="button" type="button" (click)="startEdit(comment)">Edit</button>
+              <button class="button" type="button" (click)="deleteComment.emit(comment.id)">
+                Delete
+              </button>
+            </span>
+          }
+        </div>
+
+        @if (editingCommentId() !== comment.id && errorFor(comment.id)) {
+          <p class="error" role="alert">{{ errorFor(comment.id) }}</p>
+        }
+      </li>
+    } @empty {
+      <li class="empty">
+        No comments yet.
+        @if (currentUserId()) {
+          Write the first one below.
+        } @else {
+          Log in to write one.
+        }
+      </li>
+    }
+  </ul>
+
+  @if (currentUserId()) {
+    <form class="comment-form" (submit)="submitComment($event)">
+      <input
+        type="text"
+        aria-label="New comment"
+        placeholder="Write a comment"
+        [formField]="form.text"
+      />
+      <button class="button button--primary" type="submit" [disabled]="!form().valid()">
+        Comment
+      </button>
+      @if (errorFor(null)) {
+        <p class="error" role="alert">{{ errorFor(null) }}</p>
+      }
+    </form>
+  }
+</section>

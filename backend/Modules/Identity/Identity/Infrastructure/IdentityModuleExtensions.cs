@@ -14,7 +14,6 @@ public static class IdentityModuleExtensions
         services.AddModuleDbContext<IdentityModuleDbContext>(configuration, "identity");
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
         services.AddScoped<JwtTokenFactory>();
-        services.AddScoped<IdentityRegistrationService>();
         services.AddScoped<IIdentityApi, IdentityApi>();
         services.AddHostedService<IdentityModuleInitializer>();
 

@@ -22,9 +22,9 @@ Projekat je podeljen na tri direktorijuma koji odgovaraju slojevima funkcionalno
 
 ### Api
 
-Sadrži klasu `IdentityController`. Krajnja tačka `POST /api/identity/login` proverava adresu elektronske pošte i lozinku i vraća token. Kontroler direktno koristi klasu `UserManager` iz biblioteke ASP.NET Core Identity.
+Sadrži klasu `IdentityController` sa dve krajnje tačke. Krajnja tačka `POST /api/identity/register` pravi novi nalog, dodeljuje mu ulogu `explorer` i vraća token. Krajnja tačka `POST /api/identity/login` proverava adresu elektronske pošte i lozinku i vraća token. Obe krajnje tačke su javne, jer im pristupaju korisnici koji još nemaju token. Kontroler direktno koristi klasu `UserManager` iz biblioteke ASP.NET Core Identity, koja vrši ulogu aplikacionog servisa.
 
-Javna krajnja tačka `POST /api/identity/register` nalazi se u `Host.Api`. Poziva `IdentityRegistrationService` da sačuva nalog i dodeli mu ulogu `explorer`, zatim obezbeđuje novčanik za ID tog naloga. Operacija za obezbeđivanje novčanika se povezuje u `AddPaymentModule`, bez direktne reference sa hosta na `Payment.Contracts`. Identity izdaje token tek kada su oba koraka uspela. Ako kreiranje novčanika ne uspe, nalog ostaje sačuvan, a registracija vraća grešku bez tokena. Korisnik se tada može prijaviti i zatražiti novčanik preko `POST /api/payment/wallet/me`.
+Registracija ne obaveštava druge module o novom nalogu. Modul kome je potreban zapis o korisniku pravi ga sam kada mu prvi put zatreba; Payment, na primer, pravi novčanik pri prvoj uplati.
 
 Sadrži i klasu koja definiše metodu `AddIdentityControllers` kojom `Host.Api` uključuje kontrolere ovog projekta, po istom obrascu kao kod funkcionalnih modula.
 

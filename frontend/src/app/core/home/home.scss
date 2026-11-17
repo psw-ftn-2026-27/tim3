@@ -7,8 +7,21 @@
 }
 
 .hero h1 {
-  font-size: calc(var(--font-size-xl) * 1.5);
+  font-size: calc(var(--font-size-2xl) * 1.5);
   margin: 0 0 var(--space-4);
+}
+
+// On a phone the hero title is only as large as other page titles, so it fits the screen.
+@media (max-width: 40rem) {
+  .hero {
+    padding-top: var(--space-6);
+  }
+
+  // A word wider than the screen breaks instead of scrolling the page sideways.
+  .hero h1 {
+    font-size: var(--font-size-2xl);
+    overflow-wrap: break-word;
+  }
 }
 
 .lead {
@@ -27,8 +40,20 @@ a.card {
   text-decoration: none;
 }
 
-a.card:hover {
-  border-color: var(--color-accent);
+// Each module card glows in its module's colour under the pointer.
+a.card.exploration {
+  --card-glow: var(--glow-exploration);
+  --card-shadow: var(--shadow-exploration);
+}
+
+a.card.games {
+  --card-glow: var(--glow-games);
+  --card-shadow: var(--shadow-games);
+}
+
+a.card.social {
+  --card-glow: var(--glow-social);
+  --card-shadow: var(--shadow-social);
 }
 
 a.card h3 {

@@ -1,5 +1,9 @@
 <Solution>
   <Folder Name="/Modules/" />
+  <Folder Name="/Modules/Chats/">
+    <Project Path="Modules/Chats/Chats.Tests/Chats.Tests.csproj" />
+    <Project Path="Modules/Chats/Chats/Chats.csproj" />
+  </Folder>
   <Folder Name="/Modules/Exploration/">
     <Project Path="Modules/Exploration/Exploration.Api/Exploration.Api.csproj" />
     <Project Path="Modules/Exploration/Exploration.Application/Exploration.Application.csproj" />
@@ -22,6 +26,7 @@
     <Project Path="Modules/Identity/Identity/Identity.csproj" />
   </Folder>
   <Folder Name="/Modules/Maps/">
+    <Project Path="Modules/Maps/Maps.Contracts/Maps.Contracts.csproj" />
     <Project Path="Modules/Maps/Maps.Tests/Maps.Tests.csproj" />
     <Project Path="Modules/Maps/Maps/Maps.csproj" />
   </Folder>

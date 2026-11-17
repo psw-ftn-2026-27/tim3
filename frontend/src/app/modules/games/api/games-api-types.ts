@@ -1,3 +1,4 @@
+export type QuizStatus = 'Draft' | 'Published' | 'Retired' | 'Archived';
 export type SocialChallengeStatus = 'Draft' | 'Published' | 'Retired' | 'Archived';
 
 export interface SocialChallengeDto {
@@ -31,8 +32,6 @@ export interface UpdateSocialChallengeDto {
   experienceGained: number;
   endMessage: string;
 }
-
-export type QuizStatus = 'Draft';
 
 export interface AnswerDto {
   text: string;

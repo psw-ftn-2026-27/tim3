@@ -1,26 +1,91 @@
 :root {
-  --color-bg: #ced5f1;
-  --color-surface: #f4f6fc;
-  --color-border: #432534;
-  --color-text: #432534;
-  --color-text-muted: #5a3f4d;
-  --color-accent: #dd7596;
-  --color-accent-text: #432534;
-  --color-danger: #a12b3b;
-  --color-danger-bg: #fbe1e6;
-  --color-success: #13505b;
-  --color-success-bg: #d3e6e8;
-  --color-warning: #7a4e12;
-  --color-warning-bg: #f8e6c4;
-  --color-disabled-bg: #e3e1ec;
-  --color-disabled-text: #5a3f4d;
-  --color-table-header: #e5d9df;
+  // The page is an almost neutral grey field with soft colour blobs behind frosted glass.
+  --color-bg: #f5f5f7;
+  --bg-mesh:
+    radial-gradient(40rem 28rem at 8% 4%, #e4efee 0, transparent 70%),
+    radial-gradient(36rem 26rem at 96% 12%, #f4ece6 0, transparent 70%),
+    radial-gradient(40rem 28rem at 60% 98%, #eceaf4 0, transparent 70%), #f5f5f7;
 
-  // Module tones, used only by the strip under the main nav.
-  --color-exploration: #13505b;
-  --color-games: #dd7596;
-  --color-social: #e5d9df;
-  --color-payment: #e0e3ea;
+  --color-surface: #ffffff;
+  --color-border: #d2d2d7;
+  --color-hairline: #e5e5ea;
+  --color-fill: #f5f5f7;
+  --color-text: #1d1d1f;
+  --color-text-muted: #5c5c62;
+  --color-accent: #1d1d1f;
+  --color-accent-text: #ffffff;
+  --color-danger: #c4302b;
+  --color-danger-bg: #fdeceb;
+  --color-success: #1e7a50;
+  --color-success-bg: #e7f5ee;
+  --color-warning: #875700;
+  --color-warning-bg: #fdf3e1;
+
+  // Module tone (strip background) and ink (strip dot), used only by the strip under the main nav.
+  --color-exploration: #cfefea;
+  --color-exploration-ink: #0e6b63;
+  --color-games: #ffdcc4;
+  --color-games-ink: #a6430f;
+  --color-social: #e8e3f7;
+  --color-social-ink: #5c5c62;
+  --color-payment: #efeff1;
+  --color-payment-ink: #5c5c62;
+
+  // Violet ink for the hardest difficulty, on the lilac social tone.
+  --color-violet: #4b3b8f;
+  // Tags and statuses are small glass chips with a soft prism dot.
+  --chip: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.62));
+  --chip-border: rgba(29, 29, 31, 0.08);
+  --prism: linear-gradient(135deg, #8fded2, #beb0f5);
+  // Games headings shade from clay through rose to violet.
+  --games-gradient: linear-gradient(100deg, #a6430f 0%, #b23a5e 50%, #4b3b8f 100%);
+
+  // Focused fields get a sea border and a mint ring.
+  --color-focus: var(--color-exploration-ink);
+  --color-focus-ring: var(--color-exploration);
+
+  // Frosted glass: a half-transparent white that blurs whatever is behind it.
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass-button: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-blur: blur(14px) saturate(170%);
+  --glass-field: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.72));
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --highlight-soft: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  // The light spot that follows the pointer, as "R G B" so its opacity can change.
+  --lens: 255 255 255;
+  --line: rgba(29, 29, 31, 0.14);
+  --line-strong: rgba(29, 29, 31, 0.28);
+
+  --shadow: 0 10px 40px -16px rgba(29, 29, 31, 0.22);
+  --shadow-button: 0 14px 28px -16px rgba(29, 29, 31, 0.4);
+  // The primary button casts a mint, apricot and lilac halo on hover.
+  --halo:
+    -10px 12px 28px -10px rgba(14, 107, 99, 0.45), 10px 12px 28px -10px rgba(166, 67, 15, 0.35),
+    0 18px 34px -14px rgba(75, 59, 143, 0.45);
+  // Glow (light) and shadow colour of each module, as "R G B" so their opacity can change:
+  // mint and sea, apricot and clay, lilac and violet.
+  --glow-exploration: 143 222 210;
+  --shadow-exploration: 14 107 99;
+  --glow-games: 255 184 140;
+  --shadow-games: 166 67 15;
+  --glow-social: 190 176 245;
+  --shadow-social: 75 59 143;
+
+  // Cards glow in this colour under the pointer. A component may set its own value,
+  // for example one of the module colours above.
+  --card-glow: var(--glow-exploration);
+  --card-shadow: var(--shadow-exploration);
+  // How strongly the white spot under the pointer (lens) and the module colour (glow) light
+  // a card. The dark theme keeps the same colours but dims both, so the card's light text
+  // stays readable under the pointer.
+  --card-lens-strength: 0.9;
+  --card-glow-strength: 0.55;
+  // Dims the page behind the phone and tablet menu panel while it is open.
+  --backdrop: rgba(29, 29, 31, 0.28);
+  // The phone and tablet menu panel: the page colour, a little denser than the bar's glass,
+  // so the links stay readable over whatever is behind it.
+  --menu-panel: rgba(245, 245, 247, 0.9);
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -29,17 +94,79 @@
   --space-5: 1.5rem;
   --space-6: 2rem;
 
-  --radius: 0.125rem;
-  --border: 2px solid var(--color-border);
-  --shadow: 4px 4px 0 var(--color-border);
-  --transition: 120ms ease-out;
+  --radius: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-pill: 999px;
+  --border: 1px solid var(--color-border);
 
-  --font-family: system-ui, 'Segoe UI', -apple-system, sans-serif;
-  --font-family-heading: Georgia, 'Times New Roman', serif;
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  // EB Garamond and Open Sans are not loaded; until they are, the browser uses the next font.
+  --font-family: 'Open Sans', -apple-system, system-ui, sans-serif;
+  --font-family-heading: 'EB Garamond', 'New York', Georgia, serif;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
   --font-size-lg: 1.25rem;
   --font-size-xl: 1.75rem;
+  --font-size-2xl: 3.5rem;
 
   --container-width: 60rem;
+}
+
+// Dark theme: the same tokens with night values. app/core/theme/theme.ts sets data-theme on
+// <html>. Glass turns smoky, ink and white swap, and module tones become deep tints.
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-bg: #0f0f12;
+  --bg-mesh:
+    radial-gradient(40rem 28rem at 8% 4%, #10302d 0, transparent 70%),
+    radial-gradient(36rem 26rem at 96% 12%, #2e1f17 0, transparent 70%),
+    radial-gradient(40rem 28rem at 60% 98%, #1f1b36 0, transparent 70%), #0f0f12;
+
+  --color-surface: #1c1c1f;
+  --color-border: #3a3a40;
+  --color-hairline: #2c2c31;
+  --color-fill: #232327;
+  --color-text: #f5f5f7;
+  --color-text-muted: #bcbcc3;
+  --color-accent: #f5f5f7;
+  --color-accent-text: #1d1d1f;
+  --color-danger: #ff6b61;
+  --color-danger-bg: #3a1614;
+  --color-success: #4cc38a;
+  --color-success-bg: #10301f;
+  --color-warning: #f0b44c;
+  --color-warning-bg: #33260b;
+
+  --color-exploration: #12403b;
+  --color-exploration-ink: #7fdccf;
+  --color-games: #4a2a17;
+  --color-games-ink: #ffb78a;
+  --color-social: #2c2645;
+  --color-social-ink: #bdb2f0;
+  --color-payment: #2a2a2e;
+  --color-payment-ink: #a1a1a8;
+  --color-violet: #bdb2f0;
+  --chip: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+  --chip-border: rgba(255, 255, 255, 0.1);
+  --games-gradient: linear-gradient(100deg, #ffb78a 0%, #f08fb0 50%, #bdb2f0 100%);
+
+  --glass: rgba(28, 28, 32, 0.55);
+  --glass-button: rgba(44, 44, 50, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-field: linear-gradient(180deg, rgba(36, 36, 40, 0.95), rgba(28, 28, 32, 0.8));
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --highlight-soft: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --lens: 70 70 82;
+  --card-lens-strength: 0.15;
+  --card-glow-strength: 0.32;
+  --backdrop: rgba(0, 0, 0, 0.55);
+  --menu-panel: rgba(12, 12, 15, 0.88);
+  --line: rgba(245, 245, 247, 0.14);
+  --line-strong: rgba(245, 245, 247, 0.28);
+
+  --shadow: 0 10px 40px -16px rgba(0, 0, 0, 0.6);
+  --shadow-button: 0 14px 28px -16px rgba(0, 0, 0, 0.7);
 }

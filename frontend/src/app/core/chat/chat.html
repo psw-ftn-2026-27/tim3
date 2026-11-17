@@ -1,0 +1,98 @@
+<div class="chat stack">
+  <p>
+    <a [routerLink]="back().link">{{ back().label }}</a>
+  </p>
+
+  <div class="page-head">
+    <h1>Chat</h1>
+
+    @if (auth.isLoggedIn() && !accessDenied()) {
+      <div class="page-actions">
+        <button
+          class="button"
+          type="button"
+          [disabled]="messages.isLoading()"
+          (click)="messages.reload()"
+        >
+          Refresh
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (!auth.isLoggedIn()) {
+    <p>Log in to read and write messages. <a routerLink="/login">Log in</a></p>
+  } @else if (accessDenied()) {
+    <p class="error">You do not have access to this conversation.</p>
+  } @else {
+    <div class="card stack">
+      @if (moderationError()) {
+        <p class="error">{{ moderationError() }}</p>
+      }
+
+      @if (messages.hasValue()) {
+        <app-message-list
+          [messages]="oldestFirst()"
+          [viewerId]="viewerId()"
+          [canModerate]="viewerIsPrivileged()"
+          [pending]="pending()"
+          (deleteMessage)="deleteMessage($event)"
+          (muteSender)="muteUser($event)"
+        />
+      } @else if (messages.error()) {
+        <p class="error">Could not load the messages. Try again.</p>
+      } @else {
+        <p>Loading messages...</p>
+      }
+
+      @if (viewerIsPrivileged()) {
+        <section class="stack">
+          <h2>Muted users</h2>
+          @for (user of mutedUsers(); track user.userId) {
+            <div class="muted-user">
+              <span>{{ user.displayName }}</span>
+              <button
+                class="button"
+                type="button"
+                [disabled]="pending()"
+                (click)="unmuteUser(user.userId)"
+              >
+                Unmute
+              </button>
+            </div>
+          } @empty {
+            <p class="meta">No one is muted.</p>
+          }
+        </section>
+      }
+
+      @if (viewerIsMuted()) {
+        <p class="meta">You are muted in this chat.</p>
+      } @else {
+        <form class="stack" novalidate (submit)="send($event)">
+          <div class="field">
+            <label for="message-text">Message</label>
+            <textarea id="message-text" rows="3" [formField]="form.text"></textarea>
+            @if (triedToSend()) {
+              @for (message of form.text().errors(); track $index) {
+                <p class="error">{{ message.message }}</p>
+              }
+            }
+          </div>
+
+          @if (error()) {
+            <p class="error">{{ error() }}</p>
+          }
+
+          <button
+            class="button button--primary"
+            type="submit"
+            [disabled]="pending() || (triedToSend() && !form().valid())"
+          >
+            Send
+          </button>
+        </form>
+      }
+    </div>
+  }
+</div>

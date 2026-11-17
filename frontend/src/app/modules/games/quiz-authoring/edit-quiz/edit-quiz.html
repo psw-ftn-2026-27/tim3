@@ -1,11 +1,90 @@
 <div class="stack">
   @if (quiz.isLoading()) {
-    <p>Loading quiz...</p>
+    <p class="loading">Loading quiz...</p>
   } @else if (quiz.error()) {
-    <p class="error">This quiz does not exist or you are not logged in.</p>
+    @switch (quizErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to edit this quiz</h2>
+          <p>Quizzes are managed by administrators, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only administrators can edit quizzes</h2>
+          <p>Administrators compose quizzes and publish them for players.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games">Games</a>
+          </div>
+        </div>
+      }
+      @case (404) {
+        <div class="empty-state" role="alert">
+          <h2>This quiz does not exist</h2>
+          <p>It may have been removed. Pick another quiz from the list.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games/quizzes">All quizzes</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the quiz</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="quiz.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
   } @else if (quiz.value(); as current) {
     <h1>{{ current.title }}</h1>
     <p class="meta">Status: {{ current.status }}</p>
+
+    <div class="actions">
+      @if (current.status === 'Draft' || current.status === 'Retired') {
+        <button class="button button--primary" type="button" [disabled]="pending()" (click)="publish()">
+          Publish
+        </button>
+      }
+      @if (current.status === 'Published') {
+        <button class="button" type="button" [disabled]="pending()" (click)="retire()">
+          Retire
+        </button>
+      }
+      @if (current.status === 'Retired') {
+        <button class="button" type="button" [disabled]="pending()" (click)="archive()">
+          Archive
+        </button>
+      }
+      @if (current.status === 'Draft' || current.status === 'Archived') {
+        <button class="button" type="button" [disabled]="pending()" (click)="startDelete()">
+          Delete
+        </button>
+      }
+    </div>
+    @if (confirmingDelete()) {
+      <div class="card stack">
+        <p>Are you sure you want to delete the quiz {{ current.title }}? This cannot be undone.</p>
+        <div class="actions">
+          <button class="button button--primary" type="button" [disabled]="pending()" (click)="remove()">
+            Delete permanently
+          </button>
+          <button class="button" type="button" [disabled]="pending()" (click)="cancelDelete()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    }
+    @if (transitionMessage()) {
+      <p class="success" role="status">{{ transitionMessage() }}</p>
+    }
+    @if (transitionError()) {
+      <p class="error" role="alert">{{ transitionError() }}</p>
+    }
 
     <div class="layout">
       <div class="layout__side stack">
@@ -14,7 +93,7 @@
             <h2>Quiz details</h2>
 
             @if (detailsError()) {
-              <p class="error">{{ detailsError() }}</p>
+              <p class="error" role="alert">{{ detailsError() }}</p>
             }
 
             <div class="field">
@@ -55,7 +134,7 @@
             <h2>{{ selectedQuestionId() ? 'Edit question' : 'Add question' }}</h2>
 
             @if (questionError()) {
-              <p class="error">{{ questionError() }}</p>
+              <p class="error" role="alert">{{ questionError() }}</p>
             }
 
             <div class="field">
@@ -144,7 +223,12 @@
               }
             </li>
           } @empty {
-            <li class="meta">The quiz has no questions yet.</li>
+            <li class="empty">
+              The quiz has no questions yet.
+              @if (isDraft()) {
+                Add the first one with the question form.
+              }
+            </li>
           }
         </ol>
       </div>

@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { BlogDto } from '../../api/social-api-types';
 
@@ -10,4 +10,24 @@ import { BlogDto } from '../../api/social-api-types';
 })
 export class BlogCard {
   readonly blog = input.required<BlogDto>();
+
+  // "Nov 9, 2026"
+  protected readonly published = computed(() =>
+    new Date(this.blog().createdAt).toLocaleDateString('en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }),
+  );
+
+  protected readonly commentCount = computed(() => {
+    const count = this.blog().comments.length;
+    return count === 1 ? '1 comment' : `${count} comments`;
+  });
+
+  // Total score: sum of upvotes minus sum of downvotes, straight from the DTO.
+  protected readonly score = computed(() => {
+    const score = this.blog().score;
+    return Math.abs(score) === 1 ? `${score} point` : `${score} points`;
+  });
 }

@@ -1,6 +1,7 @@
-import { httpResource } from '@angular/common/http';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormField, form, max, min, required } from '@angular/forms/signals';
+import { Router, RouterLink } from '@angular/router';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { AnswerDto, QuestionDto, QuizDto } from '../../api/games-api-types';
 import { QuizAuthoring } from '../quiz-authoring';
@@ -8,17 +9,23 @@ import { QuizAuthoring } from '../quiz-authoring';
 const MAX_ANSWERS = 4;
 
 @Component({
-  imports: [FormField],
+  imports: [FormField, RouterLink],
   selector: 'app-edit-quiz',
   styleUrl: './edit-quiz.scss',
   templateUrl: './edit-quiz.html',
 })
 export class EditQuiz {
   private readonly quizAuthoring = inject(QuizAuthoring);
+  private readonly router = inject(Router);
 
   readonly id = input.required<string>();
 
   protected readonly quiz = httpResource<QuizDto>(() => `/api/games/quizzes/${this.id()}/edit`);
+
+  protected readonly quizErrorStatus = computed(() => {
+    const failure = this.quiz.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 
   // A quiz can be changed only as a draft; any other status shows the page read-only.
   protected readonly isDraft = computed(() => this.quiz.value()?.status === 'Draft');
@@ -43,6 +50,11 @@ export class EditQuiz {
   protected readonly pending = signal(false);
   protected readonly detailsError = signal<string | null>(null);
   protected readonly questionError = signal<string | null>(null);
+  protected readonly transitionError = signal<string | null>(null);
+  // The message for the last successful status transition; the next command clears it.
+  protected readonly transitionMessage = signal<string | null>(null);
+  // True while the section asking to confirm the deletion is open.
+  protected readonly confirmingDelete = signal(false);
 
   private prefilled = false;
 
@@ -64,7 +76,7 @@ export class EditQuiz {
   protected async saveDetails(event: Event): Promise<void> {
     event.preventDefault();
     this.pending.set(true);
-    this.detailsError.set(null);
+    this.clearMessages();
     try {
       await this.quizAuthoring.updateDetails(this.id(), {
         title: this.detailsForm.title().value(),
@@ -94,7 +106,7 @@ export class EditQuiz {
   protected async saveQuestion(event: Event): Promise<void> {
     event.preventDefault();
     this.pending.set(true);
-    this.questionError.set(null);
+    this.clearMessages();
     const dto = {
       text: this.questionForm.text().value(),
       // An answer field left empty and unmarked is not one of the offered answers.
@@ -122,7 +134,7 @@ export class EditQuiz {
 
   protected async removeQuestion(questionId: string): Promise<void> {
     this.pending.set(true);
-    this.questionError.set(null);
+    this.clearMessages();
     try {
       await this.quizAuthoring.removeQuestion(this.id(), questionId);
       if (this.selectedQuestionId() === questionId) {
@@ -135,6 +147,84 @@ export class EditQuiz {
     } finally {
       this.pending.set(false);
     }
+  }
+
+  protected async publish(): Promise<void> {
+    this.pending.set(true);
+    this.clearMessages();
+    this.confirmingDelete.set(false);
+    try {
+      await this.quizAuthoring.publish(this.id());
+      this.transitionMessage.set('Quiz successfully published.');
+      this.quiz.reload();
+    } catch (failure) {
+      this.transitionError.set(serverMessage(failure, 'Could not publish the quiz.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected async retire(): Promise<void> {
+    this.pending.set(true);
+    this.clearMessages();
+    this.confirmingDelete.set(false);
+    try {
+      await this.quizAuthoring.retire(this.id());
+      this.transitionMessage.set('Quiz successfully retired.');
+      this.quiz.reload();
+    } catch (failure) {
+      this.transitionError.set(serverMessage(failure, 'Could not retire the quiz.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected async archive(): Promise<void> {
+    this.pending.set(true);
+    this.clearMessages();
+    this.confirmingDelete.set(false);
+    try {
+      await this.quizAuthoring.archive(this.id());
+      this.transitionMessage.set('Quiz successfully archived.');
+      this.quiz.reload();
+    } catch (failure) {
+      this.transitionError.set(serverMessage(failure, 'Could not archive the quiz.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected startDelete(): void {
+    this.transitionError.set(null);
+    this.transitionMessage.set(null);
+    this.confirmingDelete.set(true);
+  }
+
+  protected cancelDelete(): void {
+    this.confirmingDelete.set(false);
+  }
+
+  protected async remove(): Promise<void> {
+    this.pending.set(true);
+    this.clearMessages();
+    try {
+      await this.quizAuthoring.remove(this.id());
+      // A deleted quiz has no page to show, so the administrator returns to all quizzes.
+      await this.router.navigate(['/games/quizzes']);
+    } catch (failure) {
+      this.confirmingDelete.set(false);
+      this.transitionError.set(serverMessage(failure, 'Could not delete the quiz.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  // Every command starts by clearing the messages of the previous one.
+  private clearMessages(): void {
+    this.detailsError.set(null);
+    this.questionError.set(null);
+    this.transitionError.set(null);
+    this.transitionMessage.set(null);
   }
 
   // The question form always has four answer fields; unused ones stay empty.

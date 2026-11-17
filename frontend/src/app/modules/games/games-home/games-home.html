@@ -22,20 +22,36 @@
 
   @switch (tab()) {
     @case ('quizzes') {
-      <div class="card stack">
-        <p><a routerLink="/games/quizzes">All quizzes</a></p>
-        <p><a routerLink="/games/quizzes/create">New quiz</a></p>
+      <div class="grid">
+        <a class="card tile" routerLink="/games/quizzes">
+          <h2>All quizzes</h2>
+          <p class="meta">Every quiz with its status, experience points and questions.</p>
+        </a>
+        <a class="card tile" routerLink="/games/quizzes/create">
+          <h2>New quiz</h2>
+          <p class="meta">Compose a quiz at a landmark and publish it when it is ready.</p>
+        </a>
       </div>
     }
     @case ('social') {
-      <div class="card stack">
-        @if (isAdministrator()) {
-          <p><a routerLink="/games/challenges">Svi društveni izazovi</a></p>
-          <p><a routerLink="/games/challenges/create">Novi društveni izazov</a></p>
-        } @else {
-          <p class="meta">Društvene izazove pregleda administrator.</p>
-        }
-      </div>
+      @if (isAdministrator()) {
+        <div class="grid">
+          <a class="card tile" routerLink="/games/challenges">
+            <h2>Svi društveni izazovi</h2>
+            <p class="meta">Pregled, objava, penzionisanje i arhiviranje izazova.</p>
+          </a>
+          <a class="card tile" routerLink="/games/challenges/create">
+            <h2>Novi društveni izazov</h2>
+            <p class="meta">Izazov za koji se igrači okupe na istom mestu u isto doba dana.</p>
+          </a>
+        </div>
+      } @else {
+        <div class="empty-state empty-card">
+          <span class="rings" aria-hidden="true"></span>
+          <h2>Nema izazova za prikaz</h2>
+          <p>Društvene izazove pregleda administrator.</p>
+        </div>
+      }
     }
   }
 </div>

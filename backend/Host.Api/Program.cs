@@ -1,5 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using Chats.Api;
+using Chats.Infrastructure;
 using Exploration.Api;
 using Exploration.Infrastructure;
 using Games.Api;
@@ -28,6 +30,7 @@ builder.Services.AddControllers()
     .AddIdentityControllers()
     .AddMediaControllers()
     .AddMapsControllers()
+    .AddChatsControllers()
     .AddExplorationControllers()
     .AddGamesControllers()
     .AddSocialControllers()
@@ -50,10 +53,11 @@ builder.Services
     .AddIdentityModule(builder.Configuration)
     .AddMediaModule(builder.Configuration)
     .AddMapsModule(builder.Configuration)
+    .AddChatsModule(builder.Configuration)
     .AddExplorationModule(builder.Configuration)
     .AddGamesModule(builder.Configuration)
     .AddSocialModule(builder.Configuration)
-    .AddPaymentModule(builder.Configuration, ensureWallet => new RegistrationWalletProvisioning(ensureWallet));
+    .AddPaymentModule(builder.Configuration);
 
 var app = builder.Build();
 
