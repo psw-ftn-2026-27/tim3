@@ -73,12 +73,7 @@ export interface UpdateQuizDetailsDto {
   location: LocationDto | null;
 }
 
-export interface CreateQuestionDto {
-  text: string;
-  answers: AnswerDto[];
-}
-
-export interface UpdateQuestionDto {
+export interface QuestionInputDto {
   text: string;
   answers: AnswerDto[];
 }

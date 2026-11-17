@@ -36,14 +36,14 @@ public sealed class QuizAuthoringController : ControllerBase
     }
 
     [HttpPost("{id:guid}/questions")]
-    public async Task<ActionResult> AddQuestion(Guid id, CreateQuestionDto dto)
+    public async Task<ActionResult> AddQuestion(Guid id, QuestionInputDto dto)
     {
         await _authoringService.AddQuestionAsync(id, dto);
         return NoContent();
     }
 
     [HttpPut("{id:guid}/questions/{questionId:guid}")]
-    public async Task<ActionResult> UpdateQuestion(Guid id, Guid questionId, UpdateQuestionDto dto)
+    public async Task<ActionResult> UpdateQuestion(Guid id, Guid questionId, QuestionInputDto dto)
     {
         await _authoringService.UpdateQuestionAsync(id, questionId, dto);
         return NoContent();

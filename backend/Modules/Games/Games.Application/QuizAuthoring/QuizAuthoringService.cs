@@ -35,7 +35,7 @@ public sealed class QuizAuthoringService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task AddQuestionAsync(Guid quizId, CreateQuestionDto dto)
+    public async Task AddQuestionAsync(Guid quizId, QuestionInputDto dto)
     {
         var quiz = await GetQuizAsync(quizId);
 
@@ -43,7 +43,7 @@ public sealed class QuizAuthoringService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task UpdateQuestionAsync(Guid quizId, Guid questionId, UpdateQuestionDto dto)
+    public async Task UpdateQuestionAsync(Guid quizId, Guid questionId, QuestionInputDto dto)
     {
         var quiz = await GetQuizAsync(quizId);
 
