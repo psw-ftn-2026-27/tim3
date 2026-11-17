@@ -38,6 +38,11 @@ export interface AnswerDto {
   isCorrect: boolean;
 }
 
+export interface LocationDto {
+  latitude: number;
+  longitude: number;
+}
+
 export interface QuestionDto {
   id: string;
   text: string;
@@ -51,6 +56,7 @@ export interface QuizDto {
   description: string;
   experiencePoints: number;
   status: QuizStatus;
+  location: LocationDto | null;
   questions: QuestionDto[];
 }
 
@@ -64,6 +70,7 @@ export interface UpdateQuizDetailsDto {
   title: string;
   description: string;
   experiencePoints: number;
+  location: LocationDto | null;
 }
 
 export interface CreateQuestionDto {

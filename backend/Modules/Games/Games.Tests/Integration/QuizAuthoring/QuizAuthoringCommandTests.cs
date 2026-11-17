@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Games.Application.QuizAuthoring;
+using Games.Domain.Locations;
 using Games.Domain.Quizzes;
 using Games.Infrastructure.Persistence;
 using Games.Tests.Integration.Seeds;
@@ -77,7 +78,7 @@ public class QuizAuthoringCommandTests : BaseIntegrationTest
     public async Task Administrator_updates_the_quiz_details()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
-        var request = new UpdateQuizDetailsDto("Muzej Vojvodine i okolina", "Nov opis kviza.", 40);
+        var request = new UpdateQuizDetailsDto("Muzej Vojvodine i okolina", "Nov opis kviza.", 40, null);
 
         var response = await client.PutAsJsonAsync($"/api/games/quizzes/{QuizSeed.EmptyMuseumQuiz.Id}", request);
 
@@ -90,10 +91,25 @@ public class QuizAuthoringCommandTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Administrator_saves_the_quiz_details_with_a_location()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+        var request = new UpdateQuizDetailsDto("Muzej Vojvodine", "Pronađi muzej i odgovori na pitanja.", 10,
+            new LocationDto(45.2547, 19.8530));
+
+        var response = await client.PutAsJsonAsync($"/api/games/quizzes/{QuizSeed.EmptyMuseumQuiz.Id}", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var assertContext = Factory.CreateContext<GamesDbContext>();
+        var stored = assertContext.Quizzes.Single(quiz => quiz.Id == QuizSeed.EmptyMuseumQuiz.Id);
+        stored.Location.Should().Be(new Location(45.2547, 19.8530));
+    }
+
+    [Fact]
     public async Task Administrator_updates_a_quiz_made_by_another_administrator()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
-        var request = new UpdateQuizDetailsDto("Trg slobode i okolina", "Dopunjen opis kviza.", 25);
+        var request = new UpdateQuizDetailsDto("Trg slobode i okolina", "Dopunjen opis kviza.", 25, null);
 
         var response = await client.PutAsJsonAsync($"/api/games/quizzes/{QuizSeed.OtherAdministratorsQuiz.Id}", request);
 
@@ -110,7 +126,7 @@ public class QuizAuthoringCommandTests : BaseIntegrationTest
     public async Task Details_without_a_title_are_not_saved()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
-        var request = new UpdateQuizDetailsDto("   ", "Nov opis kviza.", 40);
+        var request = new UpdateQuizDetailsDto("   ", "Nov opis kviza.", 40, null);
 
         var response = await client.PutAsJsonAsync($"/api/games/quizzes/{QuizSeed.FortressQuiz.Id}", request);
 
@@ -126,7 +142,7 @@ public class QuizAuthoringCommandTests : BaseIntegrationTest
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
         var missingQuizId = Guid.NewGuid();
-        var request = new UpdateQuizDetailsDto("Nov naziv", "Nov opis kviza.", 40);
+        var request = new UpdateQuizDetailsDto("Nov naziv", "Nov opis kviza.", 40, null);
 
         var response = await client.PutAsJsonAsync($"/api/games/quizzes/{missingQuizId}", request);
 
@@ -139,7 +155,7 @@ public class QuizAuthoringCommandTests : BaseIntegrationTest
     public async Task Anonymous_user_cannot_update_quiz_details()
     {
         var client = Factory.CreateClient();
-        var request = new UpdateQuizDetailsDto("Nov naziv", "Nov opis kviza.", 40);
+        var request = new UpdateQuizDetailsDto("Nov naziv", "Nov opis kviza.", 40, null);
 
         var response = await client.PutAsJsonAsync($"/api/games/quizzes/{QuizSeed.FortressQuiz.Id}", request);
 
@@ -150,7 +166,7 @@ public class QuizAuthoringCommandTests : BaseIntegrationTest
     public async Task Explorer_cannot_update_quiz_details()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
-        var request = new UpdateQuizDetailsDto("Nov naziv", "Nov opis kviza.", 40);
+        var request = new UpdateQuizDetailsDto("Nov naziv", "Nov opis kviza.", 40, null);
 
         var response = await client.PutAsJsonAsync($"/api/games/quizzes/{QuizSeed.FortressQuiz.Id}", request);
 

@@ -1,3 +1,4 @@
+using Games.Domain.Locations;
 using Shared.Domain;
 using Shared.Domain.Exceptions;
 
@@ -16,6 +17,7 @@ public sealed class Quiz : AggregateRoot
     public string Description { get; private set; }
     public int ExperiencePoints { get; private set; }
     public QuizStatus Status { get; private set; }
+    public Location? Location { get; private set; }
     public IReadOnlyList<Question> Questions => _questions;
 
     private Quiz()
@@ -37,7 +39,7 @@ public sealed class Quiz : AggregateRoot
         Status = QuizStatus.Draft;
     }
 
-    public void UpdateDetails(string title, string description, int experiencePoints)
+    public void UpdateDetails(string title, string description, int experiencePoints, Location? location)
     {
         EnsureDraft();
         EnsureTitle(title);
@@ -46,6 +48,7 @@ public sealed class Quiz : AggregateRoot
         Title = title;
         Description = description;
         ExperiencePoints = experiencePoints;
+        Location = location;
     }
 
     public void AddQuestion(string text, List<Answer> answers)
@@ -79,6 +82,10 @@ public sealed class Quiz : AggregateRoot
         if (string.IsNullOrWhiteSpace(Description))
         {
             throw new DomainException("A quiz requires instructions to be published.");
+        }
+        if (Location is null)
+        {
+            throw new DomainException("A quiz requires a location to be published.");
         }
 
         Status = QuizStatus.Published;

@@ -2,6 +2,7 @@ import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormField, form, max, min, required } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
+import { LocationMap, MapLocation } from '../../../../shared/map/location-map/location-map';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { AnswerDto, QuestionDto, QuizDto } from '../../api/games-api-types';
 import { QuizAuthoring } from '../quiz-authoring';
@@ -9,7 +10,7 @@ import { QuizAuthoring } from '../quiz-authoring';
 const MAX_ANSWERS = 4;
 
 @Component({
-  imports: [FormField, RouterLink],
+  imports: [FormField, LocationMap, RouterLink],
   selector: 'app-edit-quiz',
   styleUrl: './edit-quiz.scss',
   templateUrl: './edit-quiz.html',
@@ -40,6 +41,19 @@ export class EditQuiz {
     },
   );
 
+  // The location picked on the map of the details form; nothing is sent until Save.
+  protected readonly location = signal<MapLocation | null>(null);
+  protected readonly locations = computed<MapLocation[]>(() => {
+    const location = this.location();
+    return location === null ? [] : [location];
+  });
+
+  // The saved location, shown read-only when the quiz is not a draft.
+  protected readonly savedLocations = computed<MapLocation[]>(() => {
+    const location = this.quiz.value()?.location;
+    return location ? [location] : [];
+  });
+
   protected readonly questionForm = form(signal(this.questionModel(null)), (path) => {
     required(path.text, { message: 'Question text is required.' });
   });
@@ -69,6 +83,7 @@ export class EditQuiz {
           description: quiz.description,
           experiencePoints: quiz.experiencePoints,
         });
+        this.location.set(quiz.location);
       }
     });
   }
@@ -82,6 +97,7 @@ export class EditQuiz {
         title: this.detailsForm.title().value(),
         description: this.detailsForm.description().value(),
         experiencePoints: this.detailsForm.experiencePoints().value(),
+        location: this.location(),
       });
       this.quiz.reload();
     } catch (failure) {
