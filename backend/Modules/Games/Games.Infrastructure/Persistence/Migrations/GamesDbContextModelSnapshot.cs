@@ -142,6 +142,30 @@ namespace Games.Infrastructure.Persistence.Migrations
                     b.Navigation("Answers");
                 });
 
+            modelBuilder.Entity("Games.Domain.Quizzes.Quiz", b =>
+                {
+                    b.OwnsOne("Games.Domain.Locations.Location", "Location", b1 =>
+                        {
+                            b1.Property<Guid>("QuizId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<double>("Latitude")
+                                .HasColumnType("double precision");
+
+                            b1.Property<double>("Longitude")
+                                .HasColumnType("double precision");
+
+                            b1.HasKey("QuizId");
+
+                            b1.ToTable("Quizzes", "games");
+
+                            b1.WithOwner()
+                                .HasForeignKey("QuizId");
+                        });
+
+                    b.Navigation("Location");
+                });
+
             modelBuilder.Entity("Games.Domain.SocialChallenges.SocialChallenge", b =>
                 {
                     b.OwnsOne("Games.Domain.SocialChallenges.ActivePeriod", "ActivePeriod", b1 =>

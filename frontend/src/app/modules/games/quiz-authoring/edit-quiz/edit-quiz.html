@@ -121,6 +121,14 @@
               }
             </div>
 
+            <p class="meta">Location: click the map to place or move the pin.</p>
+            <app-location-map
+              [locations]="locations()"
+              [selectable]="true"
+              [maxPins]="1"
+              (locationsChange)="location.set($event[0] ?? null)"
+            />
+
             <button
               class="button button--primary"
               type="submit"
@@ -129,7 +137,24 @@
               Save
             </button>
           </form>
+        } @else {
+          <p class="meta">A quiz can be changed only while it is a draft.</p>
 
+          <div class="card stack">
+            <h2>Quiz details</h2>
+            <p>{{ current.description }}</p>
+            <p>Experience points (XP): {{ current.experiencePoints }}</p>
+            @if (current.location) {
+              <app-location-map [locations]="savedLocations()" />
+            } @else {
+              <p class="empty">The quiz has no location.</p>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="layout__main stack">
+        @if (isDraft()) {
           <form class="card stack" (submit)="saveQuestion($event)">
             <h2>{{ selectedQuestionId() ? 'Edit question' : 'Add question' }}</h2>
 
@@ -173,18 +198,8 @@
               }
             </div>
           </form>
-        } @else {
-          <p class="meta">A quiz can be changed only while it is a draft.</p>
-
-          <div class="card stack">
-            <h2>Quiz details</h2>
-            <p>{{ current.description }}</p>
-            <p>Experience points (XP): {{ current.experiencePoints }}</p>
-          </div>
         }
-      </div>
 
-      <div class="layout__main">
         <h2>Questions ({{ current.questions.length }})</h2>
 
         <ol class="questions">
