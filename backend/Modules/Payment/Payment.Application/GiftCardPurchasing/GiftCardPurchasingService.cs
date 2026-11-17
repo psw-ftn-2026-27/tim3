@@ -27,9 +27,9 @@ public sealed class GiftCardPurchasingService
 
     public async Task BuyAsync(Guid buyerId, BuyGiftCardDto dto)
     {
-        if (!await _identityApi.ExistsAsync(dto.RecipientId))
+        if (!await _identityApi.IsExplorerAsync(dto.RecipientId))
         {
-            throw new NotFoundException($"User {dto.RecipientId} does not exist.");
+            throw new NotFoundException($"Explorer {dto.RecipientId} does not exist.");
         }
 
         var wallet = await _walletRepository.GetByUserIdAsync(buyerId)

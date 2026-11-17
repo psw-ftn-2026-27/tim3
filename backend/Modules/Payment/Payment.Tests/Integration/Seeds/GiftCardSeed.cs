@@ -4,7 +4,8 @@ namespace Payment.Tests.Integration.Seeds;
 
 internal static class GiftCardSeed
 {
-    // Identity seeds explorer1, explorer2 and explorer3 in the Development test host.
+    // Identity seeds admin1, explorer1, explorer2 and explorer3 in the Development test host.
+    public static readonly Guid DemoAdministratorId = Guid.Parse("10000000-0000-0000-0000-000000000001");
     public static readonly Guid DemoExplorerId = Guid.Parse("20000000-0000-0000-0000-000000000001");
     public static readonly Guid SecondDemoExplorerId = Guid.Parse("20000000-0000-0000-0000-000000000002");
     public static readonly Guid ThirdDemoExplorerId = Guid.Parse("20000000-0000-0000-0000-000000000003");

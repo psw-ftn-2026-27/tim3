@@ -23,9 +23,10 @@ public sealed class GiftCardPurchasingController : ControllerBase
     }
 
     [HttpGet("purchased")]
-    public async Task<ActionResult<List<PurchasedGiftCardDto>>> GetMyPurchasedGiftCards()
+    public async Task<ActionResult<PageResult<PurchasedGiftCardDto>>> GetMyPurchasedGiftCards(
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        return await _purchasingQueries.GetMyPurchasedGiftCardsAsync(User.GetUserId());
+        return await _purchasingQueries.GetMyPurchasedGiftCardsAsync(User.GetUserId(), page, pageSize);
     }
 
     [HttpGet("recipients")]

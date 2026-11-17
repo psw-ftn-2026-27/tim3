@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { Auth } from '../../../../core/auth/auth';
 import { PageResult } from '../../../../shared/api/page-result';
 import { PurchasedGiftCardDto, RecipientDto, WalletDto } from '../../api/payment-api-types';
+import { WalletPagination } from '../../own-wallet/wallet-pagination/wallet-pagination';
 import { GiftCardPurchasing } from '../gift-card-purchasing';
 import { PurchasedGiftCardList } from '../purchased-gift-card-list/purchased-gift-card-list';
 import { RecipientList } from '../recipient-list/recipient-list';
@@ -17,7 +18,7 @@ const MAX_MESSAGE_LENGTH = 200;
 const UNEXPECTED_ERROR = 'Kupovina trenutno nije moguća, pokušaj ponovo.';
 
 @Component({
-  imports: [FormField, PurchasedGiftCardList, RecipientList, RouterLink],
+  imports: [FormField, PurchasedGiftCardList, RecipientList, RouterLink, WalletPagination],
   selector: 'app-gift-cards',
   templateUrl: './gift-cards.html',
   styleUrl: './gift-cards.scss',
@@ -27,6 +28,8 @@ export class GiftCards {
   private readonly purchasing = inject(GiftCardPurchasing);
 
   protected readonly recipientsPageSize = 20;
+  protected readonly purchasedPageSize = 10;
+  protected readonly purchasedPage = signal(1);
   protected readonly isExplorer = computed(
     () => this.auth.user()?.roles.includes('explorer') ?? false,
   );
@@ -77,8 +80,10 @@ export class GiftCards {
     },
   );
 
-  protected readonly purchased = httpResource<PurchasedGiftCardDto[]>(() =>
-    this.isExplorer() ? `${BASE_URL}/purchased` : undefined,
+  protected readonly purchased = httpResource<PageResult<PurchasedGiftCardDto>>(() =>
+    this.isExplorer()
+      ? `${BASE_URL}/purchased?page=${this.purchasedPage()}&pageSize=${this.purchasedPageSize}`
+      : undefined,
   );
 
   protected readonly recipients = httpResource<PageResult<RecipientDto>>(() => {
@@ -141,6 +146,7 @@ export class GiftCards {
       this.confirmation.set(
         `Kupljena je poklon kartica od ${amount} EC za korisnika ${recipient.displayName}.`,
       );
+      this.purchasedPage.set(1);
       this.purchased.reload();
       this.wallet.reload();
     } catch (failure) {
@@ -156,8 +162,10 @@ export class GiftCards {
       return 'Izabrani korisnik nije dostupan. Izaberi drugog primaoca.';
     }
     if (failure instanceof HttpErrorResponse && failure.status === 400) {
+      // The form already keeps the amount within the shown balance, so a rejection here means
+      // the wallet changed in the meantime, for example through a purchase in another tab.
       this.wallet.reload();
-      return 'Nemaš dovoljno EC za karticu ovog iznosa.';
+      return 'Stanje novčanika se u međuvremenu promenilo, pa kartica nije kupljena. Proveri novo stanje i pokušaj ponovo.';
     }
     return UNEXPECTED_ERROR;
   }

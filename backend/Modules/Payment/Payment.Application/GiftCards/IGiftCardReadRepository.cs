@@ -1,8 +1,9 @@
 using Payment.Application.GiftCardPurchasing;
+using Shared.Domain;
 
 namespace Payment.Application.GiftCards;
 
 public interface IGiftCardReadRepository
 {
-    Task<List<PurchasedGiftCardRowDto>> GetPurchasedByBuyerAsync(Guid buyerId, DateTime now);
+    Task<PageResult<PurchasedGiftCardRowDto>> GetPurchasedByBuyerAsync(Guid buyerId, DateTime now, int page, int pageSize);
 }

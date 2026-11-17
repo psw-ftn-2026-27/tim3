@@ -48,6 +48,22 @@ namespace Payment.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            // The previous version knows neither gift cards nor their wallet transactions, so the
+            // gift card payments are removed and refunded, keeping each balance equal to the sum
+            // of its transactions and AdministratorId non-null again.
+            migrationBuilder.Sql(@"
+                UPDATE payment.""Wallets"" AS wallet
+                SET ""Balance"" = wallet.""Balance"" - payments.""Total""
+                FROM (
+                    SELECT ""WalletId"", SUM(""Amount"") AS ""Total""
+                    FROM payment.""WalletTransactions""
+                    WHERE ""Kind"" = 'GiftCardPurchase'
+                    GROUP BY ""WalletId""
+                ) AS payments
+                WHERE wallet.""Id"" = payments.""WalletId"";
+
+                DELETE FROM payment.""WalletTransactions"" WHERE ""Kind"" = 'GiftCardPurchase';");
+
             migrationBuilder.DropTable(
                 name: "GiftCards",
                 schema: "payment");

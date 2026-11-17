@@ -15,17 +15,21 @@ public sealed class GiftCardPurchasingQueries
         _identityApi = identityApi;
     }
 
-    public async Task<List<PurchasedGiftCardDto>> GetMyPurchasedGiftCardsAsync(Guid buyerId)
+    public async Task<PageResult<PurchasedGiftCardDto>> GetMyPurchasedGiftCardsAsync(Guid buyerId, int page, int pageSize)
     {
-        var rows = await _giftCardReadRepository.GetPurchasedByBuyerAsync(buyerId, DateTime.UtcNow);
-        var names = await _identityApi.GetDisplayNamesAsync(rows.Select(row => row.RecipientId).Distinct().ToList());
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var rows = await _giftCardReadRepository.GetPurchasedByBuyerAsync(buyerId, DateTime.UtcNow, page, pageSize);
+        var names = await _identityApi.GetDisplayNamesAsync(rows.Items.Select(row => row.RecipientId).Distinct().ToList());
         var namesById = names.ToDictionary(name => name.UserId, name => name.DisplayName);
 
-        return rows
+        var items = rows.Items
             .Select(row => new PurchasedGiftCardDto(
                 row.Id, row.RecipientId, namesById.GetValueOrDefault(row.RecipientId, ""),
                 row.Amount, row.Message, row.ExpiresAt, row.Status))
             .ToList();
+        return new PageResult<PurchasedGiftCardDto>(items, rows.TotalCount);
     }
 
     public async Task<PageResult<RecipientDto>> SearchRecipientsAsync(Guid buyerId, string text, int page, int pageSize)

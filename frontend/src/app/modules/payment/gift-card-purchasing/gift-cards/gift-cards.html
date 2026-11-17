@@ -132,7 +132,15 @@
           Pokušaj ponovo
         </button>
       } @else if (purchased.value(); as giftCards) {
-        <app-purchased-gift-card-list [giftCards]="giftCards" />
+        <app-purchased-gift-card-list [giftCards]="giftCards.items" />
+        <app-wallet-pagination
+          label="Stranice kupljenih kartica"
+          [page]="purchasedPage()"
+          [pageSize]="purchasedPageSize"
+          [totalCount]="giftCards.totalCount"
+          [disabled]="pending()"
+          (pageChange)="purchasedPage.set($event)"
+        />
       }
     </section>
   }

@@ -31,9 +31,10 @@ internal sealed class IdentityApi : IIdentityApi
                 .Contains(normalizedText));
 
         var totalCount = await matching.CountAsync();
+        var offset = (int)Math.Min((page - 1L) * pageSize, int.MaxValue);
         var users = await matching
             .OrderBy(user => user.NormalizedUserName)
-            .Skip((page - 1) * pageSize)
+            .Skip(offset)
             .Take(pageSize)
             .Select(user => new { user.Id, user.UserName })
             .ToListAsync();
@@ -82,6 +83,15 @@ internal sealed class IdentityApi : IIdentityApi
     public Task<bool> ExistsAsync(Guid userId)
     {
         return _dbContext.Users.AnyAsync(user => user.Id == userId);
+    }
+
+    public Task<bool> IsExplorerAsync(Guid userId)
+    {
+        var explorerRoleIds = _dbContext.Roles
+            .Where(role => role.Name == ExplorerRole)
+            .Select(role => role.Id);
+        return _dbContext.UserRoles.AnyAsync(userRole =>
+            userRole.UserId == userId && explorerRoleIds.Contains(userRole.RoleId));
     }
 
     // The user name is the e-mail address; other modules see only the part before the @.

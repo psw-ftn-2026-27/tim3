@@ -61,6 +61,50 @@ public class GiftCardPurchasingCommandTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Buying_for_a_user_who_is_not_an_explorer_stores_no_card_and_keeps_the_balance()
+    {
+        var wallet = WalletSeed.DemoExplorerWalletWithDeposit;
+        using var client = Factory.CreateClientFor(wallet.UserId, "explorer");
+        var administratorId = GiftCardSeed.DemoAdministratorId;
+
+        var response = await client.PostAsJsonAsync(
+            "/api/payment/gift-cards", new BuyGiftCardDto(administratorId, 25, null));
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        (await context.GiftCards.AnyAsync(card => card.RecipientId == administratorId)).Should().BeFalse();
+        var stored = await context.Wallets.Include(item => item.Transactions).SingleAsync(item => item.Id == wallet.Id);
+        stored.Balance.Should().Be(wallet.Balance);
+        stored.Transactions.Should().BeEquivalentTo(wallet.Transactions);
+    }
+
+    [Fact]
+    public async Task Simultaneous_purchases_never_spend_more_than_the_wallet_holds()
+    {
+        var wallet = WalletSeed.DemoExplorerWalletWithDeposit;
+        using var client = Factory.CreateClientFor(wallet.UserId, "explorer");
+        var amount = wallet.Balance / 2 + 1;
+        var purchase = new BuyGiftCardDto(GiftCardSeed.SecondDemoExplorerId, amount, null);
+        int cardsBefore;
+        using (var before = Factory.CreateContext<PaymentDbContext>())
+        {
+            cardsBefore = await before.GiftCards.CountAsync(card => card.BuyerId == wallet.UserId);
+        }
+
+        var responses = await Task.WhenAll(
+            client.PostAsJsonAsync("/api/payment/gift-cards", purchase),
+            client.PostAsJsonAsync("/api/payment/gift-cards", purchase));
+
+        responses.Select(response => response.StatusCode).Should()
+            .BeEquivalentTo([HttpStatusCode.NoContent, HttpStatusCode.BadRequest]);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        (await context.GiftCards.CountAsync(card => card.BuyerId == wallet.UserId)).Should().Be(cardsBefore + 1);
+        var stored = await context.Wallets.Include(item => item.Transactions).SingleAsync(item => item.Id == wallet.Id);
+        stored.Balance.Should().Be(wallet.Balance - amount);
+        stored.Transactions.Should().ContainSingle(transaction => transaction.Kind == WalletTransactionKind.GiftCardPurchase);
+    }
+
+    [Fact]
     public async Task Buying_without_enough_ec_stores_no_card_and_keeps_the_balance()
     {
         var wallet = WalletSeed.EmptyExplorerWallet;
