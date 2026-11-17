@@ -36,6 +36,10 @@ export class ClubDetail {
   protected readonly isOwner = computed(
     () => this.club.value()?.ownerId === this.auth.user()?.id,
   );
+  // The owner and the moderators resolve join requests and remove regular members.
+  protected readonly canModerate = computed(
+    () => this.isOwner() || this.club.value()?.role === 'Moderator',
+  );
 
   // Only the owner sees the pending invitations, so nobody else sends this request.
   protected readonly invitations = httpResource<ClubUserDto[]>(() =>
@@ -62,9 +66,11 @@ export class ClubDetail {
   protected readonly requestError = signal<string | null>(null);
   protected readonly withdrawError = signal<string | null>(null);
   protected readonly resolveError = signal<string | null>(null);
-  protected readonly removeError = signal<string | null>(null);
+  protected readonly memberError = signal<string | null>(null);
   protected readonly invitationError = signal<string | null>(null);
   protected readonly inviteError = signal<{ userId: string; message: string } | null>(null);
+  // The member whose row asks the owner to confirm the transfer of ownership.
+  protected readonly confirmingOwnerId = signal<string | null>(null);
 
   protected async requestToJoin(): Promise<void> {
     this.clearErrors();
@@ -125,7 +131,34 @@ export class ClubDetail {
       await this.clubMembership.removeMember(this.id(), memberId);
       this.reload();
     } catch (failure) {
-      this.removeError.set(serverMessage(failure, 'Could not remove the member.'));
+      this.memberError.set(serverMessage(failure, 'Could not remove the member.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected async promoteToModerator(memberId: string): Promise<void> {
+    this.clearErrors();
+    this.pending.set(true);
+    try {
+      await this.clubMembership.promoteToModerator(this.id(), memberId);
+      this.club.reload();
+    } catch (failure) {
+      this.memberError.set(serverMessage(failure, 'Could not make the member a moderator.'));
+    } finally {
+      this.pending.set(false);
+    }
+  }
+
+  protected async transferOwnership(newOwnerId: string): Promise<void> {
+    this.clearErrors();
+    this.confirmingOwnerId.set(null);
+    this.pending.set(true);
+    try {
+      await this.clubMembership.transferOwnership(this.id(), newOwnerId);
+      this.club.reload();
+    } catch (failure) {
+      this.memberError.set(serverMessage(failure, 'Could not transfer the ownership.'));
     } finally {
       this.pending.set(false);
     }
@@ -190,7 +223,7 @@ export class ClubDetail {
     this.requestError.set(null);
     this.withdrawError.set(null);
     this.resolveError.set(null);
-    this.removeError.set(null);
+    this.memberError.set(null);
     this.invitationError.set(null);
     this.inviteError.set(null);
   }

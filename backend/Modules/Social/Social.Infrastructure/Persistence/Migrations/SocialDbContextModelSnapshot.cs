@@ -125,6 +125,13 @@ namespace Social.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("ClubId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValueSql("'Member'");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
