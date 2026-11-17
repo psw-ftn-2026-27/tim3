@@ -143,5 +143,25 @@
         />
       }
     </section>
+
+    <section class="card stack" aria-labelledby="received-gift-cards-title">
+      <h2 id="received-gift-cards-title">Dobijene kartice</h2>
+
+      @if (received.isLoading()) {
+        <p role="status">Učitavanje dobijenih kartica…</p>
+      } @else if (received.error()) {
+        <p class="error" role="alert">Dobijene kartice trenutno nije moguće učitati.</p>
+        <button class="button" type="button" (click)="received.reload()">Pokušaj ponovo</button>
+      } @else if (received.value(); as giftCards) {
+        <app-received-gift-card-list [giftCards]="giftCards.items" />
+        <app-wallet-pagination
+          label="Stranice dobijenih kartica"
+          [page]="receivedPage()"
+          [pageSize]="receivedPageSize"
+          [totalCount]="giftCards.totalCount"
+          (pageChange)="receivedPage.set($event)"
+        />
+      }
+    </section>
   }
 </div>

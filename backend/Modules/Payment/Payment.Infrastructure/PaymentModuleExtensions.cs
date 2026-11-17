@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Payment.Application;
 using Payment.Application.AdminWallet;
 using Payment.Application.GiftCardPurchasing;
+using Payment.Application.GiftCardReceiving;
 using Payment.Application.GiftCards;
 using Payment.Application.OwnWallet;
 using Payment.Application.Wallets;
@@ -31,6 +32,7 @@ public static class PaymentModuleExtensions
         services.AddScoped<IGiftCardReadRepository, GiftCardReadRepository>();
         services.AddScoped<GiftCardPurchasingService>();
         services.AddScoped<GiftCardPurchasingQueries>();
+        services.AddScoped<GiftCardReceivingQueries>();
 
         return services;
     }
