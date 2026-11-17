@@ -90,9 +90,26 @@
 
       <section class="card stack">
         <h2>Members</h2>
+
+        @if (removeError()) {
+          <p class="error">{{ removeError() }}</p>
+        }
+
         <ul class="users">
           @for (member of details.members; track member.userId) {
-            <li>{{ member.displayName }}</li>
+            <li class="request">
+              <span>{{ member.displayName }}</span>
+              @if (isOwner() && member.userId !== details.ownerId) {
+                <button
+                  class="button"
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="removeMember(member.userId)"
+                >
+                  Remove
+                </button>
+              }
+            </li>
           } @empty {
             <li class="empty">
               The club has no members yet.
@@ -143,6 +160,114 @@
               </li>
             }
           </ul>
+        </section>
+
+        <section class="card stack">
+          <h2>Pending invitations</h2>
+
+          @if (invitationError()) {
+            <p class="error">{{ invitationError() }}</p>
+          }
+
+          @if (invitations.isLoading()) {
+            <p>Loading invitations...</p>
+          } @else if (invitations.error()) {
+            <p class="error">Could not load the invitations.</p>
+          } @else {
+            <ul class="users">
+              @for (invitee of invitations.value() ?? []; track invitee.userId) {
+                <li class="request">
+                  <span>{{ invitee.displayName }}</span>
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="withdrawInvitation(invitee.userId)"
+                  >
+                    Withdraw
+                  </button>
+                </li>
+              } @empty {
+                <li class="meta">There are no pending invitations.</li>
+              }
+            </ul>
+          }
+        </section>
+
+        <section class="card stack">
+          <h2>Invite explorers</h2>
+
+          <form class="search" (submit)="search($event)">
+            <div class="field">
+              <label for="invitee-text">Username</label>
+              <input id="invitee-text" type="search" [formField]="form.text" />
+            </div>
+            <button class="button button--primary" type="submit" [disabled]="!form().valid()">
+              Search
+            </button>
+          </form>
+
+          @if (searchedText() === null) {
+            <p>You have not searched yet.</p>
+          } @else if (invitees.isLoading()) {
+            <p>Loading explorers...</p>
+          } @else if (invitees.error()) {
+            <p class="error">Could not load explorers. Log in and try again.</p>
+          } @else {
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Username</th>
+                  <th scope="col">Invitation</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (user of invitees.value()?.items ?? []; track user.userId) {
+                  <tr>
+                    <td>{{ user.displayName }}</td>
+                    <td>
+                      <button
+                        class="button button--primary"
+                        type="button"
+                        [disabled]="pending()"
+                        (click)="invite(user)"
+                      >
+                        Invite
+                      </button>
+                    </td>
+                  </tr>
+                  @if (inviteError()?.userId === user.userId) {
+                    <tr>
+                      <td colspan="2"><p class="error">{{ inviteError()?.message }}</p></td>
+                    </tr>
+                  }
+                } @empty {
+                  <tr>
+                    <td colspan="2">No explorers match the search.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+
+            <div class="paging">
+              <button
+                class="button"
+                type="button"
+                [disabled]="page() === 1 || pending()"
+                (click)="previousPage()"
+              >
+                Previous
+              </button>
+              <button
+                class="button"
+                type="button"
+                [disabled]="!hasNextPage() || pending()"
+                (click)="nextPage()"
+              >
+                Next
+              </button>
+            </div>
+          }
         </section>
       }
     }

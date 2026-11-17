@@ -132,3 +132,8 @@ export interface ClubDetailsDto {
   membership: MembershipState;
   pendingRequests: ClubUserDto[];
 }
+
+export interface ReceivedInvitationDto {
+  clubId: string;
+  clubName: string;
+}

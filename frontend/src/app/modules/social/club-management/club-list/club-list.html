@@ -5,10 +5,11 @@
     @if (isExplorer()) {
       <div class="page-actions">
         <a class="button button--primary" routerLink="/social/clubs/create">Create club</a>
+        <a class="button" routerLink="/social/clubs/invitations">My club invitations</a>
       </div>
     }
   </div>
-
+  
   @if (clubs.isLoading()) {
     <p class="loading">Loading clubs...</p>
   } @else if (clubs.error()) {
