@@ -71,10 +71,6 @@ public sealed class Quiz : AggregateRoot
 
     public void Publish()
     {
-        if (Status != QuizStatus.Draft && Status != QuizStatus.Retired)
-        {
-            throw new DomainException("Only a draft or retired quiz can be published.");
-        }
         if (_questions.Count < MinQuestionsToPublish)
         {
             throw new DomainException($"A quiz requires at least {MinQuestionsToPublish} questions to be published.");
@@ -88,28 +84,18 @@ public sealed class Quiz : AggregateRoot
             throw new DomainException("A quiz requires a location to be published.");
         }
 
-        Status = QuizStatus.Published;
+        TransitionTo(QuizStatus.Published,
+            "Only a draft or retired quiz can be published.",
+            QuizStatus.Draft, QuizStatus.Retired);
     }
 
-    public void Retire()
-    {
-        if (Status != QuizStatus.Published)
-        {
-            throw new DomainException("Only a published quiz can be retired.");
-        }
+    public void Retire() => TransitionTo(QuizStatus.Retired,
+        "Only a published quiz can be retired.",
+        QuizStatus.Published);
 
-        Status = QuizStatus.Retired;
-    }
-
-    public void Archive()
-    {
-        if (Status != QuizStatus.Retired)
-        {
-            throw new DomainException("Only a retired quiz can be archived.");
-        }
-
-        Status = QuizStatus.Archived;
-    }
+    public void Archive() => TransitionTo(QuizStatus.Archived,
+        "Only a retired quiz can be archived.",
+        QuizStatus.Retired);
 
     public void EnsureCanBeDeleted()
     {
@@ -117,6 +103,16 @@ public sealed class Quiz : AggregateRoot
         {
             throw new DomainException("Only a draft or archived quiz can be deleted.");
         }
+    }
+
+    private void TransitionTo(QuizStatus target, string errorMessage, params QuizStatus[] allowedFrom)
+    {
+        if (!allowedFrom.Contains(Status))
+        {
+            throw new DomainException(errorMessage);
+        }
+
+        Status = target;
     }
 
     private Question GetQuestion(Guid questionId)
