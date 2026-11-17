@@ -4,6 +4,7 @@ namespace Payment.Application.ShoppingCart;
 
 public interface ITourPurchaseTokenRepository
 {
+    Task<List<Guid>> GetTourIdsByBuyerAsync(Guid buyerId);
     Task<bool> ExistsAsync(Guid buyerId, Guid tourId);
     void Add(TourPurchaseToken token);
 }

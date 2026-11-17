@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Exploration.Application.TourBrowsing;
+using Exploration.Application.Tours;
 using Exploration.Domain.Tours;
 using Exploration.Tests.Integration.Seeds;
 using FluentAssertions;
@@ -13,6 +14,8 @@ namespace Exploration.Tests.Integration.TourBrowsing;
 
 public class TourBrowsingQueryTests : BaseIntegrationTest
 {
+    private const string PurchasedToursUrl = "/api/exploration/tours/purchased";
+
     public TourBrowsingQueryTests(ExplorationApiFactory factory) : base(factory) { }
 
     [Fact]
@@ -86,5 +89,107 @@ public class TourBrowsingQueryTests : BaseIntegrationTest
         var response = await client.GetAsync($"/api/exploration/tours/{TourSeed.ArchivedHomesteads.Id}");
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Tourist_sees_their_archived_free_tour_and_no_other_buyers_tours()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.SecondExplorer, "explorer");
+
+        var tours = await client.GetFromJsonAsync<PageResult<TourDto>>(PurchasedToursUrl, JsonOptions);
+
+        tours!.Items.Should().ContainSingle().Which.Id.Should().Be(TourSeed.ArchivedHomesteads.Id);
+        tours.Items.Should().NotContain(tour => tour.Id == TourSeed.PublishedVineyards.Id);
+    }
+
+    [Fact]
+    public async Task Tourist_without_purchases_sees_an_empty_list()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.FourthExplorer, "explorer");
+
+        var tours = await client.GetFromJsonAsync<PageResult<TourDto>>(PurchasedToursUrl, JsonOptions);
+
+        tours!.Items.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Guest_cannot_see_purchased_tours()
+    {
+        var client = Factory.CreateClient();
+
+        var response = await client.GetAsync(PurchasedToursUrl);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Administrator_cannot_see_purchased_tours()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+
+        var response = await client.GetAsync(PurchasedToursUrl);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Buyer_can_read_their_purchased_tour_including_after_archiving(bool archived)
+    {
+        var tour = archived ? TourSeed.ArchivedHomesteads : TourSeed.PublishedVineyards;
+        var buyer = archived ? WellKnownUsers.SecondExplorer : WellKnownUsers.ThirdExplorer;
+        using var client = Factory.CreateClientFor(buyer, "explorer");
+
+        var response = await client.GetAsync($"{PurchasedToursUrl}/{tour.Id}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var details = await response.Content.ReadFromJsonAsync<TourDto>(JsonOptions);
+        details!.Id.Should().Be(tour.Id);
+        details.Name.Should().Be(tour.Name);
+        details.Description.Should().Be(tour.Description);
+        details.Status.Should().Be(tour.Status);
+        details.TransportTimes.Select(time => time.Minutes)
+            .Should().BeEquivalentTo(tour.TransportTimes.Select(time => time.Minutes));
+    }
+
+    [Fact]
+    public async Task Another_tourist_cannot_read_a_buyers_tour()
+    {
+        using var client = Factory.CreateClientFor(WellKnownUsers.FourthExplorer, "explorer");
+
+        var response = await client.GetAsync($"{PurchasedToursUrl}/{TourSeed.PublishedVineyards.Id}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        body.RootElement.TryGetProperty("description", out _).Should().BeFalse();
+        body.RootElement.TryGetProperty("transportTimes", out _).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task A_purchase_for_a_missing_tour_does_not_expose_details()
+    {
+        using var client = Factory.CreateClientFor(WellKnownUsers.SecondExplorer, "explorer");
+
+        var response = await client.GetAsync(
+            $"{PurchasedToursUrl}/{TourPurchaseTokenSeed.MissingTourForSecondExplorer.TourId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        body.RootElement.TryGetProperty("description", out _).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(null, HttpStatusCode.Unauthorized)]
+    [InlineData("administrator", HttpStatusCode.Forbidden)]
+    public async Task Purchased_details_require_an_authenticated_tourist(string? role, HttpStatusCode expected)
+    {
+        using var client = role is null
+            ? Factory.CreateClient()
+            : Factory.CreateClientFor(WellKnownUsers.Administrator, role);
+
+        var response = await client.GetAsync($"{PurchasedToursUrl}/{TourSeed.ArchivedHomesteads.Id}");
+
+        response.StatusCode.Should().Be(expected);
     }
 }

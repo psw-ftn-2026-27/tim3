@@ -15,6 +15,11 @@ internal sealed class TourReadRepository : ITourReadRepository
         _dbContext = dbContext;
     }
 
+    public Task<TourDto?> GetByIdAsync(Guid tourId)
+    {
+        return ProjectToDtos(_dbContext.Tours.Where(tour => tour.Id == tourId)).SingleOrDefaultAsync();
+    }
+
     public Task<List<TourDto>> GetByAuthorAsync(Guid authorId)
     {
         return ProjectToDtos(_dbContext.Tours.Where(tour => tour.AuthorId == authorId)).ToListAsync();
@@ -44,9 +49,26 @@ internal sealed class TourReadRepository : ITourReadRepository
     public async Task<PageResult<TourDto>> GetPublishedAsync(int page, int pageSize)
     {
         var published = PublishedTours().OrderByDescending(tour => tour.PublishedAt);
+        return await GetPageAsync(published, page, pageSize);
+    }
 
-        var totalCount = await published.CountAsync();
-        var items = await ProjectToDtos(published)
+    public Task<PageResult<TourDto>> GetByIdsAsync(List<Guid> tourIds, int page, int pageSize)
+    {
+        var purchased = _dbContext.Tours.Where(tour => tourIds.Contains(tour.Id))
+            .OrderBy(tour => tour.Name)
+            .ThenBy(tour => tour.Id);
+        return GetPageAsync(purchased, page, pageSize);
+    }
+
+    private static async Task<PageResult<TourDto>> GetPageAsync(IQueryable<Tour> tours, int page, int pageSize)
+    {
+        var totalCount = await tours.CountAsync();
+        if ((long)(page - 1) * pageSize >= totalCount)
+        {
+            return new PageResult<TourDto>([], totalCount);
+        }
+
+        var items = await ProjectToDtos(tours)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

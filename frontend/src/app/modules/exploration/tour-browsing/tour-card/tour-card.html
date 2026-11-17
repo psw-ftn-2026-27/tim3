@@ -16,19 +16,26 @@
 
   <h2>{{ tour().name }}</h2>
 
-  <p class="meta">
-    @switch (tour().priceInEc) {
-      @case (null) {
-        Price unavailable
+  @if (tour().status === 'Archived') {
+    <span class="badge">Arhivirana</span>
+  }
+
+  @let price = priceInEc();
+  @if (price !== undefined) {
+    <p class="meta">
+      @switch (price) {
+        @case (null) {
+          Price unavailable
+        }
+        @case (0) {
+          Free (0 EC)
+        }
+        @default {
+          {{ price }} EC
+        }
       }
-      @case (0) {
-        Free (0 EC)
-      }
-      @default {
-        {{ tour().priceInEc }} EC
-      }
-    }
-  </p>
+    </p>
+  }
 
   <p class="description">{{ tour().description }}</p>
 
@@ -58,13 +65,21 @@
     }
   </ul>
 
-  <div class="page-actions">
-    <a class="button button--primary" [routerLink]="['/exploration', tour().id]">View tour</a>
-    @if (canAddToCart() && tour().priceInEc !== null) {
-      <a class="button" routerLink="/payment/cart" [queryParams]="{ tourId: tour().id }">
-        Dodaj u korpu
+  @if (showPurchasedDetails()) {
+    <div class="page-actions">
+      <a class="button button--primary" [routerLink]="['/exploration/purchased', tour().id]">
+        Otvori kupljenu turu
       </a>
-    }
-    <a class="button" [routerLink]="['/chat/tours', tour().id]">Chat</a>
-  </div>
+    </div>
+  } @else if (showBrowsingActions()) {
+    <div class="page-actions">
+      <a class="button button--primary" [routerLink]="['/exploration', tour().id]">View tour</a>
+      @if (canAddToCart() && price !== null && price !== undefined) {
+        <a class="button" routerLink="/payment/cart" [queryParams]="{ tourId: tour().id }">
+          Dodaj u korpu
+        </a>
+      }
+      <a class="button" [routerLink]="['/chat/tours', tour().id]">Chat</a>
+    </div>
+  }
 </article>

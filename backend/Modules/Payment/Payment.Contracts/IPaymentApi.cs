@@ -6,4 +6,7 @@ public interface IPaymentApi
 
     // Missing products are omitted. A free tour has price 0.
     Task<Dictionary<Guid, int>> GetPricesByTourIdsAsync(List<Guid> tourIds);
+
+    Task<List<Guid>> GetPurchasedTourIdsAsync(Guid buyerId);
+    Task<bool> OwnsTourAsync(Guid buyerId, Guid tourId);
 }

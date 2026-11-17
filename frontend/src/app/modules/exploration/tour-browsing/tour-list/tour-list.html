@@ -4,6 +4,9 @@
 
     @if (auth.isLoggedIn()) {
       <div class="page-actions">
+        @if (isExplorer()) {
+          <a class="button" routerLink="/exploration/purchased">Moje kupljene ture</a>
+        }
         <a class="button" routerLink="/exploration/mine">My tours</a>
         <a class="button button--primary" routerLink="/exploration/create">Create tour</a>
       </div>
@@ -87,7 +90,11 @@
   } @else {
     <div class="grid">
       @for (tour of visibleTours(); track tour.id) {
-        <app-tour-card [tour]="tour" [canAddToCart]="isExplorer()" />
+        <app-tour-card
+          [tour]="tour"
+          [priceInEc]="tour.priceInEc"
+          [canAddToCart]="isExplorer()"
+        />
       }
     </div>
   }

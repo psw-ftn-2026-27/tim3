@@ -40,6 +40,6 @@ public abstract class BaseIntegrationTest
     {
         Factory = factory;
         Factory.Reseed<ExplorationDbContext>(ExplorationSeed.All);
-        Factory.Reseed<DbContext>(ProductSeed.All);
+        Factory.Reseed<DbContext>([.. ProductSeed.All, .. TourPurchaseTokenSeed.All]);
     }
 }

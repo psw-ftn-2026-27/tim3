@@ -1,0 +1,46 @@
+<div class="stack">
+  <div class="page-head">
+    <h1>Kupljena tura</h1>
+    <div class="page-actions">
+      <a class="button" routerLink="/exploration/purchased">Moje kupljene ture</a>
+    </div>
+  </div>
+
+  @if (tour.isLoading()) {
+    <p class="loading">Učitavanje kupljene ture…</p>
+  } @else if (tour.error()) {
+    <div class="empty-state" role="alert">
+      @switch (errorStatus()) {
+        @case (401) {
+          <h2>Prijavi se da vidiš kupljenu turu</h2>
+          <p>Za pristup kupljenoj turi potrebna je aktivna prijava.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Prijavi se</a>
+          </div>
+        }
+        @case (403) {
+          <h2>Kupljene ture su dostupne turistima</h2>
+          <p>Za pristup je potreban turistički nalog.</p>
+        }
+        @case (404) {
+          <h2>Kupljena tura nije dostupna</h2>
+          <p>Vrati se na pregled svojih kupljenih tura.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/exploration/purchased"
+              >Moje kupljene ture</a
+            >
+          </div>
+        }
+        @default {
+          <h2>Kupljena tura nije mogla da se učita</h2>
+          <p>Pokušaj ponovo za koji trenutak.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="tour.reload()">Pokušaj ponovo</button>
+          </div>
+        }
+      }
+    </div>
+  } @else if (tour.value(); as details) {
+    <app-tour-card [tour]="details" [showBrowsingActions]="false" />
+  }
+</div>

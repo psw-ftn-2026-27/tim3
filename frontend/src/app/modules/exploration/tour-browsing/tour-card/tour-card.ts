@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { PublishedTourDto } from '../../api/exploration-api-types';
+import { TourDto } from '../../api/exploration-api-types';
 
 @Component({
   imports: [RouterLink],
@@ -9,8 +9,11 @@ import { PublishedTourDto } from '../../api/exploration-api-types';
   templateUrl: './tour-card.html',
 })
 export class TourCard {
-  readonly tour = input.required<PublishedTourDto>();
-  readonly canAddToCart = input.required<boolean>();
+  readonly tour = input.required<TourDto>();
+  readonly priceInEc = input<number | null>();
+  readonly showBrowsingActions = input(true);
+  readonly showPurchasedDetails = input(false);
+  readonly canAddToCart = input(false);
 
   // How many of the three difficulty bars are filled.
   protected readonly level = computed(() => {

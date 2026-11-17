@@ -70,6 +70,7 @@
 
   @if (checkoutConfirmed()) {
     <p role="status">Kupovina je uspešna.</p>
+    <a class="button" routerLink="/exploration/purchased">Moje kupljene ture</a>
   }
   @if (wallet.isLoading()) {
     <p>Učitavanje stanja novčanika…</p>
