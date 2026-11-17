@@ -4,6 +4,8 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using FluentAssertions;
 using Identity.Core.DTOs;
+using Identity.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Identity.Tests.Integration.Seeds;
 using Xunit;
 
@@ -36,6 +38,21 @@ public sealed class IdentityEndpointTests : BaseIntegrationTest
         var response = await client.PostAsJsonAsync("/api/identity/register", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Theory]
+    [InlineData("explorer@another-domain.com")]
+    [InlineData("EXPLORER@another-domain.com")]
+    public async Task Display_name_of_an_existing_account_cannot_be_registered_again(string email)
+    {
+        var client = Factory.CreateClient();
+        var request = new RegisterDto(email, "BrandNewSecret1!");
+
+        var response = await client.PostAsJsonAsync("/api/identity/register", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var context = Factory.CreateContext<IdentityModuleDbContext>();
+        (await context.Users.AnyAsync(user => user.NormalizedEmail == email.ToUpperInvariant())).Should().BeFalse();
     }
 
     [Fact]

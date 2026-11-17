@@ -19,6 +19,7 @@ public static class IdentityModuleExtensions
 
         services.AddIdentityCore<ApplicationUser>(options => options.User.RequireUniqueEmail = true)
             .AddRoles<IdentityRole<Guid>>()
+            .AddUserValidator<UniqueDisplayNameValidator>()
             .AddEntityFrameworkStores<IdentityModuleDbContext>();
 
         return services;
