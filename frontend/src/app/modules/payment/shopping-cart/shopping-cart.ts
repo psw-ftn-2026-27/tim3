@@ -15,4 +15,8 @@ export class ShoppingCart {
   async remove(tourId: string): Promise<void> {
     await firstValueFrom(this.http.delete<void>(`${CART_URL}/items/${tourId}`));
   }
+
+  async checkout(): Promise<void> {
+    await firstValueFrom(this.http.post<void>(`${CART_URL}/checkout`, {}));
+  }
 }

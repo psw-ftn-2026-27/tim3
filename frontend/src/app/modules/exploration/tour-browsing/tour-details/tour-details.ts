@@ -1,6 +1,7 @@
 import { HttpErrorResponse, httpResource } from '@angular/common/http';
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Auth } from '../../../../core/auth/auth';
 import { TourDetailsDto } from '../../api/exploration-api-types';
 
 @Component({
@@ -10,7 +11,13 @@ import { TourDetailsDto } from '../../api/exploration-api-types';
   templateUrl: './tour-details.html',
 })
 export class TourDetails {
+  private readonly auth = inject(Auth);
+
   readonly id = input.required<string>();
+
+  protected readonly isExplorer = computed(
+    () => this.auth.user()?.roles.includes('explorer') ?? false,
+  );
 
   protected readonly tour = httpResource<TourDetailsDto>(
     () => `/api/exploration/tours/${this.id()}`,

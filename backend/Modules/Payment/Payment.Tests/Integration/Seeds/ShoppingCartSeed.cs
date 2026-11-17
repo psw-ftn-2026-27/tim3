@@ -13,6 +13,7 @@ internal static class ShoppingCartSeed
     public static readonly Cart FundedCheckoutCart;
     public static readonly Cart FreeCheckoutCart;
     public static readonly Cart AlreadyPurchasedCart;
+    public static readonly Cart ArchivedCheckoutCart;
 
     static ShoppingCartSeed()
     {
@@ -31,7 +32,12 @@ internal static class ShoppingCartSeed
 
         AlreadyPurchasedCart = new Cart(WellKnownUsers.SecondExplorer);
         AlreadyPurchasedCart.AddItem(ProductSeed.CityWalk);
+
+        ArchivedCheckoutCart = new Cart(WalletSeed.DemoExplorerWalletWithDeposit.UserId);
+        ArchivedCheckoutCart.AddItem(ProductSeed.CityWalk);
+        ArchivedCheckoutCart.AddItem(ProductSeed.ArchivedWalk);
     }
 
-    public static Cart[] All => [ExplorerCart, OtherExplorerCart, FundedCheckoutCart, FreeCheckoutCart, AlreadyPurchasedCart];
+    public static Cart[] All =>
+        [ExplorerCart, OtherExplorerCart, FundedCheckoutCart, FreeCheckoutCart, AlreadyPurchasedCart, ArchivedCheckoutCart];
 }

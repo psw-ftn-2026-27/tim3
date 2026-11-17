@@ -36,6 +36,15 @@
       <h1>{{ details.name }}</h1>
       <div class="page-actions">
         <a class="button" routerLink="/exploration">All tours</a>
+        @if (isExplorer() && details.priceInEc !== null) {
+          <a
+            class="button button--primary"
+            routerLink="/payment/cart"
+            [queryParams]="{ tourId: id() }"
+          >
+            Dodaj u korpu
+          </a>
+        }
       </div>
     </div>
 

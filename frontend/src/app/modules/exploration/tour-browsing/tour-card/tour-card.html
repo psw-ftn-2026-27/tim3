@@ -60,6 +60,11 @@
 
   <div class="page-actions">
     <a class="button button--primary" [routerLink]="['/exploration', tour().id]">View tour</a>
+    @if (canAddToCart() && tour().priceInEc !== null) {
+      <a class="button" routerLink="/payment/cart" [queryParams]="{ tourId: tour().id }">
+        Dodaj u korpu
+      </a>
+    }
     <a class="button" [routerLink]="['/chat/tours', tour().id]">Chat</a>
   </div>
 </article>

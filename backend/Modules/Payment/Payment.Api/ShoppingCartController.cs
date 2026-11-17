@@ -12,11 +12,14 @@ public sealed class ShoppingCartController : ControllerBase
 {
     private readonly ShoppingCartQueries _queries;
     private readonly ShoppingCartService _service;
+    private readonly ShoppingCartCheckoutService _checkout;
 
-    public ShoppingCartController(ShoppingCartQueries queries, ShoppingCartService service)
+    public ShoppingCartController(
+        ShoppingCartQueries queries, ShoppingCartService service, ShoppingCartCheckoutService checkout)
     {
         _queries = queries;
         _service = service;
+        _checkout = checkout;
     }
 
     [HttpGet]
@@ -42,6 +45,13 @@ public sealed class ShoppingCartController : ControllerBase
     public async Task<ActionResult<object>> RemoveFromCart(Guid tourId)
     {
         await _service.RemoveFromCartAsync(User.GetUserId(), tourId);
+        return NoContent();
+    }
+
+    [HttpPost("checkout")]
+    public async Task<ActionResult<object>> Checkout()
+    {
+        await _checkout.CheckoutAsync(User.GetUserId());
         return NoContent();
     }
 }

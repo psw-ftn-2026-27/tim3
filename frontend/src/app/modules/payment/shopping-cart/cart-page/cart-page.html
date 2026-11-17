@@ -52,9 +52,32 @@
       @if (removeError(); as error) {
         <p role="alert">{{ error }}</p>
       }
+      @if (contents.items.length > 0) {
+        <button
+          class="button button--primary"
+          type="button"
+          [disabled]="pending() || cart.isLoading()"
+          (click)="checkout()"
+        >
+          Kupi
+        </button>
+        @if (checkoutError(); as error) {
+          <p role="alert">{{ error }}</p>
+        }
+      }
     </section>
   }
 
+  @if (checkoutConfirmed()) {
+    <p role="status">Kupovina je uspešna.</p>
+  }
+  @if (wallet.isLoading()) {
+    <p>Učitavanje stanja novčanika…</p>
+  } @else if (wallet.error()) {
+    <p role="alert">Stanje novčanika nije moglo da se učita.</p>
+  } @else if (wallet.hasValue()) {
+    <p aria-live="polite">Stanje novčanika <strong>{{ wallet.value().balance }} EC</strong></p>
+  }
   <a routerLink="/payment">Novčanik</a>
 } @else {
   <p>Korpa je dostupna prijavljenim turistima.</p>
