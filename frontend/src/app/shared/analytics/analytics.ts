@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { Auth } from '../../core/auth/auth';
 import { Consent } from '../../core/consent/consent';
+import { AnalyticsEvents } from './analytics-events';
 
 const MEASUREMENT_ID = environment.analyticsMeasurementId;
 
@@ -22,7 +23,8 @@ const gtag = function () {
 
 // Sends usage data to Google Analytics, only while the user has accepted analytics and a
 // measurement ID is configured. Google's script is loaded on the first accept, never before.
-// The first user is page-view tracking below; events from modules will go through send().
+// It sends page views on its own, and a page records an event from the list in
+// analytics-events.ts with record(), right after a successful command.
 @Injectable({ providedIn: 'root' })
 export class Analytics {
   private readonly router = inject(Router);
@@ -59,9 +61,17 @@ export class Analytics {
     }
   });
 
-  // The single place that sends to Google: checks consent and adds the visitor's role.
+  // Records an event from the list in analytics-events.ts. The compiler accepts a name only
+  // with its own parameters. Never throws: without consent or a measurement ID nothing is
+  // sent, and a blocked script only leaves the queue unread.
+  record<K extends keyof AnalyticsEvents>(name: K, params: AnalyticsEvents[K]): void {
+    this.send(name, params);
+  }
+
+  // The single place that sends to Google: checks consent and adds the visitor's role,
+  // after the parameters, so no caller can replace it.
   // Never send an email, a name or an identifier.
-  private send(name: string, params: Record<string, string>): void {
+  private send(name: string, params: Record<string, string | number>): void {
     if (!this.consent.accepted()) {
       return;
     }
