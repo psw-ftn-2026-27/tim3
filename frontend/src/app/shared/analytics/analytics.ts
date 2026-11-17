@@ -70,7 +70,7 @@ export class Analytics {
 
   // The single place that sends to Google: checks consent and adds the visitor's role,
   // after the parameters, so no caller can replace it.
-  // Never send an email, a name or an identifier.
+  // Never send an email, a name or a user identifier.
   private send(name: string, params: Record<string, string | number>): void {
     if (!this.consent.accepted()) {
       return;

@@ -38,7 +38,7 @@ frontend/src/
       analytics/             sends to Google Analytics with consent: page views and
                              events from modules; analytics-events.ts is the one
                              file under shared/ a module team may edit, in its own
-                             PR, with platform review (see its README)    [platform]
+                             PR, with platform review (see its README)        [platform]
       util/
       api/                   shared types (PageResult, ProblemDetails),
                              mirror the server, no client-only fields          [platform]

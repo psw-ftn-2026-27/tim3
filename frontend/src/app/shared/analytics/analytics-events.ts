@@ -3,7 +3,7 @@
 //
 // A module team may add a name here in its own pull request; the platform team reviews it.
 // A name is <object>_<past-tense action>, lowercase with underscores (tour_published).
-// A value is text or a number, and never a user ID, anything the user typed, a name or an email.
+// A value is text or a number, and never a user ID, free text the user typed (a title, a message, a search), a name or an email.
 export interface AnalyticsEvents {
   tour_published: { tour_id: string };
   gift_card_purchased: { amount: number };
