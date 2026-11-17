@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Shared.Tests;
@@ -49,5 +50,15 @@ public class ClubMembershipQueryTests : BaseIntegrationTest
         var club = await client.GetFromJsonAsync<ClubDetailsDto>($"/api/social/clubs/{seeded.Id}", JsonOptions);
 
         club!.PendingRequests.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Viewing_a_club_that_does_not_exist_is_rejected()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.ThirdExplorer, "explorer");
+
+        var response = await client.GetAsync($"/api/social/clubs/{Guid.NewGuid()}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

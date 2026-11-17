@@ -1,4 +1,4 @@
-import { httpResource } from '@angular/common/http';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../../../../core/auth/auth';
@@ -22,4 +22,9 @@ export class BlogList {
   protected readonly blogs = httpResource<PageResult<BlogDto>>(
     () => '/api/social/blogs/published?page=1&pageSize=20',
   );
+
+  protected readonly blogsErrorStatus = computed(() => {
+    const failure = this.blogs.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 }

@@ -1,0 +1,5 @@
+// The component's own element is inline by default, which ignores the space the page's
+// .stack puts above it; as a block it keeps that space.
+:host {
+  display: block;
+}

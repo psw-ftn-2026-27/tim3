@@ -18,6 +18,16 @@
 
   <p class="description">{{ tour().description }}</p>
 
+  @if (tour().recommendedGroupSize; as size) {
+    @if (size.from === size.to) {
+      <p class="meta">Group size: {{ size.from }}</p>
+    } @else {
+      <p class="meta">Group size: {{ size.from }}–{{ size.to }}</p>
+    }
+  } @else {
+    <p class="meta">Group size not specified</p>
+  }
+
   @if (tour().tags.length > 0) {
     <ul class="tags">
       @for (tag of tour().tags; track tag) {
@@ -30,7 +40,9 @@
     @for (time of tour().transportTimes; track time.transport) {
       <li>{{ time.transport }}: {{ time.minutes }} min</li>
     } @empty {
-      <li>No transport times yet.</li>
+      <li class="empty">No transport times yet. Check back later.</li>
     }
   </ul>
+
+  <a class="button button--primary chat" [routerLink]="['/chat/tours', tour().id]">Chat</a>
 </article>

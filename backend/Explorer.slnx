@@ -1,5 +1,9 @@
 <Solution>
   <Folder Name="/Modules/" />
+  <Folder Name="/Modules/Chats/">
+    <Project Path="Modules/Chats/Chats.Tests/Chats.Tests.csproj" />
+    <Project Path="Modules/Chats/Chats/Chats.csproj" />
+  </Folder>
   <Folder Name="/Modules/Exploration/">
     <Project Path="Modules/Exploration/Exploration.Api/Exploration.Api.csproj" />
     <Project Path="Modules/Exploration/Exploration.Application/Exploration.Application.csproj" />

@@ -63,6 +63,15 @@ a:hover {
   color: var(--color-exploration-ink);
 }
 
+// A link inside running text ("No account yet? Register", "Create your first blog.") is
+// underlined, so the user sees that it can be clicked. A link styled as a button, and links
+// on their own such as the nav and card titles, are not.
+p a:not(.button) {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
 ::placeholder {
   color: var(--color-text-muted);
 }
@@ -113,4 +122,11 @@ a:hover {
   to {
     clip-path: circle(150vmax at var(--reveal-x) var(--reveal-y));
   }
+}
+
+// The pictures of the page that the transition shows have no frosted glass (the browser
+// leaves out backdrop-filter), so the sticky nav would turn see-through over the content
+// while the circle grows. During the switch the nav is drawn solid in the page colour.
+:root:active-view-transition header::before {
+  background: var(--color-bg);
 }

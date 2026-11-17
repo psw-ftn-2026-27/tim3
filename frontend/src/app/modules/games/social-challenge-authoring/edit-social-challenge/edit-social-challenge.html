@@ -2,9 +2,48 @@
   <h1>Izmena izazova</h1>
 
   @if (challenge.isLoading()) {
-    <p>Učitavanje izazova...</p>
+    <p class="loading">Učitavanje izazova...</p>
   } @else if (challenge.error()) {
-    <p class="error">Izazov ne postoji ili ne može da se učita.</p>
+    @switch (challengeErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Prijavite se da biste izmenili izazov</h2>
+          <p>Izazove menja administrator, a vaša sesija je možda istekla.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Prijavite se</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Samo administrator može da menja izazove</h2>
+          <p>Društvene izazove pravi, menja i objavljuje administrator.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games">Igre</a>
+          </div>
+        </div>
+      }
+      @case (404) {
+        <div class="empty-state" role="alert">
+          <h2>Izazov ne postoji</h2>
+          <p>Možda je obrisan. Izaberite drugi izazov sa spiska.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games/challenges">Svi izazovi</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Izazov ne može da se učita</h2>
+          <p>Nešto nije u redu na našoj strani. Pokušajte ponovo za trenutak.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="challenge.reload()">
+              Pokušajte ponovo
+            </button>
+          </div>
+        </div>
+      }
+    }
   } @else if (challenge.value(); as value) {
     <app-social-challenge-form
       [initial]="toFormValue(value)"

@@ -1,6 +1,6 @@
-import { httpResource } from '@angular/common/http';
-import { Component, inject, input, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
+import { Component, computed, inject, input, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { SocialChallengeDto, UpdateSocialChallengeDto } from '../../api/games-api-types';
 import { SocialChallengeAuthoring } from '../social-challenge-authoring';
@@ -10,7 +10,7 @@ import {
 } from '../social-challenge-form/social-challenge-form';
 
 @Component({
-  imports: [SocialChallengeForm],
+  imports: [RouterLink, SocialChallengeForm],
   selector: 'app-edit-social-challenge',
   styleUrl: './edit-social-challenge.scss',
   templateUrl: './edit-social-challenge.html',
@@ -24,6 +24,11 @@ export class EditSocialChallenge {
   protected readonly challenge = httpResource<SocialChallengeDto>(
     () => `/api/games/social-challenges/${this.id()}`,
   );
+
+  protected readonly challengeErrorStatus = computed(() => {
+    const failure = this.challenge.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 
   protected readonly pending = signal(false);
   protected readonly error = signal<string | null>(null);

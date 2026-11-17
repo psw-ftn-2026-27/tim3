@@ -8,64 +8,99 @@
     </div>
   </div>
 
-  @if (error()) {
-    <p class="error">{{ error() }}</p>
-  }
-
   @if (blogs.isLoading()) {
-    <p>Loading your blogs...</p>
+    <p class="loading">Loading your blogs...</p>
   } @else if (blogs.error()) {
-    <p class="error">Could not load your blogs. Log in and try again.</p>
+    @switch (blogsErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to see your blogs</h2>
+          <p>Your blogs are shown to logged-in explorers, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only explorers can write blogs</h2>
+          <p>Explorers write and manage blogs. You can still read the published ones.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social">All blogs</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load your blogs</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="blogs.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if ((blogs.value() ?? []).length === 0) {
+    <div class="empty-state">
+      <h2>You have no blogs yet</h2>
+      <p>Write your first blog and publish it when it is ready.</p>
+      <div class="empty-state-actions">
+        <a class="button button--primary" routerLink="/social/create">Create blog</a>
+      </div>
+    </div>
   } @else {
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Title</th>
-          <th scope="col">Status</th>
-          <th scope="col">Comments</th>
-          <th scope="col">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (blog of blogs.value() ?? []; track blog.id) {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
           <tr>
-            <td>{{ blog.title }}</td>
-            <td>
-              <span class="badge">{{ blog.status }}</span>
-            </td>
-            <td>{{ blog.comments.length }}</td>
-            <td>
-              @if (blog.status !== 'Closed') {
-                <a class="button" [routerLink]="['/social', blog.id, 'edit']">Edit</a>
-              }
-              @if (blog.status === 'Draft') {
-                <button
-                  class="button button--primary"
-                  type="button"
-                  [disabled]="pending()"
-                  (click)="publish(blog.id)"
-                >
-                  Publish
-                </button>
-              }
-              @if (blog.status === 'Published') {
-                <button
-                  class="button button--primary"
-                  type="button"
-                  [disabled]="pending()"
-                  (click)="archive(blog.id)"
-                >
-                  Archive
-                </button>
-              }
-            </td>
+            <th scope="col">Title</th>
+            <th scope="col">Status</th>
+            <th scope="col">Comments</th>
+            <th scope="col">Actions</th>
           </tr>
-        } @empty {
-          <tr>
-            <td colspan="4">You have no blogs yet.</td>
-          </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (blog of blogs.value() ?? []; track blog.id) {
+            <tr>
+              <td>{{ blog.title }}</td>
+              <td>
+                <span class="badge">{{ blog.status }}</span>
+              </td>
+              <td>{{ blog.comments.length }}</td>
+              <td>
+                @if (blog.status !== 'Closed') {
+                  <a class="button" [routerLink]="['/social', blog.id, 'edit']">Edit</a>
+                }
+                @if (blog.status === 'Draft') {
+                  <button
+                    class="button button--primary"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="publish(blog.id)"
+                  >
+                    Publish
+                  </button>
+                }
+                @if (blog.status === 'Published') {
+                  <button
+                    class="button button--primary"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="archive(blog.id)"
+                  >
+                    Archive
+                  </button>
+                }
+              </td>
+            </tr>
+            @if (rowError()?.rowId === blog.id) {
+              <tr>
+                <td colspan="4"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
   }
 </div>

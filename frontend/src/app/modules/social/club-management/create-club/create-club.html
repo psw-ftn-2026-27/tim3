@@ -30,7 +30,7 @@
     />
 
     @if (imageError()) {
-      <p class="error">{{ imageError() }}</p>
+      <p class="error" role="alert">{{ imageError() }}</p>
     }
 
     <ul class="images">
@@ -40,12 +40,12 @@
           <button class="button" type="button" (click)="removeImage($index)">Remove</button>
         </li>
       } @empty {
-        <li class="meta">No images added yet.</li>
+        <li class="empty">No images added yet. Add one with the picker above.</li>
       }
     </ul>
 
     @if (error()) {
-      <p class="error">{{ error() }}</p>
+      <p class="error" role="alert">{{ error() }}</p>
     }
 
     <button class="button button--primary" type="submit" [disabled]="!form().valid() || pending()">

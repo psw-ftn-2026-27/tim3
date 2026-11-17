@@ -13,111 +13,158 @@
   @if (success()) {
     <p class="success" role="status">{{ success() }}</p>
   }
-  @if (error()) {
-    <p class="error" role="alert">{{ error() }}</p>
-  }
 
   @if (challenges.isLoading()) {
-    <p>Učitavanje izazova...</p>
+    <p class="loading">Učitavanje izazova...</p>
   } @else if (challenges.error()) {
-    <p class="error">Izazovi ne mogu da se učitaju. Prijavite se kao administrator i pokušajte ponovo.</p>
+    @switch (challengesErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Prijavite se da biste videli izazove</h2>
+          <p>Društvene izazove pregleda administrator, a vaša sesija je možda istekla.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Prijavite se</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Samo administrator može da vidi izazove</h2>
+          <p>Društvene izazove pregleda i objavljuje administrator.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games">Igre</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Izazovi ne mogu da se učitaju</h2>
+          <p>Nešto nije u redu na našoj strani. Pokušajte ponovo za trenutak.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="challenges.reload()">
+              Pokušajte ponovo
+            </button>
+          </div>
+        </div>
+      }
+    }
+  } @else if ((challenges.value()?.totalCount ?? 0) === 0) {
+    <div class="empty-state">
+      <h2>Još nema izazova</h2>
+      <p>
+        @if (isAdministrator()) {
+          Napravite prvi izazov za koji se igrači okupe na istom mestu u isto doba dana.
+        } @else {
+          Izazovi se pojavljuju ovde kada ih administrator napravi.
+        }
+      </p>
+      @if (isAdministrator()) {
+        <div class="empty-state-actions">
+          <a class="button button--primary" routerLink="/games/challenges/create">Novi izazov</a>
+        </div>
+      }
+    </div>
   } @else {
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Naziv</th>
-          <th scope="col">Doba dana</th>
-          <th scope="col">Broj ljudi</th>
-          <th scope="col">Opseg (m)</th>
-          <th scope="col">XP</th>
-          <th scope="col">Stanje</th>
-          <th scope="col">Akcije</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (challenge of challenges.value()?.items ?? []; track challenge.id) {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
           <tr>
-            <td>{{ challenge.name }}</td>
-            <td class="period">
-              {{ challenge.activePeriodStart.slice(0, 5) }} – {{ challenge.activePeriodEnd.slice(0, 5) }}
-            </td>
-            <td>{{ challenge.peopleRequired }}</td>
-            <td>{{ challenge.gatheringRadius }}</td>
-            <td>{{ challenge.experienceGained }}</td>
-            <td><span class="badge">{{ challenge.status }}</span></td>
-            <td>
-              <div class="actions">
-                @if (awaitingConfirmation()?.id === challenge.id) {
-                  <button class="button button--primary" type="button" [disabled]="pending()" (click)="confirm()">
-                    {{ awaitingConfirmation()?.action === 'delete' ? 'Potvrdi brisanje' : 'Potvrdi arhiviranje' }}
-                  </button>
-                  <button class="button" type="button" [disabled]="pending()" (click)="cancelConfirmation()">
-                    {{ awaitingConfirmation()?.action === 'delete' ? 'Odustani od brisanja' : 'Odustani od arhiviranja' }}
-                  </button>
-                } @else {
-                  @switch (challenge.status) {
-                    @case ('Draft') {
-                      <a class="button" [routerLink]="['/games/challenges', challenge.id, 'edit']">Izmeni</a>
-                      <button class="button" type="button" [disabled]="pending()" (click)="publish(challenge.id)">
-                        Objavi
-                      </button>
-                      <button
-                        class="button"
-                        type="button"
-                        [disabled]="pending()"
-                        (click)="askForConfirmation(challenge.id, 'delete')"
-                      >
-                        Obriši
-                      </button>
-                    }
-                    @case ('Published') {
-                      <button class="button" type="button" [disabled]="pending()" (click)="retire(challenge.id)">
-                        Penzioniši
-                      </button>
-                      <button
-                        class="button"
-                        type="button"
-                        [disabled]="pending()"
-                        (click)="askForConfirmation(challenge.id, 'archive')"
-                      >
-                        Arhiviraj
-                      </button>
-                    }
-                    @case ('Retired') {
-                      <button class="button" type="button" [disabled]="pending()" (click)="reactivate(challenge.id)">
-                        Ponovo objavi
-                      </button>
-                      <button
-                        class="button"
-                        type="button"
-                        [disabled]="pending()"
-                        (click)="askForConfirmation(challenge.id, 'archive')"
-                      >
-                        Arhiviraj
-                      </button>
-                    }
-                    @case ('Archived') {
-                      <button
-                        class="button"
-                        type="button"
-                        [disabled]="pending()"
-                        (click)="askForConfirmation(challenge.id, 'delete')"
-                      >
-                        Obriši
-                      </button>
+            <th scope="col">Naziv</th>
+            <th scope="col">Doba dana</th>
+            <th scope="col">Broj ljudi</th>
+            <th scope="col">Opseg (m)</th>
+            <th scope="col">XP</th>
+            <th scope="col">Stanje</th>
+            <th scope="col">Akcije</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (challenge of challenges.value()?.items ?? []; track challenge.id) {
+            <tr>
+              <td>{{ challenge.name }}</td>
+              <td class="period">
+                {{ challenge.activePeriodStart.slice(0, 5) }} – {{ challenge.activePeriodEnd.slice(0, 5) }}
+              </td>
+              <td>{{ challenge.peopleRequired }}</td>
+              <td>{{ challenge.gatheringRadius }}</td>
+              <td>{{ challenge.experienceGained }}</td>
+              <td><span class="badge">{{ challenge.status }}</span></td>
+              <td>
+                <div class="actions">
+                  @if (awaitingConfirmation()?.id === challenge.id) {
+                    <button class="button button--primary" type="button" [disabled]="pending()" (click)="confirm()">
+                      {{ awaitingConfirmation()?.action === 'delete' ? 'Potvrdi brisanje' : 'Potvrdi arhiviranje' }}
+                    </button>
+                    <button class="button" type="button" [disabled]="pending()" (click)="cancelConfirmation()">
+                      {{ awaitingConfirmation()?.action === 'delete' ? 'Odustani od brisanja' : 'Odustani od arhiviranja' }}
+                    </button>
+                  } @else {
+                    @switch (challenge.status) {
+                      @case ('Draft') {
+                        <a class="button" [routerLink]="['/games/challenges', challenge.id, 'edit']">Izmeni</a>
+                        <button class="button" type="button" [disabled]="pending()" (click)="publish(challenge.id)">
+                          Objavi
+                        </button>
+                        <button
+                          class="button"
+                          type="button"
+                          [disabled]="pending()"
+                          (click)="askForConfirmation(challenge.id, 'delete')"
+                        >
+                          Obriši
+                        </button>
+                      }
+                      @case ('Published') {
+                        <button class="button" type="button" [disabled]="pending()" (click)="retire(challenge.id)">
+                          Penzioniši
+                        </button>
+                        <button
+                          class="button"
+                          type="button"
+                          [disabled]="pending()"
+                          (click)="askForConfirmation(challenge.id, 'archive')"
+                        >
+                          Arhiviraj
+                        </button>
+                      }
+                      @case ('Retired') {
+                        <button class="button" type="button" [disabled]="pending()" (click)="reactivate(challenge.id)">
+                          Ponovo objavi
+                        </button>
+                        <button
+                          class="button"
+                          type="button"
+                          [disabled]="pending()"
+                          (click)="askForConfirmation(challenge.id, 'archive')"
+                        >
+                          Arhiviraj
+                        </button>
+                      }
+                      @case ('Archived') {
+                        <button
+                          class="button"
+                          type="button"
+                          [disabled]="pending()"
+                          (click)="askForConfirmation(challenge.id, 'delete')"
+                        >
+                          Obriši
+                        </button>
+                      }
                     }
                   }
-                }
-              </div>
-            </td>
-          </tr>
-        } @empty {
-          <tr>
-            <td colspan="7">Još nema izazova.</td>
-          </tr>
-        }
-      </tbody>
-    </table>
+                  <a class="button" [routerLink]="['/chat/challenges', challenge.id]">Chat</a>
+                </div>
+              </td>
+            </tr>
+            @if (rowError()?.rowId === challenge.id) {
+              <tr>
+                <td colspan="7"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
 
     <div class="paging">
       <button class="button" type="button" [disabled]="page() === 1" (click)="previousPage()">

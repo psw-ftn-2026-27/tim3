@@ -20,7 +20,10 @@ public sealed class TourAuthoringService
 
     public async Task<TourDto> CreateAsync(Guid authorId, CreateTourDto dto)
     {
-        var tour = new Tour(authorId, dto.Name, dto.Description, dto.Difficulty, dto.Tags);
+        var groupSize = dto.RecommendedGroupSize is null
+            ? null
+            : new GroupSize(dto.RecommendedGroupSize.From, dto.RecommendedGroupSize.To);
+        var tour = new Tour(authorId, dto.Name, dto.Description, dto.Difficulty, dto.Tags, groupSize);
 
         _tourRepository.Add(tour);
         await _unitOfWork.SaveChangesAsync();
@@ -36,11 +39,11 @@ public sealed class TourAuthoringService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task PublishAsync(Guid tourId, Guid authorId)
+    public async Task PublishAsync(Guid tourId, Guid authorId, PublishTourDto dto)
     {
         var tour = await GetOwnedTourAsync(tourId, authorId);
 
-        tour.Publish();
+        tour.Publish(ToTourPrice(dto));
         await _unitOfWork.SaveChangesAsync();
     }
 
@@ -68,5 +71,14 @@ public sealed class TourAuthoringService
             throw new NotFoundException($"Tour {tourId} does not exist.");
         }
         return tour;
+    }
+
+    private static TourPrice? ToTourPrice(PublishTourDto dto)
+    {
+        if (dto.IsFree is null)
+        {
+            return null;
+        }
+        return dto.IsFree.Value ? TourPrice.Free() : TourPrice.Paid(dto.Amount ?? 0);
     }
 }

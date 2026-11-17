@@ -1,4 +1,4 @@
-import { httpResource } from '@angular/common/http';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { PageResult } from '../../../../shared/api/page-result';
@@ -18,6 +18,11 @@ export class AllQuizzes {
   protected readonly quizzes = httpResource<PageResult<QuizDto>>(
     () => `/api/games/quizzes?page=${this.page()}&pageSize=${PAGE_SIZE}`,
   );
+
+  protected readonly quizzesErrorStatus = computed(() => {
+    const failure = this.quizzes.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 
   protected readonly hasPrevious = computed(() => this.page() > 1);
 

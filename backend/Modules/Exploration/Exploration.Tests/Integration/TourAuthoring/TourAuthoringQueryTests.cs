@@ -22,4 +22,20 @@ public class TourAuthoringQueryTests : BaseIntegrationTest
         tours.Should().OnlyContain(tour => tour.AuthorId == WellKnownUsers.Explorer);
         tours.Should().NotContain(tour => tour.Id == TourSeed.SecondExplorersTrail.Id);
     }
+
+    [Fact]
+    public async Task Author_sees_the_recommended_group_size_of_each_of_their_tours()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+
+        var tours = await client.GetFromJsonAsync<List<TourDto>>("/api/exploration/tours/mine", JsonOptions);
+
+        tours.Should().BeEquivalentTo(TourSeed.All
+            .Where(tour => tour.AuthorId == WellKnownUsers.Explorer)
+            .Select(tour => new
+            {
+                tour.Id,
+                RecommendedGroupSize = new GroupSizeDto(tour.RecommendedGroupSize!.From, tour.RecommendedGroupSize.To)
+            }));
+    }
 }

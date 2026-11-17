@@ -27,4 +27,18 @@ export class ClubMembership {
       this.http.post<void>(`${BASE_URL}/${clubId}/join-requests/${requesterId}/reject`, null),
     );
   }
+
+  async invite(clubId: string, inviteeId: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(`${BASE_URL}/${clubId}/invitations/${inviteeId}`, null),
+    );
+  }
+
+  async withdrawInvitation(clubId: string, inviteeId: string): Promise<void> {
+    await firstValueFrom(this.http.delete<void>(`${BASE_URL}/${clubId}/invitations/${inviteeId}`));
+  }
+
+  async removeMember(clubId: string, memberId: string): Promise<void> {
+    await firstValueFrom(this.http.delete<void>(`${BASE_URL}/${clubId}/members/${memberId}`));
+  }
 }
