@@ -1,4 +1,5 @@
 using Identity.Contracts;
+using Identity.Core;
 using Microsoft.EntityFrameworkCore;
 
 namespace Identity.Infrastructure;
@@ -31,14 +32,15 @@ internal sealed class IdentityApi : IIdentityApi
                 .Contains(normalizedText));
 
         var totalCount = await matching.CountAsync();
+        var offset = (int)Math.Min((page - 1L) * pageSize, int.MaxValue);
         var users = await matching
             .OrderBy(user => user.NormalizedUserName)
-            .Skip((page - 1) * pageSize)
+            .Skip(offset)
             .Take(pageSize)
             .Select(user => new { user.Id, user.UserName })
             .ToListAsync();
 
-        var items = users.Select(user => new UserDisplayName(user.Id, ToDisplayName(user.UserName!))).ToList();
+        var items = users.Select(user => new UserDisplayName(user.Id, DisplayName.From(user.UserName!))).ToList();
         return new UserSearchResult(items, totalCount);
     }
 
@@ -64,7 +66,7 @@ internal sealed class IdentityApi : IIdentityApi
             .Select(user => new { user.Id, user.UserName })
             .ToListAsync();
 
-        var items = users.Select(user => new UserDisplayName(user.Id, ToDisplayName(user.UserName ?? string.Empty)))
+        var items = users.Select(user => new UserDisplayName(user.Id, DisplayName.From(user.UserName ?? string.Empty)))
             .ToList();
         return new UserSearchResult(items, totalCount);
     }
@@ -76,7 +78,7 @@ internal sealed class IdentityApi : IIdentityApi
             .Select(user => new { user.Id, user.UserName })
             .ToListAsync();
 
-        return users.Select(user => new UserDisplayName(user.Id, ToDisplayName(user.UserName!))).ToList();
+        return users.Select(user => new UserDisplayName(user.Id, DisplayName.From(user.UserName!))).ToList();
     }
 
     public Task<bool> ExistsAsync(Guid userId)
@@ -84,10 +86,12 @@ internal sealed class IdentityApi : IIdentityApi
         return _dbContext.Users.AnyAsync(user => user.Id == userId);
     }
 
-    // The user name is the e-mail address; other modules see only the part before the @.
-    private static string ToDisplayName(string userName)
+    public Task<bool> IsExplorerAsync(Guid userId)
     {
-        var at = userName.IndexOf('@');
-        return at < 0 ? userName : userName[..at];
+        var explorerRoleIds = _dbContext.Roles
+            .Where(role => role.Name == ExplorerRole)
+            .Select(role => role.Id);
+        return _dbContext.UserRoles.AnyAsync(userRole =>
+            userRole.UserId == userId && explorerRoleIds.Contains(userRole.RoleId));
     }
 }

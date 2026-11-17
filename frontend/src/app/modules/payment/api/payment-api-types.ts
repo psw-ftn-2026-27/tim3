@@ -1,6 +1,6 @@
 import { PageResult } from '../../../shared/api/page-result';
 
-export type WalletTransactionKind = 'Deposit' | 'Reversal' | 'Purchase';
+export type WalletTransactionKind = 'Deposit' | 'Reversal' | 'Purchase' | 'GiftCardPurchase';
 
 export interface WalletTransactionDto {
   id: string;
@@ -41,4 +41,37 @@ export interface ProductForCartDto {
   tourId: string;
   name: string;
   priceInEc: number;
+}
+
+export type GiftCardStatus = 'Valid' | 'Expired' | 'Redeemed';
+
+export interface PurchasedGiftCardDto {
+  id: string;
+  recipientId: string;
+  recipientDisplayName: string;
+  amount: number;
+  message: string | null;
+  expiresAt: string;
+  status: GiftCardStatus;
+}
+
+export interface RecipientDto {
+  userId: string;
+  displayName: string;
+}
+
+export interface BuyGiftCardDto {
+  recipientId: string;
+  amount: number;
+  message: string | null;
+}
+
+export interface ReceivedGiftCardDto {
+  id: string;
+  buyerId: string;
+  buyerDisplayName: string;
+  amount: number;
+  message: string | null;
+  expiresAt: string;
+  status: GiftCardStatus;
 }

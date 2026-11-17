@@ -1,4 +1,5 @@
 using Games.Application.Quizzes;
+using Games.Domain.Locations;
 using Games.Domain.Quizzes;
 using Shared.Domain.Exceptions;
 
@@ -29,11 +30,12 @@ public sealed class QuizAuthoringService
     {
         var quiz = await GetQuizAsync(quizId);
 
-        quiz.UpdateDetails(dto.Title, dto.Description, dto.ExperiencePoints);
+        var location = dto.Location is null ? null : new Location(dto.Location.Latitude, dto.Location.Longitude);
+        quiz.UpdateDetails(dto.Title, dto.Description, dto.ExperiencePoints, location);
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task AddQuestionAsync(Guid quizId, CreateQuestionDto dto)
+    public async Task AddQuestionAsync(Guid quizId, QuestionInputDto dto)
     {
         var quiz = await GetQuizAsync(quizId);
 
@@ -41,7 +43,7 @@ public sealed class QuizAuthoringService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task UpdateQuestionAsync(Guid quizId, Guid questionId, UpdateQuestionDto dto)
+    public async Task UpdateQuestionAsync(Guid quizId, Guid questionId, QuestionInputDto dto)
     {
         var quiz = await GetQuizAsync(quizId);
 

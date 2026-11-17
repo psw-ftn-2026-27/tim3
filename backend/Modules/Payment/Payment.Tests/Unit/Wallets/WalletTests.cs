@@ -106,6 +106,19 @@ public class WalletTests
         wallet.Transactions.Should().ContainSingle().Which.Should().Be(deposit);
     }
 
+    [Fact]
+    public void A_wallet_without_enough_ec_refuses_to_pay_for_a_gift_card_and_keeps_its_balance()
+    {
+        var wallet = CreateWalletWithDeposit(40);
+        var deposit = wallet.Transactions.Single();
+
+        var pay = () => wallet.PayForGiftCard(41, DepositTime.AddHours(1));
+
+        pay.Should().Throw<DomainException>();
+        wallet.Balance.Should().Be(40);
+        wallet.Transactions.Should().ContainSingle().Which.Should().Be(deposit);
+    }
+
     private static Wallet CreateWalletWithDeposit(int amount)
     {
         var wallet = new Wallet(WellKnownUsers.Explorer);

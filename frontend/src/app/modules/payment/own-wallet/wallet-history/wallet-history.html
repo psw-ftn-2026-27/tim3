@@ -26,19 +26,7 @@
         <tbody>
           @for (transaction of transactions(); track transaction.id) {
             <tr>
-              <td>
-                @switch (transaction.kind) {
-                  @case ('Deposit') {
-                    Uplata
-                  }
-                  @case ('Reversal') {
-                    Storno uplate
-                  }
-                  @case ('Purchase') {
-                    Kupovina ture
-                  }
-                }
-              </td>
+              <td>{{ kindLabel(transaction.kind) }}</td>
               <td>{{ transaction.amount > 0 ? '+' : '' }}{{ transaction.amount }} EC</td>
               <td>
                 <time [attr.datetime]="transaction.occurredAt">{{

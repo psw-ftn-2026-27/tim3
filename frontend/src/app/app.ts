@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Auth } from './core/auth/auth';
 import { Consent } from './core/consent/consent';
 import { Theme } from './core/theme/theme';
+import { Analytics } from './shared/analytics/analytics';
 
 // Elements that light up under the pointer, and the cards among them that also tilt.
 const GLASS = '.button, .card, .table tbody tr';
@@ -25,6 +26,8 @@ export class App {
   protected readonly auth = inject(Auth);
   protected readonly theme = inject(Theme);
   protected readonly consent = inject(Consent);
+  // Injected only to start page-view tracking for the whole visit.
+  private readonly analytics = inject(Analytics);
 
   // Position and width of the shared pill behind the nav links, in pixels.
   protected readonly indicatorLeft = signal(0);

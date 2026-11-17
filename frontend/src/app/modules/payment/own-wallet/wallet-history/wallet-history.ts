@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { WalletTransactionDto } from '../../api/payment-api-types';
+import { WalletTransactionDto, WalletTransactionKind } from '../../api/payment-api-types';
 
 @Component({
   selector: 'app-wallet-history',
@@ -18,6 +18,19 @@ export class WalletHistory {
   readonly dismissReversal = output<void>();
 
   private reversalButton: HTMLButtonElement | null = null;
+
+  protected kindLabel(kind: WalletTransactionKind): string {
+    switch (kind) {
+      case 'Deposit':
+        return 'Uplata';
+      case 'Reversal':
+        return 'Storno uplate';
+      case 'Purchase':
+        return 'Kupovina ture';
+      case 'GiftCardPurchase':
+        return 'Kupovina poklon kartice';
+    }
+  }
 
   protected date(iso: string): string {
     return new Date(iso).toLocaleString('sr-Latn-RS');
