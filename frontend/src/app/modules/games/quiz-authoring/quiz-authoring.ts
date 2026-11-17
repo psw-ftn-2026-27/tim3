@@ -1,12 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import {
-  CreateQuestionDto,
-  CreateQuizDto,
-  UpdateQuestionDto,
-  UpdateQuizDetailsDto,
-} from '../api/games-api-types';
+import { CreateQuizDto, QuestionInputDto, UpdateQuizDetailsDto } from '../api/games-api-types';
 
 const BASE_URL = '/api/games/quizzes';
 
@@ -22,11 +17,11 @@ export class QuizAuthoring {
     await firstValueFrom(this.http.put<void>(`${BASE_URL}/${id}`, dto));
   }
 
-  async addQuestion(id: string, dto: CreateQuestionDto): Promise<void> {
+  async addQuestion(id: string, dto: QuestionInputDto): Promise<void> {
     await firstValueFrom(this.http.post<void>(`${BASE_URL}/${id}/questions`, dto));
   }
 
-  async updateQuestion(id: string, questionId: string, dto: UpdateQuestionDto): Promise<void> {
+  async updateQuestion(id: string, questionId: string, dto: QuestionInputDto): Promise<void> {
     await firstValueFrom(this.http.put<void>(`${BASE_URL}/${id}/questions/${questionId}`, dto));
   }
 

@@ -1,3 +1,4 @@
+using Games.Domain.Locations;
 using Games.Domain.Quizzes;
 using Shared.Tests;
 
@@ -27,17 +28,20 @@ internal static class QuizSeed
         ReadyToPublishCathedralQuiz.AddQuestion("Na kom trgu je katedrala?", [new Answer("Trg slobode", true), new Answer("Trg galerija", false)]);
         ReadyToPublishCathedralQuiz.AddQuestion("Kom svecu je posvećena?", [new Answer("Svetoj Mariji", true), new Answer("Svetom Đorđu", false)]);
         ReadyToPublishCathedralQuiz.AddQuestion("U kom stilu je građena?", [new Answer("Neogotičkom", true), new Answer("Baroknom", false), new Answer("Romanskom", false)]);
+        ReadyToPublishCathedralQuiz.UpdateDetails("Katedrala", "Odgovori na tri pitanja o katedrali.", 30, new Location(45.2553, 19.8451));
 
         PublishedSynagogueQuiz = new(WellKnownUsers.Administrator, "Sinagoga", "Odgovori na tri pitanja o sinagogi.", 40);
         PublishedSynagogueQuiz.AddQuestion("U kojoj ulici je sinagoga?", [new Answer("Jevrejskoj", true), new Answer("Zmaj Jovinoj", false)]);
         PublishedSynagogueQuiz.AddQuestion("Ko je projektovao sinagogu?", [new Answer("Lipot Baumhorn", true), new Answer("Ödön Lechner", false)]);
         PublishedSynagogueQuiz.AddQuestion("Za šta se sinagoga danas koristi?", [new Answer("Koncerte", true), new Answer("Sport", false)]);
+        PublishedSynagogueQuiz.UpdateDetails("Sinagoga", "Odgovori na tri pitanja o sinagogi.", 40, new Location(45.2556, 19.8406));
         PublishedSynagogueQuiz.Publish();
 
         RetiredBridgeQuiz = new(WellKnownUsers.Administrator, "Mostovi", "Odgovori na tri pitanja o mostovima.", 25);
         RetiredBridgeQuiz.AddQuestion("Koliko mostova ima Novi Sad?", [new Answer("Tri", true), new Answer("Sedam", false)]);
         RetiredBridgeQuiz.AddQuestion("Koji most je najstariji?", [new Answer("Varadinski", true), new Answer("Most slobode", false)]);
         RetiredBridgeQuiz.AddQuestion("Preko koje reke vode?", [new Answer("Dunav", true), new Answer("Tisa", false)]);
+        RetiredBridgeQuiz.UpdateDetails("Mostovi", "Odgovori na tri pitanja o mostovima.", 25, new Location(45.2522, 19.8622));
         RetiredBridgeQuiz.Publish();
         RetiredBridgeQuiz.Retire();
 
@@ -45,6 +49,7 @@ internal static class QuizSeed
         ArchivedMarketQuiz.AddQuestion("Uz koju reku je pijaca?", [new Answer("Dunav", true), new Answer("Tisa", false)]);
         ArchivedMarketQuiz.AddQuestion("Šta se najviše prodaje?", [new Answer("Riba", true), new Answer("Cveće", false)]);
         ArchivedMarketQuiz.AddQuestion("Kojim danima radi?", [new Answer("Svakim danom", true), new Answer("Samo nedeljom", false)]);
+        ArchivedMarketQuiz.UpdateDetails("Ribarska pijaca", "Odgovori na tri pitanja o pijaci.", 15, new Location(45.2581, 19.8519));
         ArchivedMarketQuiz.Publish();
         ArchivedMarketQuiz.Retire();
         ArchivedMarketQuiz.Archive();

@@ -45,6 +45,7 @@ internal sealed class QuizReadRepository : IQuizReadRepository
                 quiz.Description,
                 quiz.ExperiencePoints,
                 quiz.Status,
+                quiz.Location == null ? null : new LocationDto(quiz.Location.Latitude, quiz.Location.Longitude),
                 quiz.Questions
                     .Select(question => new QuestionDto(
                         question.Id,

@@ -1,4 +1,4 @@
-// Forms on the left stay in view while the question list on the right grows.
+// Quiz details with the map on the left; the question form and the question list on the right.
 .layout {
   align-items: start;
   display: grid;
@@ -6,19 +6,10 @@
   grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
 }
 
-.layout__side {
-  position: sticky;
-  top: var(--space-4);
-}
-
-// On a narrow screen the forms stack above the question list.
+// On a narrow screen the quiz details stack above the questions.
 @media (max-width: 52rem) {
   .layout {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .layout__side {
-    position: static;
   }
 }
 
