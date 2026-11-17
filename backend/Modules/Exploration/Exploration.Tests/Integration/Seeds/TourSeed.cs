@@ -9,6 +9,7 @@ internal static class TourSeed
     public static readonly Tour CityStroll = new(WellKnownUsers.Explorer, "Šetnja centrom", "Kratak opis gradske šetnje.", TourDifficulty.Moderate, ["grad"], new GroupSize(4, 4));
     public static readonly Tour SecondExplorersTrail = new(WellKnownUsers.SecondExplorer, "Tuđa staza", "Kratak opis staze drugog autora.", TourDifficulty.Easy, ["grad"], new GroupSize(1, 3));
     public static readonly Tour PublishableRiverside;
+    public static readonly Tour PublicationWithSavedOffer;
     public static readonly Tour PublishedVineyards;
     public static readonly Tour PublishedMonasteries;
     public static readonly Tour ArchivedHomesteads;
@@ -17,6 +18,9 @@ internal static class TourSeed
     {
         PublishableRiverside = new(WellKnownUsers.Explorer, "Staza uz Dunav", "Staza kreće od Ribarskog ostrva, prati obalu Dunava pored gradske plaže Štrand i završava se kod Mosta slobode, uz više mesta za predah.", TourDifficulty.Easy, ["priroda"], new GroupSize(1, 6));
         PublishableRiverside.AddTransportTime(TransportMode.Walking, 90);
+
+        PublicationWithSavedOffer = new(WellKnownUsers.Explorer, "Staza kroz Kamenicu", "Obilazak počinje u centru Sremske Kamenice, prolazi kraj Zmaj Jovine kuće i vodi do Kameničkog parka, gde se završava pogledom na obalu Dunava.", TourDifficulty.Easy, ["priroda"], new GroupSize(2, 8));
+        PublicationWithSavedOffer.AddTransportTime(TransportMode.Walking, 70);
 
         PublishedVineyards = new(WellKnownUsers.Explorer, "Vinogradi Sremskih Karlovaca", "Tura vodi kroz vinograde na obroncima Fruške gore, uz obilazak dva porodična podruma i degustaciju bermeta u Sremskim Karlovcima.", TourDifficulty.Moderate, ["vino", "priroda"], new GroupSize(2, 8));
         PublishedVineyards.AddTransportTime(TransportMode.Bicycle, 60);
@@ -32,5 +36,5 @@ internal static class TourSeed
         ArchivedHomesteads.Archive();
     }
 
-    public static Tour[] All => [FortressWalk, CityStroll, SecondExplorersTrail, PublishableRiverside, PublishedVineyards, PublishedMonasteries, ArchivedHomesteads];
+    public static Tour[] All => [FortressWalk, CityStroll, SecondExplorersTrail, PublishableRiverside, PublicationWithSavedOffer, PublishedVineyards, PublishedMonasteries, ArchivedHomesteads];
 }

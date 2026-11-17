@@ -5,9 +5,9 @@ namespace Exploration.Domain.Tours;
 public sealed record TourPrice
 {
     public bool IsFree { get; }
-    public decimal? Amount { get; }
+    public int? Amount { get; }
 
-    private TourPrice(bool isFree, decimal? amount)
+    private TourPrice(bool isFree, int? amount)
     {
         IsFree = isFree;
         Amount = amount;
@@ -25,6 +25,11 @@ public sealed record TourPrice
             throw new DomainException("A paid tour requires an amount above zero.");
         }
 
-        return new TourPrice(false, amount);
+        if (amount != decimal.Truncate(amount) || amount > int.MaxValue)
+        {
+            throw new DomainException($"The tour price must be a whole amount in EC no greater than {int.MaxValue}.");
+        }
+
+        return new TourPrice(false, (int)amount);
     }
 }

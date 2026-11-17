@@ -6,6 +6,7 @@ using Payment.Application.OwnWallet;
 using Payment.Application.Products;
 using Payment.Application.TourOffering;
 using Payment.Application.Wallets;
+using Payment.Contracts;
 using Payment.Infrastructure.Persistence;
 using Payment.Infrastructure.Persistence.Products;
 using Payment.Infrastructure.Persistence.Wallets;
@@ -27,6 +28,7 @@ public static class PaymentModuleExtensions
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IProductReadRepository, ProductReadRepository>();
         services.AddScoped<TourOfferingService>();
+        services.AddScoped<IPaymentApi, PaymentApi>();
         services.AddScoped<OwnWalletQueries>();
         services.AddScoped<AdminWalletService>();
         services.AddScoped<AdminWalletQueries>();

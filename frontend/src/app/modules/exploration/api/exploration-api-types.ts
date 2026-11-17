@@ -28,6 +28,16 @@ export interface TourDto {
   transportTimes: TransportTimeDto[];
 }
 
+export interface PublishedTourDto extends TourDto {
+  priceInEc: number | null;
+}
+
+export interface TourDetailsDto {
+  name: string;
+  description: string;
+  priceInEc: number | null;
+}
+
 export interface CreateTourDto {
   name: string;
   description: string;

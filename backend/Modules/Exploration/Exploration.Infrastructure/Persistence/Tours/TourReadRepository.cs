@@ -1,3 +1,4 @@
+using Exploration.Application.TourBrowsing;
 using Exploration.Application.Tours;
 using Exploration.Domain.Tours;
 using Microsoft.EntityFrameworkCore;
@@ -27,11 +28,22 @@ internal sealed class TourReadRepository : ITourReadRepository
             .SingleOrDefaultAsync();
     }
 
+    public Task<bool> IsPublishedAsync(Guid tourId)
+    {
+        return PublishedTours().AnyAsync(tour => tour.Id == tourId);
+    }
+
+    public Task<TourDetailsDto?> GetPublishedDetailsAsync(Guid tourId)
+    {
+        return PublishedTours()
+            .Where(tour => tour.Id == tourId)
+            .Select(tour => new TourDetailsDto(tour.Name, tour.Description, null))
+            .SingleOrDefaultAsync();
+    }
+
     public async Task<PageResult<TourDto>> GetPublishedAsync(int page, int pageSize)
     {
-        var published = _dbContext.Tours
-            .Where(tour => tour.Status == TourStatus.Published)
-            .OrderByDescending(tour => tour.PublishedAt);
+        var published = PublishedTours().OrderByDescending(tour => tour.PublishedAt);
 
         var totalCount = await published.CountAsync();
         var items = await ProjectToDtos(published)
@@ -40,6 +52,11 @@ internal sealed class TourReadRepository : ITourReadRepository
             .ToListAsync();
 
         return new PageResult<TourDto>(items, totalCount);
+    }
+
+    private IQueryable<Tour> PublishedTours()
+    {
+        return _dbContext.Tours.Where(tour => tour.Status == TourStatus.Published);
     }
 
     private static IQueryable<TourDto> ProjectToDtos(IQueryable<Tour> tours)
