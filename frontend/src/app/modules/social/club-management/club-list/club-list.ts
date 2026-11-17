@@ -26,6 +26,11 @@ export class ClubList {
     () => '/api/social/clubs?page=1&pageSize=20',
   );
 
+  protected readonly clubsErrorStatus = computed(() => {
+    const failure = this.clubs.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
+
   protected readonly isExplorer = computed(
     () => this.auth.user()?.roles.includes('explorer') ?? false,
   );
@@ -33,8 +38,11 @@ export class ClubList {
   protected readonly selectedClubId = signal<string | null>(null);
   protected readonly selectedImage = signal<File | null>(null);
   protected readonly pending = signal(false);
-  protected readonly error = signal<string | null>(null);
+  // A failed delete shows on the club's card; a failed save shows inside the edit form, which
+  // stays open. A saved club closes the form, so its success shows below the list instead.
+  protected readonly deleteError = signal<{ clubId: string; message: string } | null>(null);
   protected readonly formError = signal<string | null>(null);
+  protected readonly success = signal<string | null>(null);
   protected readonly imageError = signal<string | null>(null);
 
   protected readonly form = form(
@@ -46,12 +54,18 @@ export class ClubList {
   );
 
   protected select(club: ClubDto): void {
-    this.error.set(null);
+    this.deleteError.set(null);
     this.formError.set(null);
+    this.success.set(null);
     this.imageError.set(null);
     this.selectedImage.set(null);
     this.selectedClubId.set(club.id);
     this.form().reset({ name: club.name, description: club.description, images: club.images });
+  }
+
+  protected deleteErrorFor(clubId: string): string | null {
+    const failure = this.deleteError();
+    return failure?.clubId === clubId ? failure.message : null;
   }
 
   protected cancelEdit(): void {
@@ -92,8 +106,9 @@ export class ClubList {
       return;
     }
     this.pending.set(true);
-    this.error.set(null);
+    this.deleteError.set(null);
     this.formError.set(null);
+    this.success.set(null);
     try {
       await this.clubManagement.update(clubId, {
         name: this.form.name().value(),
@@ -101,14 +116,10 @@ export class ClubList {
         images: this.form.images().value(),
       });
       this.selectedClubId.set(null);
+      this.success.set('Klub je sačuvan.');
       this.clubs.reload();
     } catch (failure) {
-      if (failure instanceof HttpErrorResponse && failure.status === 404) {
-        this.selectedClubId.set(null);
-        this.error.set(serverMessage(failure, 'Could not update the club.'));
-      } else {
-        this.formError.set(serverMessage(failure, 'Could not update the club.'));
-      }
+      this.formError.set(serverMessage(failure, 'Could not update the club.'));
     } finally {
       this.pending.set(false);
     }
@@ -116,7 +127,9 @@ export class ClubList {
 
   protected async remove(clubId: string): Promise<void> {
     this.pending.set(true);
-    this.error.set(null);
+    this.deleteError.set(null);
+    this.formError.set(null);
+    this.success.set(null);
     try {
       await this.clubManagement.delete(clubId);
       if (this.selectedClubId() === clubId) {
@@ -124,7 +137,10 @@ export class ClubList {
       }
       this.clubs.reload();
     } catch (failure) {
-      this.error.set(serverMessage(failure, 'Could not delete the club.'));
+      this.deleteError.set({
+        clubId,
+        message: serverMessage(failure, 'Could not delete the club.'),
+      });
     } finally {
       this.pending.set(false);
     }

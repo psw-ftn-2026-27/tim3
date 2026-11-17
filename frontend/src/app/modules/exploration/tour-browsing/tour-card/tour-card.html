@@ -40,9 +40,9 @@
     @for (time of tour().transportTimes; track time.transport) {
       <li>{{ time.transport }}: {{ time.minutes }} min</li>
     } @empty {
-      <li>No transport times yet.</li>
+      <li class="empty">No transport times yet. Check back later.</li>
     }
   </ul>
 
-  <a [routerLink]="['/chat/tours', tour().id]">Chat</a>
+  <a class="button button--primary chat" [routerLink]="['/chat/tours', tour().id]">Chat</a>
 </article>

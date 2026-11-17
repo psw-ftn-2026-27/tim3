@@ -1,19 +1,54 @@
 <div class="stack">
-  <h1>Clubs</h1>
+  <div class="page-head">
+    <h1>Clubs</h1>
 
-  @if (isExplorer()) {
-    <p><a routerLink="/social/clubs/create">Create club</a></p>
-    <p><a routerLink="/social/clubs/invitations">My club invitations</a></p>
-  }
-
-  @if (error()) {
-    <p class="error">{{ error() }}</p>
-  }
-
+    @if (isExplorer()) {
+      <div class="page-actions">
+        <a class="button button--primary" routerLink="/social/clubs/create">Create club</a>
+        <a class="button" routerLink="/social/clubs/invitations">My club invitations</a>
+      </div>
+    }
+  </div>
+  
   @if (clubs.isLoading()) {
-    <p>Loading clubs...</p>
+    <p class="loading">Loading clubs...</p>
   } @else if (clubs.error()) {
-    <p class="error">Could not load the clubs. Log in and try again.</p>
+    @switch (clubsErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to see clubs</h2>
+          <p>Clubs are shown to logged-in users, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the clubs</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="clubs.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if ((clubs.value()?.items ?? []).length === 0) {
+    <div class="empty-state">
+      <h2>There are no clubs yet</h2>
+      <p>
+        @if (isExplorer()) {
+          Create the first club so other explorers can ask to join.
+        } @else {
+          Clubs that explorers create appear here.
+        }
+      </p>
+      @if (isExplorer()) {
+        <div class="empty-state-actions">
+          <a class="button button--primary" routerLink="/social/clubs/create">Create club</a>
+        </div>
+      }
+    </div>
   } @else {
     <div class="grid">
       @for (club of clubs.value()?.items ?? []; track club.id) {
@@ -21,13 +56,16 @@
           [club]="club"
           [canManage]="club.ownerId === auth.user()?.id"
           [pending]="pending()"
+          [error]="deleteErrorFor(club.id)"
           (editClub)="select($event)"
           (deleteClub)="remove($event)"
         />
-      } @empty {
-        <p>There are no clubs yet.</p>
       }
     </div>
+  }
+
+  @if (success()) {
+    <p class="success" role="status">{{ success() }}</p>
   }
 
   @if (selectedClubId()) {
@@ -62,7 +100,7 @@
       />
 
       @if (imageError()) {
-        <p class="error">{{ imageError() }}</p>
+        <p class="error" role="alert">{{ imageError() }}</p>
       }
 
       <ul class="images">
@@ -72,12 +110,12 @@
             <button class="button" type="button" (click)="removeImage($index)">Remove</button>
           </li>
         } @empty {
-          <li class="meta">No images added yet.</li>
+          <li class="empty">No images added yet. Add one with the picker above.</li>
         }
       </ul>
 
       @if (formError()) {
-        <p class="error">{{ formError() }}</p>
+        <p class="error" role="alert">{{ formError() }}</p>
       }
 
       <div class="actions">

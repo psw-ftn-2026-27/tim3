@@ -1,3 +1,9 @@
+// The component's own element is inline by default, which ignores the space the page's
+// .stack puts above it; as a block it keeps the gap under the blog.
+:host {
+  display: block;
+}
+
 h2 {
   margin: 0;
 }
@@ -32,6 +38,7 @@ h2 {
 .author {
   color: var(--color-text);
   font-weight: 600;
+  margin-right: var(--space-2);
 }
 
 .edited {
@@ -52,6 +59,15 @@ h2 {
 .comment-form {
   display: flex;
   gap: var(--space-2);
+}
+
+// A failed command's message takes its own line under the comment field and buttons.
+.comment-form {
+  flex-wrap: wrap;
+}
+
+.comment-form > .error {
+  flex-basis: 100%;
 }
 
 .comment-actions .button {

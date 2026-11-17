@@ -87,12 +87,12 @@ article.card {
   background:
     radial-gradient(
       14rem circle at var(--mx, 50%) var(--my, 0%),
-      rgb(var(--lens) / calc(var(--glow) * 0.9)),
+      rgb(var(--lens) / calc(var(--glow) * var(--card-lens-strength))),
       transparent 60%
     ),
     radial-gradient(
       26rem circle at var(--mx, 50%) var(--my, 0%),
-      rgb(var(--card-glow) / calc(var(--glow) * 0.55)),
+      rgb(var(--card-glow) / calc(var(--glow) * var(--card-glow-strength))),
       transparent 70%
     ),
     var(--glass-button);
@@ -160,6 +160,13 @@ article.card:hover {
   border-color: var(--color-focus);
   box-shadow: 0 0 0 4px var(--color-focus-ring);
   outline: none;
+}
+
+// A field the browser filled in itself (a saved email or password) keeps the theme's text
+// colour, and the browser's yellow background is delayed for so long that it never shows.
+.field input:autofill {
+  -webkit-text-fill-color: var(--color-text);
+  transition: background-color 600000s 0s;
 }
 
 // A field shows its error state while its error message is visible.
@@ -244,6 +251,12 @@ article.card:hover {
   padding: var(--space-1) var(--space-4);
 }
 
+// Every table sits in this wrapper. A table wider than the screen scrolls sideways inside
+// it, so the page itself never scrolls sideways on a phone.
+.table-wrapper {
+  overflow-x: auto;
+}
+
 // A small glass chip with a prism dot, for a status ("Draft", "Published") or a tag.
 // It is not interactive, so it has no hover.
 .badge {
@@ -270,10 +283,138 @@ article.card:hover {
   width: 0.375rem;
 }
 
+// Page states. Every page shows each state with the same class, so it looks the same in
+// every module:
+// - .loading: while a resource is on its way from the server;
+// - .empty-state: a page-level list with no items, or a page whose resource could not load
+//   (role="alert"); it stands where the list or the data would be;
+// - .empty: a small list inside a card or a form with no items (a short muted line);
+// - .error: a command that failed (role="alert", where the user finished the action: in its
+//   form, or in a line under its table row) and a field error (in .field);
+// - .success: a command that succeeded when its result is not visible where the user
+//   finished the action (role="status"); the next command clears it.
+.loading {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+// The font weight is set on .empty and .error, so a message in a table's first (bold) cell
+// looks the same as anywhere else.
+.empty {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  margin: 0;
+}
+
 .error {
   color: var(--color-danger);
   font-size: var(--font-size-sm);
+  font-weight: 400;
   margin: 0;
+}
+
+.success {
+  margin: 0;
+}
+
+// The empty state is a centred glass card: a heading, one muted line saying why and what the
+// user can do, and a row of buttons (.empty-state-actions) with the action that fits the cause
+// (401: Log in, 403: a page the user may open, other failures: Try again, an empty list: the
+// action that fills it).
+.empty-state {
+  align-items: center;
+  backdrop-filter: var(--glass-blur);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow), var(--highlight);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: calc(var(--space-6) * 2) var(--space-6);
+  text-align: center;
+}
+
+.empty-state h2 {
+  font-size: var(--font-size-xl);
+  font-weight: 500;
+  margin: 0;
+}
+
+.empty-state p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-md);
+  margin: 0;
+  max-width: 26rem;
+}
+
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+  padding-top: var(--space-2);
+}
+
+// A phone has less room around the message.
+@media (max-width: 40rem) {
+  .empty-state {
+    padding: var(--space-6) var(--space-4);
+  }
+}
+
+// Inside a card (a section of a page, or a page that is one card) the card already is the
+// glass, so the empty state only centres its content.
+.card .empty-state {
+  backdrop-filter: none;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: var(--space-5) 0;
+}
+
+// The page states above reset their margin, which would also remove the space a .stack puts
+// between its children; inside a stack they keep that space.
+.stack > * + .loading,
+.stack > * + .empty,
+.stack > * + .error,
+.stack > * + .success {
+  margin-top: var(--space-4);
+}
+
+// A page message is a tinted block with a short coloured label above the text, as in the
+// theme: "Error" for a command that failed (role="alert") and "Success" for a command that
+// succeeded (role="status"). Only a form field's own error, which has no role, stays a short
+// red line under the field.
+.error[role='alert'],
+.success {
+  background: var(--color-danger-bg);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+  font-weight: 400;
+  padding: var(--space-3) var(--space-4);
+}
+
+.success {
+  background: var(--color-success-bg);
+}
+
+.error[role='alert']::before,
+.success::before {
+  color: var(--color-danger);
+  content: 'Error';
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.success::before {
+  color: var(--color-success);
+  content: 'Success';
 }
 
 .meta {

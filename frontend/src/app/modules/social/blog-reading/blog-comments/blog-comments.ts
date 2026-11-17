@@ -7,6 +7,12 @@ export interface CommentEdit {
   text: string;
 }
 
+// A failed comment command: the comment it was about, or null for a new comment.
+export interface CommentError {
+  commentId: string | null;
+  message: string;
+}
+
 @Component({
   imports: [FormField],
   selector: 'app-blog-comments',
@@ -16,6 +22,7 @@ export interface CommentEdit {
 export class BlogComments {
   readonly comments = input.required<CommentDto[]>();
   readonly currentUserId = input<string | null>(null);
+  readonly error = input<CommentError | null>(null);
 
   readonly addComment = output<string>();
   readonly editComment = output<CommentEdit>();
@@ -54,10 +61,18 @@ export class BlogComments {
     return new Date(comment.editableUntil).getTime() >= Date.now();
   }
 
+  // The message of a failed command about this comment, or about a new one (null).
+  protected errorFor(commentId: string | null): string | null {
+    const failure = this.error();
+    return failure?.commentId === commentId ? failure.message : null;
+  }
+
+  // Sending a comment keeps the form as it is. When the command succeeds, the page reloads the
+  // blog and this component starts again with empty forms; when it fails, the page passes the
+  // error and the typed text stays in the open form.
   protected submitComment(event: Event): void {
     event.preventDefault();
     this.addComment.emit(this.form.text().value());
-    this.form().reset({ text: '' });
   }
 
   protected startEdit(comment: CommentDto): void {
@@ -68,6 +83,5 @@ export class BlogComments {
   protected saveEdit(event: Event, commentId: string): void {
     event.preventDefault();
     this.editComment.emit({ commentId, text: this.editForm.text().value() });
-    this.editingCommentId.set(null);
   }
 }

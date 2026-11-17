@@ -1,5 +1,5 @@
-import { httpResource } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { PageResult } from '../../../../shared/api/page-result';
 import { serverMessage } from '../../../../shared/util/server-message';
@@ -10,11 +10,12 @@ import {
   SentFollowRequestDto,
 } from '../../api/social-api-types';
 import { FollowManagement } from '../follow-management';
+import { ProfileLoadError } from '../profile-load-error/profile-load-error';
 
 const PAGE_SIZE = 20;
 
 @Component({
-  imports: [RouterLink],
+  imports: [ProfileLoadError, RouterLink],
   selector: 'app-profile',
   styleUrl: './profile.scss',
   templateUrl: './profile.html',
@@ -36,11 +37,21 @@ export class Profile {
       : undefined,
   );
 
+  protected readonly followersErrorStatus = computed(() => {
+    const failure = this.followers.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
+
   protected readonly following = httpResource<PageResult<ConnectedUserDto>>(() =>
     this.section() === 'following'
       ? `/api/social/profile/following?page=${this.page()}&pageSize=${PAGE_SIZE}`
       : undefined,
   );
+
+  protected readonly followingErrorStatus = computed(() => {
+    const failure = this.following.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 
   protected readonly sent = httpResource<PageResult<SentFollowRequestDto>>(() =>
     this.section() === 'sent'
@@ -48,11 +59,21 @@ export class Profile {
       : undefined,
   );
 
+  protected readonly sentErrorStatus = computed(() => {
+    const failure = this.sent.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
+
   protected readonly incoming = httpResource<PageResult<IncomingFollowRequestDto>>(() =>
     this.section() === 'incoming'
       ? `/api/social/follow-requests/incoming?page=${this.page()}&pageSize=${PAGE_SIZE}`
       : undefined,
   );
+
+  protected readonly incomingErrorStatus = computed(() => {
+    const failure = this.incoming.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 
   protected readonly pending = signal(false);
   protected readonly rowError = signal<{ rowId: string; message: string } | null>(null);

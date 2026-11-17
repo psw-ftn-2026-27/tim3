@@ -71,12 +71,20 @@ export class PaymentHome {
       ? `${BASE_URL}/users?text=${encodeURIComponent(this.searchText())}&page=${this.usersPage()}&pageSize=${this.pageSize}`
       : undefined,
   );
+  protected readonly usersErrorStatus = computed(() => {
+    const failure = this.users.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 
   protected readonly selectedWallet = httpResource<WalletDto>(() => {
     const user = this.selectedUser();
     return this.isAdministrator() && this.showAdministration() && user
       ? `${BASE_URL}/${user.userId}?page=${this.historyPage()}&pageSize=${this.pageSize}`
       : undefined;
+  });
+  protected readonly selectedWalletErrorStatus = computed(() => {
+    const failure = this.selectedWallet.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
   });
 
   protected readonly writeBlocked = computed(

@@ -14,6 +14,8 @@ internal static class ChatConfiguration
     private static void ConfigureChat(EntityTypeBuilder<Chat> builder)
     {
         builder.Property(chat => chat.Id).ValueGeneratedNever();
+        // Chats stored before muting existed start with nobody muted.
+        builder.Property(chat => chat.MutedUserIds).HasDefaultValueSql("'{}'::uuid[]");
 
         builder.OwnsOne(chat => chat.Subject, subject =>
         {

@@ -26,8 +26,10 @@ frontend/src/
   styles/
     _tokens.scss             colours, spacing, radius, type as CSS custom properties
     _base.scss               reset, body, headings, links
-    _layout.scss             page container, stack, grid helpers
-    _components.scss         global classes: button, card, form field, table
+    _layout.scss             page container, stack, grid, page head helpers
+    _components.scss         global classes: button, badge, card, form field, table,
+                             page states (loading, empty-state, empty, error,
+                             success), meta
   app/
     core/                    auth (state, interceptor, login, register), home,
                              theme (light/dark toggle), consent (analytics
@@ -149,6 +151,18 @@ Where a style goes, in order:
    global class is shared code and follows the same promotion rule as `shared/`.
 3. Everything else: the component's own `.scss`, under default (emulated) encapsulation.
    Never `::ng-deep`.
+
+Every page shows its states with the shared classes `.loading`, `.empty-state` (a
+page-level list with no items, or a resource that could not load with `role="alert"`: a
+centred card with a heading, one line and the action that fits the cause, so 401 offers
+"Log in", 403 a page the user may open, any other failure "Try again", and an empty list
+the action that fills it), `.empty` (a small list inside a card or form), `.error` (a
+field's own error inside `.field` without a role, a failed command with `role="alert"`)
+and `.success` (`role="status"`), and uses `.button`, `.badge`, `.card`, `.field`,
+`.table` and `.page-head` for what they cover. The guide to follow is
+`src/styles/README.md` (in Serbian): when to use each class, with an example to copy.
+Pages are reviewed against it, and a page never writes its own style for something a
+shared class already covers.
 
 Do not hand-roll a design system, do not add utility-class frameworks, do not introduce
 `shared/ui` wrappers unprompted. Visual consistency across modules is an open problem

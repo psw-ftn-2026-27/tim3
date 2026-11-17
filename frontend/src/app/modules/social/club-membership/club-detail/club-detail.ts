@@ -1,4 +1,4 @@
-import { httpResource } from '@angular/common/http';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormField, form, required } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
@@ -23,6 +23,11 @@ export class ClubDetail {
   readonly id = input.required<string>();
 
   protected readonly club = httpResource<ClubDetailsDto>(() => `/api/social/clubs/${this.id()}`);
+
+  protected readonly clubErrorStatus = computed(() => {
+    const failure = this.club.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
 
   // Hiding the buttons is only display; the server decides who may send or resolve a request.
   protected readonly isExplorer = computed(
