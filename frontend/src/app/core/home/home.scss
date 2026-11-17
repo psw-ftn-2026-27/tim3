@@ -17,8 +17,10 @@
     padding-top: var(--space-6);
   }
 
+  // A word wider than the screen breaks instead of scrolling the page sideways.
   .hero h1 {
     font-size: var(--font-size-2xl);
+    overflow-wrap: break-word;
   }
 }
 

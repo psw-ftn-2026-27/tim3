@@ -10,7 +10,12 @@ internal static class BlogSeed
     public static readonly Blog SecondExplorersDiary = new(WellKnownUsers.SecondExplorer, "Tuđi dnevnik", "Beleške drugog autora, vidljive samo njemu.", []);
     public static readonly Blog PublishedRiverbank;
     public static readonly Blog CommentedMuseumVisit;
+    public static readonly Blog CommentedByExplorer;
     public static readonly Blog ArchivedFestival;
+    public static readonly Blog VotedCoastline;
+    public static readonly Blog HighlyRatedViewpoint;
+    public static readonly Blog UnratedTrail;
+    public static readonly Blog PoorlyRatedDetour;
 
     static BlogSeed()
     {
@@ -21,10 +26,33 @@ internal static class BlogSeed
         CommentedMuseumVisit.Publish();
         CommentedMuseumVisit.AddComment(WellKnownUsers.Administrator, "Odlična preporuka!");
 
+        CommentedByExplorer = new(WellKnownUsers.SecondExplorer, "Šetnja parkom", "Utisci sa šetnje gradskim parkom.", []);
+        CommentedByExplorer.Publish();
+        CommentedByExplorer.AddComment(WellKnownUsers.Explorer, "Divno mesto za predah.");
+
         ArchivedFestival = new(WellKnownUsers.Explorer, "Dani festivala", "Zaokružen izveštaj sa gradskog festivala, sadržaj je završen.", []);
         ArchivedFestival.Publish();
         ArchivedFestival.Archive();
+
+        VotedCoastline = new(WellKnownUsers.Explorer, "Obala u sumrak", "Utisci sa šetnje obalom u sumrak.", []);
+        VotedCoastline.Publish();
+        VotedCoastline.CastVote(WellKnownUsers.SecondExplorer, VoteType.Up);
+
+        HighlyRatedViewpoint = new(WellKnownUsers.Explorer, "Vidikovac na brdu", "Panorama grada sa najvišeg vidikovca.", []);
+        HighlyRatedViewpoint.Publish();
+        HighlyRatedViewpoint.CastVote(WellKnownUsers.Administrator, VoteType.Up);
+        HighlyRatedViewpoint.CastVote(WellKnownUsers.SecondExplorer, VoteType.Up);
+        HighlyRatedViewpoint.CastVote(WellKnownUsers.ThirdExplorer, VoteType.Down);
+
+        UnratedTrail = new(WellKnownUsers.Explorer, "Staza bez ocene", "Opis šetnje stazom koju još niko nije ocenio.", []);
+        UnratedTrail.Publish();
+
+        PoorlyRatedDetour = new(WellKnownUsers.Explorer, "Zaobilaznica", "Utisci sa zaobilaznog puta koji nije ispunio očekivanja.", []);
+        PoorlyRatedDetour.Publish();
+        PoorlyRatedDetour.CastVote(WellKnownUsers.Administrator, VoteType.Up);
+        PoorlyRatedDetour.CastVote(WellKnownUsers.SecondExplorer, VoteType.Down);
+        PoorlyRatedDetour.CastVote(WellKnownUsers.ThirdExplorer, VoteType.Down);
     }
 
-    public static Blog[] All => [FortressImpressions, CityNotes, SecondExplorersDiary, PublishedRiverbank, CommentedMuseumVisit, ArchivedFestival];
+    public static Blog[] All => [FortressImpressions, CityNotes, SecondExplorersDiary, PublishedRiverbank, CommentedMuseumVisit, CommentedByExplorer, ArchivedFestival, VotedCoastline, HighlyRatedViewpoint, UnratedTrail, PoorlyRatedDetour];
 }

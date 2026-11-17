@@ -1,14 +1,38 @@
 <div class="stack">
   <p><a class="button" routerLink="/social">Back to blogs</a></p>
 
-  @if (error()) {
-    <p class="error">{{ error() }}</p>
-  }
-
   @if (detail.isLoading()) {
-    <p>Loading blog...</p>
+    <p class="loading">Loading blog...</p>
   } @else if (detail.error()) {
-    <p class="error">Could not load the blog. Log in and try again.</p>
+    @switch (detailErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to read this blog</h2>
+          <p>Blogs are shown to logged-in users, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (404) {
+        <div class="empty-state" role="alert">
+          <h2>This blog does not exist</h2>
+          <p>It may have been removed. Pick another blog from the list.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social">All blogs</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the blog</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="detail.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
   } @else {
     @if (detail.value(); as blog) {
       <section class="card stack">
@@ -17,6 +41,7 @@
         <p class="meta">
           <span class="badge">{{ blog.status }}</span>
           Poslednja izmena: {{ lastModified(blog.lastModifiedAt) }}
+          · {{ scoreLabel() }}
         </p>
 
         <div class="description" [innerHTML]="descriptionHtml()"></div>
@@ -28,11 +53,36 @@
             }
           </div>
         }
+
+        @if (blog.status === 'Published') {
+          <div class="votes">
+            <button
+              class="button"
+              type="button"
+              [class.button--primary]="blog.currentUserVote === 'Up'"
+              (click)="vote('Up')"
+            >
+              Upvote
+            </button>
+            <button
+              class="button"
+              type="button"
+              [class.button--primary]="blog.currentUserVote === 'Down'"
+              (click)="vote('Down')"
+            >
+              Downvote
+            </button>
+          </div>
+          @if (error()) {
+            <p class="error" role="alert">{{ error() }}</p>
+          }
+        }
       </section>
 
       <app-blog-comments
         [comments]="blog.comments"
         [currentUserId]="auth.user()?.id ?? null"
+        [error]="commentError()"
         (addComment)="add($event)"
         (editComment)="edit($event)"
         (deleteComment)="remove($event)"

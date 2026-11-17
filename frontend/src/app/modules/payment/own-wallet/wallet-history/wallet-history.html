@@ -2,7 +2,14 @@
   <h3>Istorija transakcija</h3>
 
   @if (transactions().length === 0) {
-    <p>Još nema transakcija.</p>
+    <p class="empty">
+      Još nema transakcija.
+      @if (recipient() !== null) {
+        Uplatu unesi u formu iznad.
+      } @else {
+        Transakcije se pojavljuju kada administrator uplati EC.
+      }
+    </p>
   } @else {
     <div class="table-wrapper">
       <table class="table" aria-label="Istorija transakcija">

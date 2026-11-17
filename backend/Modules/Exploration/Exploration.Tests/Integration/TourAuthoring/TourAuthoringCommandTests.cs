@@ -6,6 +6,8 @@ using Exploration.Domain.Tours;
 using Exploration.Infrastructure.Persistence;
 using Exploration.Tests.Integration.Seeds;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Payment.Domain.Products;
 using Shared.Tests;
 using Xunit;
 
@@ -16,10 +18,10 @@ public class TourAuthoringCommandTests : BaseIntegrationTest
     public TourAuthoringCommandTests(ExplorationApiFactory factory) : base(factory) { }
 
     [Fact]
-    public async Task Explorer_creates_a_draft_tour()
+    public async Task Explorer_creates_a_draft_tour_with_a_recommended_group_size()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
-        var request = new CreateTourDto("Nova tura", "Opis nove ture.", TourDifficulty.Hard, ["planina"]);
+        var request = new CreateTourDto("Nova tura", "Opis nove ture.", TourDifficulty.Hard, ["planina"], new GroupSizeDto(2, 6));
         using var arrangeContext = Factory.CreateContext<ExplorationDbContext>();
         var tourCountBefore = arrangeContext.Tours.Count();
 
@@ -33,13 +35,29 @@ public class TourAuthoringCommandTests : BaseIntegrationTest
         var stored = assertContext.Tours.Single(tour => tour.Id == created.Id);
         stored.Status.Should().Be(TourStatus.Draft);
         stored.TransportTimes.Should().BeEmpty();
+        stored.RecommendedGroupSize.Should().Be(new GroupSize(2, 6));
     }
 
     [Fact]
     public async Task Explorer_cannot_create_a_tour_without_a_name()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
-        var request = new CreateTourDto("   ", "Opis nove ture.", TourDifficulty.Easy, ["planina"]);
+        var request = new CreateTourDto("   ", "Opis nove ture.", TourDifficulty.Easy, ["planina"], new GroupSizeDto(2, 6));
+        using var arrangeContext = Factory.CreateContext<ExplorationDbContext>();
+        var tourCountBefore = arrangeContext.Tours.Count();
+
+        var response = await client.PostAsJsonAsync("/api/exploration/tours", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var assertContext = Factory.CreateContext<ExplorationDbContext>();
+        assertContext.Tours.Count().Should().Be(tourCountBefore);
+    }
+
+    [Fact]
+    public async Task Explorer_cannot_create_a_tour_with_an_invalid_group_size()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+        var request = new CreateTourDto("Nova tura", "Opis nove ture.", TourDifficulty.Easy, ["planina"], new GroupSizeDto(6, 2));
         using var arrangeContext = Factory.CreateContext<ExplorationDbContext>();
         var tourCountBefore = arrangeContext.Tours.Count();
 
@@ -54,7 +72,7 @@ public class TourAuthoringCommandTests : BaseIntegrationTest
     public async Task Anonymous_user_cannot_create_a_tour()
     {
         var client = Factory.CreateClient();
-        var request = new CreateTourDto("Nova tura", "Opis nove ture.", TourDifficulty.Easy, ["planina"]);
+        var request = new CreateTourDto("Nova tura", "Opis nove ture.", TourDifficulty.Easy, ["planina"], new GroupSizeDto(2, 6));
 
         var response = await client.PostAsJsonAsync("/api/exploration/tours", request);
 
@@ -65,7 +83,7 @@ public class TourAuthoringCommandTests : BaseIntegrationTest
     public async Task Administrator_cannot_create_a_tour()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
-        var request = new CreateTourDto("Nova tura", "Opis nove ture.", TourDifficulty.Easy, ["planina"]);
+        var request = new CreateTourDto("Nova tura", "Opis nove ture.", TourDifficulty.Easy, ["planina"], new GroupSizeDto(2, 6));
 
         var response = await client.PostAsJsonAsync("/api/exploration/tours", request);
 
@@ -87,31 +105,119 @@ public class TourAuthoringCommandTests : BaseIntegrationTest
         stored.TransportTimes.Should().ContainSingle(time => time.Transport == TransportMode.Walking && time.Minutes == 120);
     }
 
-    [Fact]
-    public async Task Tour_is_published_when_all_rules_are_met()
+    [Theory]
+    [InlineData(true, null)]
+    [InlineData(false, 1500)]
+    public async Task Author_publishes_a_free_or_paid_tour(bool isFree, int? amount)
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+        var request = new PublishTourDto(isFree, amount);
 
-        var response = await client.PostAsync($"/api/exploration/tours/{TourSeed.PublishableRiverside.Id}/publish", null);
+        var response = await client.PostAsJsonAsync($"/api/exploration/tours/{TourSeed.PublishableRiverside.Id}/publish", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         using var assertContext = Factory.CreateContext<ExplorationDbContext>();
         var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.PublishableRiverside.Id);
         stored.Status.Should().Be(TourStatus.Published);
         stored.PublishedAt.Should().NotBeNull();
+        using var paymentContext = Factory.CreateContext<DbContext>();
+        var product = paymentContext.Set<Product>().Single(product => product.TourId == stored.Id);
+        product.Name.Should().Be(stored.Name);
+        product.AuthorId.Should().Be(stored.AuthorId);
+        product.PriceInEc.Should().Be(amount ?? 0);
+    }
+
+    [Fact]
+    public async Task Publication_retry_with_original_offer_finishes_with_the_same_product()
+    {
+        var tour = TourSeed.PublicationWithSavedOffer;
+        var product = ProductSeed.SavedDuringPublication;
+        var client = Factory.CreateClientFor(tour.AuthorId, "explorer");
+        var request = new PublishTourDto(false, product.PriceInEc);
+
+        var response = await client.PostAsJsonAsync($"/api/exploration/tours/{tour.Id}/publish", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var explorationContext = Factory.CreateContext<ExplorationDbContext>();
+        var stored = explorationContext.Tours.Single(stored => stored.Id == tour.Id);
+        stored.Status.Should().Be(TourStatus.Published);
+        using var paymentContext = Factory.CreateContext<DbContext>();
+        var savedProduct = paymentContext.Set<Product>().Single(saved => saved.TourId == tour.Id);
+        savedProduct.Id.Should().Be(product.Id);
+        savedProduct.PriceInEc.Should().Be(product.PriceInEc);
+    }
+
+    [Fact]
+    public async Task Publication_with_a_conflicting_product_leaves_the_tour_in_draft_and_preserves_the_offer()
+    {
+        var tour = TourSeed.PublicationWithSavedOffer;
+        var product = ProductSeed.SavedDuringPublication;
+        var client = Factory.CreateClientFor(tour.AuthorId, "explorer");
+        var request = new PublishTourDto(false, product.PriceInEc + 1);
+
+        var response = await client.PostAsJsonAsync($"/api/exploration/tours/{tour.Id}/publish", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var explorationContext = Factory.CreateContext<ExplorationDbContext>();
+        var stored = explorationContext.Tours.Single(stored => stored.Id == tour.Id);
+        stored.Status.Should().Be(TourStatus.Draft);
+        stored.PublishedAt.Should().BeNull();
+        using var paymentContext = Factory.CreateContext<DbContext>();
+        var savedProduct = paymentContext.Set<Product>().Single(saved => saved.TourId == tour.Id);
+        savedProduct.Id.Should().Be(product.Id);
+        savedProduct.PriceInEc.Should().Be(product.PriceInEc);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(false)]
+    public async Task Author_cannot_publish_a_tour_without_a_chosen_price_or_a_paid_amount(bool? isFree)
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+        var request = new PublishTourDto(isFree, null);
+
+        var response = await client.PostAsJsonAsync($"/api/exploration/tours/{TourSeed.PublishableRiverside.Id}/publish", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var assertContext = Factory.CreateContext<ExplorationDbContext>();
+        var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.PublishableRiverside.Id);
+        stored.Status.Should().Be(TourStatus.Draft);
     }
 
     [Fact]
     public async Task Explorer_cannot_publish_another_authors_tour()
     {
         var client = Factory.CreateClientFor(Guid.NewGuid(), "explorer");
+        var request = new PublishTourDto(true, null);
 
-        var response = await client.PostAsync($"/api/exploration/tours/{TourSeed.PublishableRiverside.Id}/publish", null);
+        var response = await client.PostAsJsonAsync($"/api/exploration/tours/{TourSeed.PublishableRiverside.Id}/publish", request);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         using var assertContext = Factory.CreateContext<ExplorationDbContext>();
         var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.PublishableRiverside.Id);
         stored.Status.Should().Be(TourStatus.Draft);
+    }
+
+    [Fact]
+    public async Task Anonymous_user_cannot_publish_a_tour()
+    {
+        var client = Factory.CreateClient();
+        var request = new PublishTourDto(true, null);
+
+        var response = await client.PostAsJsonAsync($"/api/exploration/tours/{TourSeed.PublishableRiverside.Id}/publish", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Administrator_cannot_publish_a_tour()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+        var request = new PublishTourDto(true, null);
+
+        var response = await client.PostAsJsonAsync($"/api/exploration/tours/{TourSeed.PublishableRiverside.Id}/publish", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -126,6 +232,10 @@ public class TourAuthoringCommandTests : BaseIntegrationTest
         var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.PublishedVineyards.Id);
         stored.Status.Should().Be(TourStatus.Archived);
         stored.ArchivedAt.Should().NotBeNull();
+        using var paymentContext = Factory.CreateContext<DbContext>();
+        var product = paymentContext.Set<Product>().Single(product => product.TourId == stored.Id);
+        product.Id.Should().Be(ProductSeed.PublishedVineyards.Id);
+        product.PriceInEc.Should().Be(ProductSeed.PublishedVineyards.PriceInEc);
     }
 
     [Fact]
@@ -186,6 +296,10 @@ public class TourAuthoringCommandTests : BaseIntegrationTest
         var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.ArchivedHomesteads.Id);
         stored.Status.Should().Be(TourStatus.Published);
         stored.ArchivedAt.Should().BeNull();
+        using var paymentContext = Factory.CreateContext<DbContext>();
+        var product = paymentContext.Set<Product>().Single(product => product.TourId == stored.Id);
+        product.Id.Should().Be(ProductSeed.ArchivedHomesteads.Id);
+        product.PriceInEc.Should().Be(ProductSeed.ArchivedHomesteads.PriceInEc);
     }
 
     [Fact]

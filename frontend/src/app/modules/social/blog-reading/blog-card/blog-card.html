@@ -3,7 +3,7 @@
     <img class="cover" [src]="blog().images[0]" alt="" />
   }
 
-  <p class="meta">{{ published() }} · {{ commentCount() }}</p>
+  <p class="meta">{{ published() }} · {{ commentCount() }} · {{ score() }}</p>
 
   <h2>{{ blog().title }}</h2>
 
@@ -11,6 +11,6 @@
 
   <div class="footer">
     <span class="badge">{{ blog().status }}</span>
-    <a class="button" [routerLink]="['/social', blog().id]">Read more</a>
+    <a class="button button--primary" [routerLink]="['/social', blog().id]">Read more</a>
   </div>
 </article>

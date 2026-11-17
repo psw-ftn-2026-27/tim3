@@ -1,3 +1,5 @@
+using Social.Application.Clubs;
+
 namespace Social.Application.ClubMembership;
 
 // PendingRequests is filled only for the club's owner; every other user gets an empty list.

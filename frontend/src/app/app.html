@@ -1,91 +1,129 @@
 <header>
   <nav class="container">
-    <span class="brand">Explorer</span>
+    <!-- The brand leads home, as on most sites. -->
+    <a class="brand" routerLink="/" (click)="closeMenu()">Explorer</a>
 
-    <!-- One shared pill behind the links follows the mouse and keyboard focus (see app.ts). -->
-    <span class="nav-links" (mouseleave)="hideIndicator()" (focusout)="hideIndicatorOnBlur($event)">
+    <!-- On a wide screen the links and the user part sit in the bar itself. On a phone or a
+         tablet they move into a panel that slides in from the right (see app.scss). -->
+    <div class="nav-menu" id="nav-menu" [class.open]="menuOpen()">
+      <!-- One shared pill behind the links follows the mouse and keyboard focus (see app.ts). -->
       <span
-        class="nav-indicator"
-        [class.shown]="indicatorShown()"
-        [class.sliding]="indicatorSliding()"
-        [style.left.px]="indicatorLeft()"
-        [style.width.px]="indicatorWidth()"
-      ></span>
+        class="nav-links"
+        (mouseleave)="hideIndicator()"
+        (focusout)="hideIndicatorOnBlur($event)"
+      >
+        <span
+          class="nav-indicator"
+          [class.shown]="indicatorShown()"
+          [class.sliding]="indicatorSliding()"
+          [style.left.px]="indicatorLeft()"
+          [style.width.px]="indicatorWidth()"
+        ></span>
 
-      <a
-        routerLink="/"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-        [routerLinkActiveOptions]="{ exact: true }"
-        (mouseenter)="moveIndicator($event)"
-        (focus)="moveIndicator($event)"
-        >Home</a
-      >
-      <a
-        routerLink="/exploration"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-        (mouseenter)="moveIndicator($event)"
-        (focus)="moveIndicator($event)"
-        >Exploration</a
-      >
-      <a
-        routerLink="/games"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-        (mouseenter)="moveIndicator($event)"
-        (focus)="moveIndicator($event)"
-        >Games</a
-      >
-      <a
-        routerLink="/social"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-        (mouseenter)="moveIndicator($event)"
-        (focus)="moveIndicator($event)"
-        >Social</a
-      >
-      <a
-        routerLink="/payment"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-        (mouseenter)="moveIndicator($event)"
-        (focus)="moveIndicator($event)"
-        >Payment</a
-      >
-    </span>
+        <a
+          routerLink="/"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (mouseenter)="moveIndicator($event)"
+          (focus)="moveIndicator($event)"
+          (click)="closeMenu()"
+          >Home</a
+        >
+        <a
+          routerLink="/exploration"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          (mouseenter)="moveIndicator($event)"
+          (focus)="moveIndicator($event)"
+          (click)="closeMenu()"
+          >Exploration</a
+        >
+        <a
+          routerLink="/games"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          (mouseenter)="moveIndicator($event)"
+          (focus)="moveIndicator($event)"
+          (click)="closeMenu()"
+          >Games</a
+        >
+        <a
+          routerLink="/social"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          (mouseenter)="moveIndicator($event)"
+          (focus)="moveIndicator($event)"
+          (click)="closeMenu()"
+          >Social</a
+        >
+        <a
+          routerLink="/payment"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          (mouseenter)="moveIndicator($event)"
+          (focus)="moveIndicator($event)"
+          (click)="closeMenu()"
+          >Payment</a
+        >
+      </span>
 
-    <span class="nav-user">
-      <button
-        class="theme-toggle"
-        type="button"
-        [attr.aria-label]="theme.dark() ? 'Switch to light theme' : 'Switch to dark theme'"
-        (click)="toggleTheme($event)"
-      >
-        @if (theme.dark()) {
-          <!-- Sun: shown in the dark theme, switches to light. -->
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="12" r="4" />
-            <path
-              d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
-            />
-          </svg>
+      <span class="nav-user">
+        @if (auth.user(); as user) {
+          <span>{{ user.email }}</span>
+          <button class="button" type="button" (click)="logout()">Logout</button>
         } @else {
-          <!-- Moon: shown in the light theme, switches to dark. -->
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-          </svg>
+          <a routerLink="/login" (click)="closeMenu()">Login</a>
+          <a routerLink="/register" (click)="closeMenu()">Register</a>
         }
-      </button>
-      @if (auth.user(); as user) {
-        <span>{{ user.email }}</span>
-        <button class="button" type="button" (click)="auth.logout()">Logout</button>
+      </span>
+    </div>
+
+    <button
+      class="theme-toggle"
+      type="button"
+      [attr.aria-label]="theme.dark() ? 'Switch to light theme' : 'Switch to dark theme'"
+      (click)="toggleTheme($event)"
+    >
+      @if (theme.dark()) {
+        <!-- Sun: shown in the dark theme, switches to light. -->
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" />
+          <path
+            d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+          />
+        </svg>
       } @else {
-        <a routerLink="/login">Login</a>
-        <a routerLink="/register">Register</a>
+        <!-- Moon: shown in the light theme, switches to dark. -->
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+        </svg>
       }
-    </span>
+    </button>
+
+    <!-- Shown only on a phone or a tablet: three lines open the panel. When it opens, the top
+         and bottom lines turn into a cross and the middle one fades (see app.scss). -->
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-controls="nav-menu"
+      [class.open]="menuOpen()"
+      [attr.aria-expanded]="menuOpen()"
+      [attr.aria-label]="menuOpen() ? 'Close menu' : 'Open menu'"
+      (click)="toggleMenu()"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path class="line top" d="M4 7h16" />
+        <path class="line middle" d="M4 12h16" />
+        <path class="line bottom" d="M4 17h16" />
+      </svg>
+    </button>
   </nav>
+
+  <!-- While the panel is open, a click anywhere beside it closes it. -->
+  @if (menuOpen()) {
+    <button class="nav-backdrop" type="button" aria-label="Close menu" (click)="closeMenu()"></button>
+  }
 
   <!-- Only the strip of the open module is shown (see app.scss); Home has none. -->
   <div class="module-strip exploration">
@@ -113,3 +151,28 @@
 <main class="container stack">
   <router-outlet />
 </main>
+
+@if (consent.configured) {
+  <footer>
+    <div class="container">
+      <button class="footer-link" type="button" (click)="consent.reopen()">Cookie settings</button>
+    </div>
+  </footer>
+}
+
+<!-- The consent bar sticks to the bottom of the screen until the user chooses (see app.scss).
+     It is part of the page, not a dialog, so the page stays usable while it is shown. -->
+@if (consent.barShown()) {
+  <section class="consent-bar" aria-label="Cookie consent">
+    <div class="container consent-content">
+      <p>
+        We would like to use analytics cookies to learn how Explorer is used and make it better. You
+        can change your choice at any time with "Cookie settings" at the bottom of the page.
+      </p>
+      <span class="consent-actions">
+        <button class="button" type="button" (click)="consent.accept()">Accept</button>
+        <button class="button" type="button" (click)="consent.decline()">Decline</button>
+      </span>
+    </div>
+  </section>
+}

@@ -21,6 +21,7 @@ public abstract class BaseArchitectureTests
             .Append(Assembly.Load("Media"))
             .Append(Assembly.Load("Maps"))
             .Append(Assembly.Load("Maps.Contracts"))
+            .Append(Assembly.Load("Chats"))
             .Append(Assembly.Load("Host.Api"))
             .Concat(SharedProjects.Select(Assembly.Load))
             .ToArray())

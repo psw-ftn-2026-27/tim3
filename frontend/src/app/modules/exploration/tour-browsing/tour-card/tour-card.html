@@ -16,7 +16,31 @@
 
   <h2>{{ tour().name }}</h2>
 
+  <p class="meta">
+    @switch (tour().priceInEc) {
+      @case (null) {
+        Price unavailable
+      }
+      @case (0) {
+        Free (0 EC)
+      }
+      @default {
+        {{ tour().priceInEc }} EC
+      }
+    }
+  </p>
+
   <p class="description">{{ tour().description }}</p>
+
+  @if (tour().recommendedGroupSize; as size) {
+    @if (size.from === size.to) {
+      <p class="meta">Group size: {{ size.from }}</p>
+    } @else {
+      <p class="meta">Group size: {{ size.from }}–{{ size.to }}</p>
+    }
+  } @else {
+    <p class="meta">Group size not specified</p>
+  }
 
   @if (tour().tags.length > 0) {
     <ul class="tags">
@@ -30,7 +54,12 @@
     @for (time of tour().transportTimes; track time.transport) {
       <li>{{ time.transport }}: {{ time.minutes }} min</li>
     } @empty {
-      <li>No transport times yet.</li>
+      <li class="empty">No transport times yet. Check back later.</li>
     }
   </ul>
+
+  <div class="page-actions">
+    <a class="button button--primary" [routerLink]="['/exploration', tour().id]">View tour</a>
+    <a class="button" [routerLink]="['/chat/tours', tour().id]">Chat</a>
+  </div>
 </article>

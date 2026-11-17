@@ -14,6 +14,8 @@ public sealed class Blog : AggregateRoot
     public BlogStatus Status { get; private set; }
     private readonly List<Comment> _comments = [];
     public IReadOnlyList<Comment> Comments => _comments;
+    private readonly List<Vote> _votes = [];
+    public IReadOnlyList<Vote> Votes => _votes;
 
     private Blog()
     {
@@ -91,18 +93,41 @@ public sealed class Blog : AggregateRoot
         _comments.Add(new Comment(userId, text));
     }
 
-    public void UpdateComment(Guid commentId, Guid userId, string text)
+    public void UpdateComment(Guid commentId, Guid userId, string text, DateTime now)
     {
         EnsurePublished();
 
-        GetOwnComment(commentId, userId).Update(text);
+        GetOwnComment(commentId, userId).Update(text, now);
     }
 
-    public void DeleteComment(Guid commentId, Guid userId)
+    public void DeleteComment(Guid commentId, Guid userId, DateTime now)
     {
         EnsurePublished();
 
-        _comments.Remove(GetOwnComment(commentId, userId));
+        var comment = GetOwnComment(commentId, userId);
+        comment.EnsureWithinEditWindow(now);
+        _comments.Remove(comment);
+    }
+
+    public void CastVote(Guid userId, VoteType type)
+    {
+        if (Status != BlogStatus.Published)
+        {
+            throw new DomainException("Voting is allowed only on a published blog.");
+        }
+
+        var existing = _votes.FirstOrDefault(vote => vote.UserId == userId);
+        if (existing is null)
+        {
+            _votes.Add(new Vote(userId, type));
+            return;
+        }
+
+        _votes.Remove(existing);
+        if (existing.VoteType != type)
+        {
+            _votes.Add(new Vote(userId, type));
+        }
     }
 
     private void EnsurePublished()

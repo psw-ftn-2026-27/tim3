@@ -1,5 +1,5 @@
-import { httpResource } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { BlogDto } from '../../api/social-api-types';
@@ -16,17 +16,26 @@ export class MyBlogs {
 
   protected readonly blogs = httpResource<BlogDto[]>(() => '/api/social/blogs/mine');
 
+  protected readonly blogsErrorStatus = computed(() => {
+    const failure = this.blogs.error();
+    return failure instanceof HttpErrorResponse ? failure.status : null;
+  });
+
   protected readonly pending = signal(false);
-  protected readonly error = signal<string | null>(null);
+  // A failed command shows under the row whose button started it.
+  protected readonly rowError = signal<{ rowId: string; message: string } | null>(null);
 
   protected async publish(blogId: string): Promise<void> {
     this.pending.set(true);
-    this.error.set(null);
+    this.rowError.set(null);
     try {
       await this.blogAuthoring.publish(blogId);
       this.blogs.reload();
     } catch (failure) {
-      this.error.set(serverMessage(failure, 'Could not publish the blog.'));
+      this.rowError.set({
+        rowId: blogId,
+        message: serverMessage(failure, 'Could not publish the blog.'),
+      });
     } finally {
       this.pending.set(false);
     }
@@ -34,12 +43,15 @@ export class MyBlogs {
 
   protected async archive(blogId: string): Promise<void> {
     this.pending.set(true);
-    this.error.set(null);
+    this.rowError.set(null);
     try {
       await this.blogAuthoring.archive(blogId);
       this.blogs.reload();
     } catch (failure) {
-      this.error.set(serverMessage(failure, 'Could not archive the blog.'));
+      this.rowError.set({
+        rowId: blogId,
+        message: serverMessage(failure, 'Could not archive the blog.'),
+      });
     } finally {
       this.pending.set(false);
     }
