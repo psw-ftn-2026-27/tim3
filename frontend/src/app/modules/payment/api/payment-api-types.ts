@@ -46,3 +46,13 @@ export interface BuyGiftCardDto {
   amount: number;
   message: string | null;
 }
+
+export interface ReceivedGiftCardDto {
+  id: string;
+  buyerId: string;
+  buyerDisplayName: string;
+  amount: number;
+  message: string | null;
+  expiresAt: string;
+  status: GiftCardStatus;
+}

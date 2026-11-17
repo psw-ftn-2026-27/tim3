@@ -13,6 +13,7 @@ internal static class GiftCardSeed
     public static readonly GiftCard DemoExplorerCardForSecondDemoExplorer;
     public static readonly GiftCard DemoExplorerCardForThirdDemoExplorer;
     public static readonly GiftCard SecondDemoExplorerCardForDemoExplorer;
+    public static readonly GiftCard ThirdDemoExplorerCardForDemoExplorer;
 
     public static readonly GiftCard[] All;
 
@@ -22,7 +23,14 @@ internal static class GiftCardSeed
         DemoExplorerCardForSecondDemoExplorer = new GiftCard(DemoExplorerId, SecondDemoExplorerId, 20, "Happy birthday", purchasedAt);
         DemoExplorerCardForThirdDemoExplorer = new GiftCard(DemoExplorerId, ThirdDemoExplorerId, 15, null, purchasedAt.AddDays(1));
         SecondDemoExplorerCardForDemoExplorer = new GiftCard(SecondDemoExplorerId, DemoExplorerId, 30, null, purchasedAt);
+        ThirdDemoExplorerCardForDemoExplorer = new GiftCard(ThirdDemoExplorerId, DemoExplorerId, 50, "Enjoy the tours", purchasedAt.AddDays(2));
 
-        All = [DemoExplorerCardForSecondDemoExplorer, DemoExplorerCardForThirdDemoExplorer, SecondDemoExplorerCardForDemoExplorer];
+        All =
+        [
+            DemoExplorerCardForSecondDemoExplorer,
+            DemoExplorerCardForThirdDemoExplorer,
+            SecondDemoExplorerCardForDemoExplorer,
+            ThirdDemoExplorerCardForDemoExplorer
+        ];
     }
 }

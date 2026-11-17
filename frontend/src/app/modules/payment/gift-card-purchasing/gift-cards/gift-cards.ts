@@ -4,10 +4,16 @@ import { FormField, form, max, maxLength, min, required, validate } from '@angul
 import { RouterLink } from '@angular/router';
 import { Auth } from '../../../../core/auth/auth';
 import { PageResult } from '../../../../shared/api/page-result';
-import { PurchasedGiftCardDto, RecipientDto, WalletDto } from '../../api/payment-api-types';
+import {
+  PurchasedGiftCardDto,
+  ReceivedGiftCardDto,
+  RecipientDto,
+  WalletDto,
+} from '../../api/payment-api-types';
 import { WalletPagination } from '../../own-wallet/wallet-pagination/wallet-pagination';
 import { GiftCardPurchasing } from '../gift-card-purchasing';
 import { PurchasedGiftCardList } from '../purchased-gift-card-list/purchased-gift-card-list';
+import { ReceivedGiftCardList } from '../received-gift-card-list/received-gift-card-list';
 import { RecipientList } from '../recipient-list/recipient-list';
 
 const BASE_URL = '/api/payment/gift-cards';
@@ -18,7 +24,14 @@ const MAX_MESSAGE_LENGTH = 200;
 const UNEXPECTED_ERROR = 'Kupovina trenutno nije moguća, pokušaj ponovo.';
 
 @Component({
-  imports: [FormField, PurchasedGiftCardList, RecipientList, RouterLink, WalletPagination],
+  imports: [
+    FormField,
+    PurchasedGiftCardList,
+    ReceivedGiftCardList,
+    RecipientList,
+    RouterLink,
+    WalletPagination,
+  ],
   selector: 'app-gift-cards',
   templateUrl: './gift-cards.html',
   styleUrl: './gift-cards.scss',
@@ -30,6 +43,8 @@ export class GiftCards {
   protected readonly recipientsPageSize = 20;
   protected readonly purchasedPageSize = 10;
   protected readonly purchasedPage = signal(1);
+  protected readonly receivedPageSize = 10;
+  protected readonly receivedPage = signal(1);
   protected readonly isExplorer = computed(
     () => this.auth.user()?.roles.includes('explorer') ?? false,
   );
@@ -83,6 +98,12 @@ export class GiftCards {
   protected readonly purchased = httpResource<PageResult<PurchasedGiftCardDto>>(() =>
     this.isExplorer()
       ? `${BASE_URL}/purchased?page=${this.purchasedPage()}&pageSize=${this.purchasedPageSize}`
+      : undefined,
+  );
+
+  protected readonly received = httpResource<PageResult<ReceivedGiftCardDto>>(() =>
+    this.isExplorer()
+      ? `${BASE_URL}/received?page=${this.receivedPage()}&pageSize=${this.receivedPageSize}`
       : undefined,
   );
 
