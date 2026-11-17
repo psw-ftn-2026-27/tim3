@@ -75,7 +75,7 @@ public sealed class Club : AggregateRoot
 
     public void AcceptRequest(Guid userId, Guid requesterId)
     {
-        EnsureOwnedBy(userId);
+        EnsureOwnedOrModeratedBy(userId);
         var request = GetRequestFrom(requesterId);
 
         _joinRequests.Remove(request);
@@ -84,7 +84,7 @@ public sealed class Club : AggregateRoot
 
     public void RejectRequest(Guid userId, Guid requesterId)
     {
-        EnsureOwnedBy(userId);
+        EnsureOwnedOrModeratedBy(userId);
         var request = GetRequestFrom(requesterId);
 
         _joinRequests.Remove(request);
@@ -126,20 +126,48 @@ public sealed class Club : AggregateRoot
         _invitations.Remove(invitation);
     }
 
+    // The owner removes any member except themselves; a moderator removes only a regular member.
     public void RemoveMember(Guid userId, Guid memberId)
     {
-        EnsureOwnedBy(userId);
-        if (memberId == OwnerId)
+        EnsureOwnedOrModeratedBy(userId);
+        var member = GetMember(memberId);
+        if (userId == OwnerId && memberId == OwnerId)
         {
             throw new DomainException("The owner cannot remove themselves from the club.");
         }
-        var member = _members.FirstOrDefault(member => member.UserId == memberId);
-        if (member is null)
+        if (userId != OwnerId && !IsRegularMember(member))
         {
-            throw new NotFoundException("This user is not a member of the club.");
+            throw new DomainException("A moderator can remove only a regular member of the club.");
         }
 
         _members.Remove(member);
+    }
+
+    public void PromoteToModerator(Guid userId, Guid memberId)
+    {
+        EnsureOwnedBy(userId);
+        var member = GetMember(memberId);
+        if (!IsRegularMember(member))
+        {
+            throw new DomainException("Only a regular member can be made a moderator.");
+        }
+
+        member.Promote();
+    }
+
+    // The new owner's row goes back to a regular member, so the next transfer leaves the
+    // former owner a regular member and not a moderator.
+    public void TransferOwnership(Guid userId, Guid newOwnerId)
+    {
+        EnsureOwnedBy(userId);
+        if (newOwnerId == OwnerId)
+        {
+            throw new DomainException("You already own this club.");
+        }
+        var newOwner = GetMember(newOwnerId);
+
+        newOwner.ResetToMember();
+        OwnerId = newOwnerId;
     }
 
     // P3: one user and one club have at most one open join request or invitation at a time.
@@ -178,6 +206,32 @@ public sealed class Club : AggregateRoot
             throw new NotFoundException("This join request no longer exists.");
         }
         return request;
+    }
+
+    private ClubMember GetMember(Guid userId)
+    {
+        var member = _members.FirstOrDefault(member => member.UserId == userId);
+        if (member is null)
+        {
+            throw new NotFoundException("This user is not a member of the club.");
+        }
+        return member;
+    }
+
+    // The owner's row carries the Member role, so the role alone does not tell a regular member.
+    private bool IsRegularMember(ClubMember member)
+    {
+        return member.Role == ClubRole.Member && member.UserId != OwnerId;
+    }
+
+    // Like EnsureOwnedBy, a club the user neither owns nor moderates is treated as nonexistent.
+    private void EnsureOwnedOrModeratedBy(Guid userId)
+    {
+        var isModerator = _members.Any(member => member.UserId == userId && member.Role == ClubRole.Moderator);
+        if (OwnerId != userId && !isModerator)
+        {
+            throw new NotFoundException($"Club {Id} does not exist.");
+        }
     }
 
     private void EnsureOwnedBy(Guid userId)

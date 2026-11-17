@@ -42,10 +42,51 @@ public class ClubMembershipQueryTests : BaseIntegrationTest
     }
 
     [Fact]
-    public async Task User_who_is_not_the_owner_sees_no_pending_requests()
+    public async Task Club_view_shows_members_with_roles_the_owner_from_the_clubs_ownership_and_the_logged_in_users_role()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.FourthExplorer, "explorer");
-        var seeded = ClubSeed.CyclistsWithAMemberAndAPendingRequest;
+        var seeded = ClubSeed.HistoriansWithAModeratorAMemberAndAPendingRequest;
+
+        var club = await client.GetFromJsonAsync<ClubDetailsDto>($"/api/social/clubs/{seeded.Id}", JsonOptions);
+
+        club!.Members.Select(member => member.UserId).Should().BeEquivalentTo(seeded.Members.Select(member => member.UserId));
+        club.Members.Should().Contain(member => member.UserId == seeded.OwnerId && member.Role == MemberRole.Owner);
+        club.Members.Should().Contain(member => member.UserId == WellKnownUsers.ThirdExplorer && member.Role == MemberRole.Moderator);
+        club.Members.Should().Contain(member => member.UserId == WellKnownUsers.FourthExplorer && member.Role == MemberRole.Member);
+        club.Role.Should().Be(MemberRole.Member);
+    }
+
+    [Fact]
+    public async Task User_who_is_not_a_member_has_no_role_in_the_club()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+        var seeded = ClubSeed.HistoriansWithAModeratorAMemberAndAPendingRequest;
+
+        var club = await client.GetFromJsonAsync<ClubDetailsDto>($"/api/social/clubs/{seeded.Id}", JsonOptions);
+
+        club!.Role.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Moderator_sees_pending_requests_with_the_requesters_display_names()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.ThirdExplorer, "explorer");
+        var seeded = ClubSeed.HistoriansWithAModeratorAMemberAndAPendingRequest;
+
+        var club = await client.GetFromJsonAsync<ClubDetailsDto>($"/api/social/clubs/{seeded.Id}", JsonOptions);
+
+        club!.Role.Should().Be(MemberRole.Moderator);
+        club.PendingRequests.Select(request => request.UserId)
+            .Should().BeEquivalentTo(seeded.JoinRequests.Select(request => request.UserId));
+        club.PendingRequests.Should().Contain(request => request.UserId == WellKnownUsers.Explorer
+            && request.DisplayName == "explorer");
+    }
+
+    [Fact]
+    public async Task Regular_member_sees_no_pending_requests()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.FourthExplorer, "explorer");
+        var seeded = ClubSeed.HistoriansWithAModeratorAMemberAndAPendingRequest;
 
         var club = await client.GetFromJsonAsync<ClubDetailsDto>($"/api/social/clubs/{seeded.Id}", JsonOptions);
 

@@ -38,5 +38,7 @@ internal static class ClubConfiguration
     {
         builder.ToTable("ClubMembers");
         builder.Property(member => member.Id).ValueGeneratedNever();
+        // Rows that existed before roles were added are regular members.
+        builder.Property(member => member.Role).HasConversion<string>().HasMaxLength(20).HasDefaultValueSql("'Member'");
     }
 }
