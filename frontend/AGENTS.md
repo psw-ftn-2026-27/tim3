@@ -35,6 +35,7 @@ frontend/src/
                              theme (light/dark toggle), consent (analytics
                              cookie choice), app.routes.ts                    [platform]
     shared/
+      analytics/             sends to Google Analytics with consent: page views  [platform]
       util/
       api/                   shared types (PageResult, ProblemDetails),
                              mirror the server, no client-only fields          [platform]
@@ -115,6 +116,8 @@ construct means adding a lesson, so treat it as a platform decision.
 - State: `signal()` and `computed()`. `effect()` only when a signal must
   drive something outside the component tree, and it needs a reason. Page-scoped state, including its read resources, lives in the page.
   State that outlives a page lives in a service holding signals, `providedIn: 'root'`.
+  The platform analytics service in `shared/analytics/` alone holds an `effect()` that reads
+  `Router.lastSuccessfulNavigation` and the consent, and reads the user with `untracked()`.
 - Timers: a page that must repeat something on its own (the chat reloading its messages,
   a position check every 10 seconds) starts one `setInterval` in its constructor and clears
   it with `inject(DestroyRef).onDestroy(...)`, so the timer stops when the user leaves the
@@ -131,7 +134,7 @@ construct means adding a lesson, so treat it as a platform decision.
 - Routing: `router-outlet`, `routerLink`, `routerLinkActive` (with `ariaCurrentWhenActive`,
   only in the main nav), `loadChildren`, route parameters bound as
   signal inputs via `withComponentInputBinding`; `inject(Router)` only for navigation
-  after a command.
+  after a command, and in the analytics service in `shared/analytics/` to track page views.
 - No RxJS in student code. `Observable` appears only as the return type of `HttpClient`
   writes, immediately awaited. No NgRx, no facades.
 
