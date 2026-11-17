@@ -36,7 +36,7 @@ public sealed class Wallet : AggregateRoot
             throw new DomainException("The deposit exceeds the maximum wallet balance.");
         }
 
-        _transactions.Add(new WalletTransaction(amount, administratorId, occurredAt));
+        _transactions.Add(new WalletTransaction(WalletTransactionKind.Deposit, amount, administratorId, occurredAt));
         Balance += amount;
     }
 
@@ -62,7 +62,19 @@ public sealed class Wallet : AggregateRoot
             throw new DomainException("The wallet has insufficient EC to reverse the deposit.");
         }
 
-        _transactions.Add(new WalletTransaction(-deposit.Amount, administratorId, occurredAt, deposit.Id));
+        _transactions.Add(new WalletTransaction(
+            WalletTransactionKind.Reversal, -deposit.Amount, administratorId, occurredAt, deposit.Id));
         Balance -= deposit.Amount;
+    }
+
+    public void PayForGiftCard(int amount, DateTime occurredAt)
+    {
+        if (Balance < amount)
+        {
+            throw new DomainException("The wallet has insufficient EC to pay for the gift card.");
+        }
+
+        _transactions.Add(new WalletTransaction(WalletTransactionKind.GiftCardPurchase, -amount, null, occurredAt));
+        Balance -= amount;
     }
 }

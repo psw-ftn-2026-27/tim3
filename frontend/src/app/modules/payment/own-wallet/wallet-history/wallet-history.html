@@ -26,7 +26,7 @@
         <tbody>
           @for (transaction of transactions(); track transaction.id) {
             <tr>
-              <td>{{ transaction.kind === 'Deposit' ? 'Uplata' : 'Storno uplate' }}</td>
+              <td>{{ kindLabel(transaction.kind) }}</td>
               <td>{{ transaction.amount > 0 ? '+' : '' }}{{ transaction.amount }} EC</td>
               <td>
                 <time [attr.datetime]="transaction.occurredAt">{{
