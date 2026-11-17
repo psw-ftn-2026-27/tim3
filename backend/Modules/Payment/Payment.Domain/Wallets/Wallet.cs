@@ -73,7 +73,7 @@ public sealed class Wallet : AggregateRoot
         var total = items.Sum(item => (long)item.PriceInEc);
         if (Balance < total)
         {
-            throw new DomainException("Nemaš dovoljno EC za kupovinu.");
+            throw new DomainException("The wallet has insufficient EC for this purchase.");
         }
 
         foreach (var item in items)

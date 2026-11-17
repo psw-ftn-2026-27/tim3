@@ -64,4 +64,27 @@ public class ProductTests
         product.AuthorId.Should().Be(authorId);
         product.PriceInEc.Should().Be(25);
     }
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void An_offer_requires_a_name(string? name)
+    {
+        var create = () => new Product(Guid.NewGuid(), name!, Guid.NewGuid(), 25);
+
+        create.Should().Throw<DomainException>();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void An_offer_requires_a_tour_and_an_owner(bool missingTour)
+    {
+        var tourId = missingTour ? Guid.Empty : Guid.NewGuid();
+        var authorId = missingTour ? Guid.NewGuid() : Guid.Empty;
+
+        var create = () => new Product(tourId, "City walk", authorId, 25);
+
+        create.Should().Throw<DomainException>();
+    }
 }

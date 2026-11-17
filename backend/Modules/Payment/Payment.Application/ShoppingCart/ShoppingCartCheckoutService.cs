@@ -33,22 +33,9 @@ public sealed class ShoppingCartCheckoutService
     public async Task CheckoutAsync(Guid userId)
     {
         var cart = await _carts.GetByUserIdAsync(userId)
-            ?? throw new DomainException("Korpa je prazna.");
-        var availableTourIds = new HashSet<Guid>();
-        var purchasedTourIds = new HashSet<Guid>();
-        foreach (var item in cart.Items)
-        {
-            if (await _availability.IsAvailableAsync(item.TourId))
-            {
-                availableTourIds.Add(item.TourId);
-            }
-
-            if (await _purchases.ExistsAsync(userId, item.TourId))
-            {
-                purchasedTourIds.Add(item.TourId);
-            }
-        }
-
+            ?? throw new DomainException("The cart is empty.");
+        var availableTourIds = await GetAvailableTourIdsAsync(cart.Items);
+        var purchasedTourIds = (await _purchases.GetPurchasedTourIdsAsync(userId)).ToHashSet();
         var existingWallet = await _wallets.GetByUserIdAsync(userId);
         var wallet = existingWallet ?? new Wallet(userId);
         var tokens = _purchasing.Checkout(cart, wallet, availableTourIds, purchasedTourIds, DateTime.UtcNow);
@@ -63,5 +50,18 @@ public sealed class ShoppingCartCheckoutService
         }
 
         await _unitOfWork.SaveChangesAsync();
+    }
+
+    private async Task<HashSet<Guid>> GetAvailableTourIdsAsync(IReadOnlyCollection<OrderItem> items)
+    {
+        var available = new HashSet<Guid>();
+        foreach (var item in items)
+        {
+            if (await _availability.IsAvailableAsync(item.TourId))
+            {
+                available.Add(item.TourId);
+            }
+        }
+        return available;
     }
 }

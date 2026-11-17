@@ -15,7 +15,7 @@ public sealed class TourPurchaseToken : AggregateRoot
     {
         if (buyerId == Guid.Empty || tourId == Guid.Empty)
         {
-            throw new DomainException("Kupovina mora imati kupca i turu.");
+            throw new DomainException("A purchase must have a buyer and a tour.");
         }
 
         BuyerId = buyerId;

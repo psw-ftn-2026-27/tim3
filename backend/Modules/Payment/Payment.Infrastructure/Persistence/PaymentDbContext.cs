@@ -31,85 +31,68 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
     {
         try
         {
-            return await SaveChangesAsync();
+            return await SaveChangesAsync(cancellationToken);
         }
-        catch (DbUpdateConcurrencyException exception) when (exception.Entries.Any(entry => entry.Entity is ShoppingCart or OrderItem))
+        catch (DbUpdateConcurrencyException exception)
         {
-            throw new DomainException("Korpa je izmenjena. Osveži je i pokušaj ponovo.");
+            throw new DomainException(exception.Entries.Any(entry => entry.Entity is ShoppingCart or OrderItem)
+                ? "The cart changed. Refresh and try again."
+                : ConcurrentWalletChangeMessage);
         }
-        catch (DbUpdateConcurrencyException)
+        catch (DbUpdateException exception) when (GetConstraintName(exception) == "IX_Products_TourId")
         {
-            throw new DomainException(ConcurrentWalletChangeMessage);
-        }
-        catch (DbUpdateException exception) when (IsDuplicateWalletCreation(exception))
-        {
-            // A concurrent first deposit created the recipient's wallet after our existence check.
-            throw new DomainException(ConcurrentWalletChangeMessage);
-        }
-        catch (DbUpdateException exception) when (exception.InnerException is PostgresException
-        {
-            SqlState: PostgresErrorCodes.UniqueViolation,
-            SchemaName: "payment",
-            ConstraintName: "IX_ShoppingCarts_UserId"
-        })
-        {
-            throw new DomainException("Korpa je izmenjena. Osveži je i pokušaj ponovo.");
-        }
-        catch (DbUpdateException exception) when (exception.InnerException is PostgresException
-        {
-            SqlState: PostgresErrorCodes.UniqueViolation,
-            SchemaName: "payment",
-            ConstraintName: "PK_OrderItems"
-        })
-        {
-            throw new DomainException("Tura je već u korpi.");
-        }
-        catch (DbUpdateException exception) when (exception.InnerException is PostgresException
-        {
-            SqlState: PostgresErrorCodes.UniqueViolation,
-            SchemaName: "payment",
-            ConstraintName: "IX_TourPurchaseTokens_BuyerId_TourId"
-        })
-        {
-            throw new DomainException("Već poseduješ ovu turu.");
-        }
-        catch (DbUpdateException exception) when (IsDuplicateProductCreation(exception))
-        {
-            var pendingChanges = ChangeTracker.Entries()
-                .Where(entry => entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
-                .ToList();
-            if (pendingChanges.Count != 1 || pendingChanges[0].State != EntityState.Added ||
-                pendingChanges[0].Entity is not Product attemptedProduct)
+            var product = GetPendingProduct();
+            if (product is null)
             {
                 throw;
             }
-
-            var savedProduct = await Products.AsNoTracking()
-                .SingleAsync(product => product.TourId == attemptedProduct.TourId);
-            pendingChanges[0].State = EntityState.Detached;
-            savedProduct.EnsureSameOffer(attemptedProduct.Name, attemptedProduct.AuthorId, attemptedProduct.PriceInEc);
-            return 0;
+            return await AcceptMatchingProductAsync(product, cancellationToken);
+        }
+        catch (DbUpdateException exception) when (ConstraintMessage(exception) is not null)
+        {
+            throw new DomainException(ConstraintMessage(exception)!);
         }
     }
 
-    private static bool IsDuplicateProductCreation(DbUpdateException exception)
+    private static string? GetConstraintName(DbUpdateException exception)
     {
         return exception.InnerException is PostgresException
         {
             SqlState: PostgresErrorCodes.UniqueViolation,
-            SchemaName: "payment",
-            ConstraintName: "IX_Products_TourId"
+            SchemaName: "payment"
+        } postgres ? postgres.ConstraintName : null;
+    }
+
+    private static string? ConstraintMessage(DbUpdateException exception)
+    {
+        return GetConstraintName(exception) switch
+        {
+            "IX_Wallets_UserId" => ConcurrentWalletChangeMessage,
+            "IX_ShoppingCarts_UserId" => "The cart changed. Refresh and try again.",
+            "PK_OrderItems" => "The tour is already in the cart.",
+            "IX_TourPurchaseTokens_BuyerId_TourId" => "You already own this tour.",
+            _ => null
         };
     }
 
-    private static bool IsDuplicateWalletCreation(DbUpdateException exception)
+    private Product? GetPendingProduct()
     {
-        return exception.InnerException is PostgresException
-        {
-            SqlState: PostgresErrorCodes.UniqueViolation,
-            SchemaName: "payment",
-            ConstraintName: "IX_Wallets_UserId"
-        };
+        var changes = ChangeTracker.Entries()
+            .Where(entry => entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            .ToList();
+        return changes.Count == 1 && changes[0].State == EntityState.Added
+            ? changes[0].Entity as Product
+            : null;
+    }
+
+    private async Task<int> AcceptMatchingProductAsync(
+        Product product, CancellationToken cancellationToken)
+    {
+        var savedProduct = await Products.AsNoTracking()
+            .SingleAsync(saved => saved.TourId == product.TourId, cancellationToken);
+        Entry(product).State = EntityState.Detached;
+        savedProduct.EnsureSameOffer(product.Name, product.AuthorId, product.PriceInEc);
+        return 0;
     }
 
     protected override void OnModelCreating(ModelBuilder builder)

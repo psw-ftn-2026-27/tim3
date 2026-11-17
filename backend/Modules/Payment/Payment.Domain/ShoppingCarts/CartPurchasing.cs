@@ -23,19 +23,19 @@ public sealed class CartPurchasing
     {
         if (cart.Items.Count == 0)
         {
-            throw new DomainException("Korpa je prazna.");
+            throw new DomainException("The cart is empty.");
         }
 
         if (cart.UserId != wallet.UserId)
         {
-            throw new DomainException("Korpa i novčanik moraju pripadati istom kupcu.");
+            throw new DomainException("The cart and wallet must belong to the same buyer.");
         }
 
         foreach (var item in cart.Items)
         {
             if (!availableTourIds.Contains(item.TourId))
             {
-                throw new DomainException($"Tura „{item.Name}“ više nije dostupna.");
+                throw new DomainException($"The tour '{item.Name}' is no longer available.");
             }
 
             EnsureNotPurchased(purchasedTourIds.Contains(item.TourId));
@@ -53,7 +53,7 @@ public sealed class CartPurchasing
     {
         if (alreadyPurchased)
         {
-            throw new DomainException("Već poseduješ ovu turu.");
+            throw new DomainException("You already own this tour.");
         }
     }
 }

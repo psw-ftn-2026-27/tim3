@@ -30,7 +30,7 @@ public sealed class ShoppingCartService
     public async Task AddToCartAsync(Guid userId, Guid tourId)
     {
         var product = await _products.GetByTourIdAsync(tourId)
-            ?? throw new NotFoundException("Tura nema proizvod u ponudi.");
+            ?? throw new NotFoundException("The tour has no product on offer.");
         var existingCart = await _carts.GetByUserIdAsync(userId);
         var alreadyPurchased = await _purchases.ExistsAsync(userId, tourId);
         var cart = existingCart ?? new Cart(userId);
@@ -47,7 +47,7 @@ public sealed class ShoppingCartService
     public async Task RemoveFromCartAsync(Guid userId, Guid tourId)
     {
         var cart = await _carts.GetByUserIdAsync(userId)
-            ?? throw new NotFoundException("Tura nije u korpi.");
+            ?? throw new NotFoundException("The tour is not in the cart.");
         cart.RemoveItem(tourId);
         await _unitOfWork.SaveChangesAsync();
     }

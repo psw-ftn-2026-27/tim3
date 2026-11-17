@@ -18,6 +18,14 @@ internal sealed class TourPurchaseTokenRepository : ITourPurchaseTokenRepository
         return _dbContext.TourPurchaseTokens.AnyAsync(token => token.BuyerId == buyerId && token.TourId == tourId);
     }
 
+    public Task<List<Guid>> GetPurchasedTourIdsAsync(Guid buyerId)
+    {
+        return _dbContext.TourPurchaseTokens
+            .Where(token => token.BuyerId == buyerId)
+            .Select(token => token.TourId)
+            .ToListAsync();
+    }
+
     public void Add(TourPurchaseToken token)
     {
         _dbContext.TourPurchaseTokens.Add(token);

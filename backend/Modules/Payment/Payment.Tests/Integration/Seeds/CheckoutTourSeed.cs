@@ -9,6 +9,7 @@ internal static class CheckoutTourSeed
     public static readonly Tour FreeWalk;
     public static readonly Tour MuseumWalk;
     public static readonly Tour ArchivedWalk;
+    public static readonly Tour PublishableWalk;
 
     static CheckoutTourSeed()
     {
@@ -31,7 +32,10 @@ internal static class CheckoutTourSeed
         ArchivedWalk.AddTransportTime(TransportMode.Walking, 60);
         ArchivedWalk.Publish(TourPrice.Paid(10));
         ArchivedWalk.Archive();
+
+        PublishableWalk = new Tour(author, "Publishable walk", description, TourDifficulty.Easy, ["walking"], new GroupSize(2, 10));
+        PublishableWalk.AddTransportTime(TransportMode.Walking, 60);
     }
 
-    public static Tour[] All => [CityWalk, FreeWalk, MuseumWalk, ArchivedWalk];
+    public static Tour[] All => [CityWalk, FreeWalk, MuseumWalk, ArchivedWalk, PublishableWalk];
 }

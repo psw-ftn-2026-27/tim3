@@ -1,13 +1,11 @@
-using System.Data.Common;
+using System.Net;
+using System.Net.Http.Json;
+using Exploration.Application.TourAuthoring;
+using Exploration.Domain.Tours;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
-using Payment.Application.TourOffering;
-using Payment.Domain.Products;
 using Payment.Infrastructure.Persistence;
-using Payment.Infrastructure.Persistence.Products;
-using Shared.Domain.Exceptions;
+using Payment.Tests.Integration.Seeds;
 using Shared.Tests;
 using Xunit;
 
@@ -15,99 +13,42 @@ namespace Payment.Tests.Integration.TourOffering;
 
 public class TourOfferingConcurrencyTests : BaseIntegrationTest
 {
-    private const string TourName = "City walk";
-
-    public TourOfferingConcurrencyTests(PaymentApiFactory factory) : base(factory) { }
-
-    [Fact]
-    public async Task Concurrent_matching_offers_both_succeed_and_save_one_product()
+    public TourOfferingConcurrencyTests(PaymentApiFactory factory) : base(factory)
     {
-        var tourId = Guid.NewGuid();
-        const int priceInEc = 25;
-
-        var results = await CreateConcurrentlyAsync(tourId, priceInEc, priceInEc);
-
-        results.Should().OnlyContain(result => result == null);
-        var product = await GetSingleProductAsync(tourId);
-        product.Name.Should().Be(TourName);
-        product.AuthorId.Should().Be(WellKnownUsers.Explorer);
-        product.PriceInEc.Should().Be(priceInEc);
+        Factory.Reseed<DbContext>(CheckoutTourSeed.All);
     }
 
-    [Fact]
-    public async Task Concurrent_offers_with_different_prices_keep_the_winning_offer()
+    [Theory]
+    [InlineData(25)]
+    [InlineData(40)]
+    public async Task Concurrent_publications_keep_a_single_product_with_the_successful_price(int secondPrice)
     {
-        var tourId = Guid.NewGuid();
-        const int firstPriceInEc = 25;
-        const int secondPriceInEc = 40;
+        var tour = CheckoutTourSeed.PublishableWalk;
+        using var firstClient = Factory.CreateClientFor(tour.AuthorId, "explorer");
+        using var secondClient = Factory.CreateClientFor(tour.AuthorId, "explorer");
+        var url = $"/api/exploration/tours/{tour.Id}/publish";
+        int[] prices = [25, secondPrice];
 
-        var results = await CreateConcurrentlyAsync(tourId, firstPriceInEc, secondPriceInEc);
+        var responses = await Task.WhenAll(
+            firstClient.PostAsJsonAsync(url, new PublishTourDto(false, prices[0]), JsonOptions),
+            secondClient.PostAsJsonAsync(url, new PublishTourDto(false, prices[1]), JsonOptions));
 
-        results.Should().ContainSingle(result => result == null);
-        results.Should().ContainSingle(result => result is DomainException);
-        var product = await GetSingleProductAsync(tourId);
-        var winningPriceInEc = results[0] is null ? firstPriceInEc : secondPriceInEc;
-        product.PriceInEc.Should().Be(winningPriceInEc);
-    }
-
-    private async Task<Exception?[]> CreateConcurrentlyAsync(Guid tourId, int firstPriceInEc, int secondPriceInEc)
-    {
-        var insertGate = new ProductInsertGate();
-        using var firstScope = Factory.Services.CreateScope();
-        using var secondScope = Factory.Services.CreateScope();
-        using var firstContext = CreateContext(firstScope.ServiceProvider, insertGate);
-        using var secondContext = CreateContext(secondScope.ServiceProvider, insertGate);
-        var firstOffer = new TourOfferingService(new ProductRepository(firstContext), firstContext);
-        var secondOffer = new TourOfferingService(new ProductRepository(secondContext), secondContext);
-
-        var firstResult = Record.ExceptionAsync(() =>
-            firstOffer.CreateProductAsync(tourId, TourName, WellKnownUsers.Explorer, firstPriceInEc));
-        var secondResult = Record.ExceptionAsync(() =>
-            secondOffer.CreateProductAsync(tourId, TourName, WellKnownUsers.Explorer, secondPriceInEc));
-        var results = await Task.WhenAll(firstResult, secondResult);
-
-        insertGate.ReachedByBothAttempts.Should().BeTrue("both attempts must reach the insert before either saves");
-        return results;
-    }
-
-    private static PaymentDbContext CreateContext(IServiceProvider services, ProductInsertGate insertGate)
-    {
-        var options = services.GetRequiredService<DbContextOptions<PaymentDbContext>>();
-        var interceptedOptions = new DbContextOptionsBuilder<PaymentDbContext>(options)
-            .AddInterceptors(insertGate)
-            .Options;
-        return new PaymentDbContext(interceptedOptions);
-    }
-
-    private async Task<Product> GetSingleProductAsync(Guid tourId)
-    {
+        responses.Should().Contain(response => response.StatusCode == HttpStatusCode.NoContent);
+        responses.Should().OnlyContain(response =>
+            response.StatusCode == HttpStatusCode.NoContent || response.StatusCode == HttpStatusCode.BadRequest);
         using var context = Factory.CreateContext<PaymentDbContext>();
-        var products = await context.Products.AsNoTracking().Where(product => product.TourId == tourId).ToListAsync();
-        return products.Should().ContainSingle().Which;
-    }
-
-    private sealed class ProductInsertGate : DbCommandInterceptor
-    {
-        private readonly TaskCompletionSource _bothInsertsReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private int _insertCount;
-
-        public bool ReachedByBothAttempts => _bothInsertsReady.Task.IsCompletedSuccessfully;
-
-        public override async ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
-            DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result,
-            CancellationToken cancellationToken = default)
+        var products = await context.Products.Where(product => product.TourId == tour.Id).ToListAsync();
+        var product = products.Should().ContainSingle().Which;
+        product.Name.Should().Be(tour.Name);
+        product.AuthorId.Should().Be(tour.AuthorId);
+        for (var index = 0; index < responses.Length; index++)
         {
-            if (command.CommandText.StartsWith("INSERT INTO payment.\"Products\"", StringComparison.Ordinal))
+            if (responses[index].IsSuccessStatusCode)
             {
-                if (Interlocked.Increment(ref _insertCount) == 2)
-                {
-                    _bothInsertsReady.SetResult();
-                }
-
-                await _bothInsertsReady.Task.WaitAsync(TimeSpan.FromSeconds(15));
+                product.PriceInEc.Should().Be(prices[index]);
             }
-
-            return result;
         }
+        using var exploration = Factory.CreateContext<DbContext>();
+        (await exploration.Set<Tour>().SingleAsync(row => row.Id == tour.Id)).Status.Should().Be(TourStatus.Published);
     }
 }

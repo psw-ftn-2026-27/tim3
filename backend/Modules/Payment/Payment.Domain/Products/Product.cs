@@ -14,6 +14,16 @@ public sealed class Product : AggregateRoot
 
     public Product(Guid tourId, string name, Guid authorId, int priceInEc) : base(Guid.NewGuid())
     {
+        if (tourId == Guid.Empty || authorId == Guid.Empty)
+        {
+            throw new DomainException("A product must have a tour and an owner.");
+        }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new DomainException("A product requires a name.");
+        }
+
         if (priceInEc < 0)
         {
             throw new DomainException("The product price cannot be negative.");

@@ -20,7 +20,7 @@ public sealed class ShoppingCart : AggregateRoot
     {
         if (userId == Guid.Empty)
         {
-            throw new DomainException("Korpa mora imati vlasnika.");
+            throw new DomainException("A cart must have an owner.");
         }
 
         UserId = userId;
@@ -30,7 +30,7 @@ public sealed class ShoppingCart : AggregateRoot
     {
         if (_items.Any(item => item.TourId == product.TourId))
         {
-            throw new DomainException("Tura je već u korpi.");
+            throw new DomainException("The tour is already in the cart.");
         }
 
         _items.Add(new OrderItem(product.Id, product.TourId, product.Name, product.PriceInEc));
@@ -40,7 +40,7 @@ public sealed class ShoppingCart : AggregateRoot
     public void RemoveItem(Guid tourId)
     {
         var item = _items.SingleOrDefault(item => item.TourId == tourId)
-            ?? throw new NotFoundException("Tura nije u korpi.");
+            ?? throw new NotFoundException("The tour is not in the cart.");
         _items.Remove(item);
         _revision++;
     }

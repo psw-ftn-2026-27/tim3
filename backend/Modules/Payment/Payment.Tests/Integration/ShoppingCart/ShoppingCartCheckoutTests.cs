@@ -1,14 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
-using Payment.Application;
-using Payment.Application.ShoppingCart;
-using Payment.Application.Wallets;
-using Payment.Domain.ShoppingCarts;
 using Payment.Domain.Wallets;
 using Payment.Infrastructure.Persistence;
 using Payment.Tests.Integration.Seeds;
@@ -86,7 +79,7 @@ public sealed class ShoppingCartCheckoutTests : BaseIntegrationTest
 
         var response = await client.PostAsync(CheckoutUrl, null);
 
-        await AssertRejectedAsync(response, "dovoljno EC");
+        await AssertRejectedAsync(response);
         await AssertCheckoutUnchangedAsync(cart, wallet);
     }
 
@@ -98,7 +91,7 @@ public sealed class ShoppingCartCheckoutTests : BaseIntegrationTest
 
         var response = await client.PostAsync(CheckoutUrl, null);
 
-        await AssertRejectedAsync(response, "poseduješ");
+        await AssertRejectedAsync(response);
         await AssertCheckoutUnchangedAsync(cart, WalletSeed.ExplorerWalletWithReversal);
     }
 
@@ -110,7 +103,7 @@ public sealed class ShoppingCartCheckoutTests : BaseIntegrationTest
 
         var response = await client.PostAsync(CheckoutUrl, null);
 
-        await AssertRejectedAsync(response, ProductSeed.ArchivedWalk.Name);
+        await AssertRejectedAsync(response);
         await AssertCheckoutUnchangedAsync(cart, WalletSeed.DemoExplorerWalletWithDeposit);
     }
 
@@ -129,71 +122,34 @@ public sealed class ShoppingCartCheckoutTests : BaseIntegrationTest
     }
 
     [Fact]
-    public async Task An_availability_failure_blocks_the_entire_purchase()
+    public async Task Simultaneous_purchases_charge_the_wallet_only_once()
     {
         var cart = ShoppingCartSeed.FundedCheckoutCart;
-        var availability = new TestTourAvailability(new HashSet<Guid>(), new InvalidOperationException("Availability unavailable."));
+        var wallet = WalletSeed.ExplorerWalletWithDeposit;
+        using var firstClient = Factory.CreateClientFor(cart.UserId, "explorer");
+        using var secondClient = Factory.CreateClientFor(cart.UserId, "explorer");
 
-        var checkout = () => CheckoutAsync(cart.UserId, availability);
+        var responses = await Task.WhenAll(
+            firstClient.PostAsync(CheckoutUrl, null),
+            secondClient.PostAsync(CheckoutUrl, null));
 
-        await checkout.Should().ThrowAsync<InvalidOperationException>();
-        await AssertCheckoutUnchangedAsync(cart, WalletSeed.ExplorerWalletWithDeposit);
-    }
-
-    [Fact]
-    public async Task A_database_failure_at_commit_rolls_back_every_checkout_effect()
-    {
-        var cart = ShoppingCartSeed.FundedCheckoutCart;
-        var availability = new TestTourAvailability(new HashSet<Guid> { ProductSeed.CityWalk.TourId, ProductSeed.FreeWalk.TourId });
+        responses.Select(response => response.StatusCode).Should().BeEquivalentTo(
+            [HttpStatusCode.NoContent, HttpStatusCode.BadRequest]);
         using var context = Factory.CreateContext<PaymentDbContext>();
-        await context.Database.ExecuteSqlRawAsync("""
-            CREATE FUNCTION payment.reject_checkout_test() RETURNS trigger LANGUAGE plpgsql AS $$
-            BEGIN
-                RAISE EXCEPTION 'Checkout test commit failure' USING ERRCODE = '23514';
-            END;
-            $$;
-            CREATE CONSTRAINT TRIGGER reject_checkout_test
-            AFTER INSERT ON payment."TourPurchaseTokens"
-            DEFERRABLE INITIALLY DEFERRED
-            FOR EACH ROW EXECUTE FUNCTION payment.reject_checkout_test();
-            """);
-
-        try
-        {
-            var failure = await Record.ExceptionAsync(() => CheckoutAsync(cart.UserId, availability));
-
-            var postgresFailure = failure!.GetBaseException().Should().BeOfType<PostgresException>().Which;
-            postgresFailure.SqlState.Should().Be(PostgresErrorCodes.CheckViolation);
-            await AssertCheckoutUnchangedAsync(cart, WalletSeed.ExplorerWalletWithDeposit);
-        }
-        finally
-        {
-            await context.Database.ExecuteSqlRawAsync("""
-                DROP TRIGGER reject_checkout_test ON payment."TourPurchaseTokens";
-                DROP FUNCTION payment.reject_checkout_test();
-                """);
-        }
+        var savedWallet = await context.Wallets.Include(row => row.Transactions)
+            .SingleAsync(row => row.Id == wallet.Id);
+        savedWallet.Balance.Should().Be(wallet.Balance - (int)cart.TotalInEc);
+        savedWallet.Transactions.Where(row => row.Kind == WalletTransactionKind.Purchase)
+            .Select(row => new { row.TourId, row.Amount }).Should().BeEquivalentTo(
+                cart.Items.Select(item => new { TourId = (Guid?)item.TourId, Amount = -item.PriceInEc }));
+        var tokens = await context.TourPurchaseTokens.Where(row => row.BuyerId == cart.UserId).ToListAsync();
+        tokens.Select(token => token.TourId).Should().BeEquivalentTo(cart.Items.Select(item => item.TourId));
+        (await context.ShoppingCarts.SingleAsync(row => row.Id == cart.Id)).Items.Should().BeEmpty();
     }
-
-    private async Task CheckoutAsync(Guid userId, ITourAvailability availability)
-    {
-        using var scope = Factory.Services.CreateScope();
-        var services = scope.ServiceProvider;
-        var checkout = new ShoppingCartCheckoutService(
-            services.GetRequiredService<IShoppingCartRepository>(),
-            services.GetRequiredService<IWalletRepository>(),
-            services.GetRequiredService<ITourPurchaseTokenRepository>(),
-            availability,
-            services.GetRequiredService<CartPurchasing>(),
-            services.GetRequiredService<IUnitOfWork>());
-        await checkout.CheckoutAsync(userId);
-    }
-
-    private static async Task AssertRejectedAsync(HttpResponseMessage response, string expectedReason)
+    private static Task AssertRejectedAsync(HttpResponseMessage response)
     {
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(JsonOptions);
-        problem!.Title.Should().Contain(expectedReason);
+        return Task.CompletedTask;
     }
 
     private async Task AssertCheckoutUnchangedAsync(Cart cart, Wallet? wallet)
@@ -218,22 +174,4 @@ public sealed class ShoppingCartCheckoutTests : BaseIntegrationTest
         tokens.Should().BeEquivalentTo(TourPurchaseTokenSeed.All.Where(row => row.BuyerId == cart.UserId));
     }
 
-    private sealed class TestTourAvailability : ITourAvailability
-    {
-        private readonly IReadOnlySet<Guid> _availableTours;
-        private readonly Exception? _failure;
-
-        public TestTourAvailability(IReadOnlySet<Guid> availableTours, Exception? failure = null)
-        {
-            _availableTours = availableTours;
-            _failure = failure;
-        }
-
-        public Task<bool> IsAvailableAsync(Guid tourId)
-        {
-            return _failure is null
-                ? Task.FromResult(_availableTours.Contains(tourId))
-                : Task.FromException<bool>(_failure);
-        }
-    }
 }

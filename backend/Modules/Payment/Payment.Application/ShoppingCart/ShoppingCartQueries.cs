@@ -22,6 +22,6 @@ public sealed class ShoppingCartQueries
     public async Task<ProductForCartDto> GetProductForCartAsync(Guid tourId)
     {
         return await _products.GetProductForCartAsync(tourId)
-            ?? throw new NotFoundException("Tura nema proizvod u ponudi.");
+            ?? throw new NotFoundException("The tour has no product on offer.");
     }
 }

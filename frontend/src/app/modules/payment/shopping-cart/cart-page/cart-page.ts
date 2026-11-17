@@ -1,4 +1,4 @@
-import { httpResource } from '@angular/common/http';
+import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../../../../core/auth/auth';
@@ -13,7 +13,7 @@ import { CART_URL, ShoppingCart } from '../shopping-cart';
 })
 export class CartPage {
   private readonly shoppingCart = inject(ShoppingCart);
-  private readonly auth = inject(Auth);
+  protected readonly auth = inject(Auth);
 
   readonly tourId = input<string>();
 
@@ -31,6 +31,18 @@ export class CartPage {
     return this.canViewCart() && tourId
       ? `${CART_URL}/products/${encodeURIComponent(tourId)}`
       : undefined;
+  });
+  protected readonly cartErrorStatus = computed(() => {
+    const error = this.cart.error();
+    return error instanceof HttpErrorResponse ? error.status : null;
+  });
+  protected readonly productErrorStatus = computed(() => {
+    const error = this.selectedProduct.error();
+    return error instanceof HttpErrorResponse ? error.status : null;
+  });
+  protected readonly walletErrorStatus = computed(() => {
+    const error = this.wallet.error();
+    return error instanceof HttpErrorResponse ? error.status : null;
   });
   protected readonly pending = signal(false);
   protected readonly addError = signal<{ tourId: string; message: string } | null>(null);
