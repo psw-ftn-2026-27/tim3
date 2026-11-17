@@ -63,7 +63,10 @@
     }
 
     @if (isExplorer()) {
-      <p><a routerLink="/payment/gift-cards">Poklon kartice</a></p>
+      <div class="page-actions">
+        <a class="button" routerLink="/payment/cart">Korpa</a>
+        <a class="button" routerLink="/payment/gift-cards">Poklon kartice</a>
+      </div>
     }
 
     @if (isAdministrator()) {
