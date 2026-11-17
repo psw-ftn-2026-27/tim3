@@ -53,7 +53,7 @@ export class EditSocialChallenge {
       await this.socialChallengeAuthoring.update(this.id(), dto);
       await this.router.navigate(['/games/challenges']);
     } catch (failure) {
-      this.error.set(serverMessage(failure, 'Izazov ne može da se sačuva.'));
+      this.error.set(serverMessage(failure, 'Could not save the challenge.'));
     } finally {
       this.pending.set(false);
     }

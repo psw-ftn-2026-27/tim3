@@ -61,8 +61,8 @@ export class SocialChallengeList {
     await this.run(
       id,
       () => this.socialChallengeAuthoring.publish(id),
-      'Izazov je objavljen.',
-      'Izazov ne može da se objavi.',
+      'The challenge is published.',
+      'Could not publish the challenge.',
     );
   }
 
@@ -70,8 +70,8 @@ export class SocialChallengeList {
     await this.run(
       id,
       () => this.socialChallengeAuthoring.retire(id),
-      'Izazov je penzionisan.',
-      'Izazov ne može da se penzioniše.',
+      'The challenge is retired.',
+      'Could not retire the challenge.',
     );
   }
 
@@ -79,8 +79,8 @@ export class SocialChallengeList {
     await this.run(
       id,
       () => this.socialChallengeAuthoring.reactivate(id),
-      'Izazov je ponovo objavljen.',
-      'Izazov ne može ponovo da se objavi.',
+      'The challenge is published again.',
+      'Could not publish the challenge again.',
     );
   }
 
@@ -104,8 +104,8 @@ export class SocialChallengeList {
       await this.run(
         confirmation.id,
         () => this.socialChallengeAuthoring.archive(confirmation.id),
-        'Izazov je arhiviran.',
-        'Izazov ne može da se arhivira.',
+        'The challenge is archived.',
+        'Could not archive the challenge.',
       );
     } else {
       // Deleting the only challenge on a later page would leave that page empty,
@@ -114,8 +114,8 @@ export class SocialChallengeList {
       await this.run(
         confirmation.id,
         () => this.socialChallengeAuthoring.delete(confirmation.id),
-        'Izazov je obrisan.',
-        'Izazov ne može da se obriše.',
+        'The challenge is deleted.',
+        'Could not delete the challenge.',
         lastOnPage ? () => this.previousPage() : undefined,
       );
     }

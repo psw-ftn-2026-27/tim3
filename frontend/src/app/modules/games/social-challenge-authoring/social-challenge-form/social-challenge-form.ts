@@ -36,17 +36,17 @@ export class SocialChallengeForm {
       endMessage: '',
     }),
     (path) => {
-      required(path.name, { message: 'Naziv je obavezan.' });
-      required(path.activePeriodStart, { message: 'Početak je obavezan.' });
-      required(path.activePeriodEnd, { message: 'Kraj je obavezan.' });
-      required(path.peopleRequired, { message: 'Broj ljudi je obavezan.' });
-      min(path.peopleRequired, 2, { message: 'Potrebno je najmanje 2 osobe.' });
-      required(path.gatheringRadius, { message: 'Opseg je obavezan.' });
-      max(path.gatheringRadius, 50, { message: 'Opseg je najviše 50 m.' });
-      required(path.experienceGained, { message: 'XP je obavezan.' });
-      min(path.experienceGained, 0, { message: 'XP je najmanje 0.' });
-      max(path.experienceGained, 20000, { message: 'XP je najviše 20000.' });
-      required(path.endMessage, { message: 'Izlazna poruka je obavezna.' });
+      required(path.name, { message: 'Name is required.' });
+      required(path.activePeriodStart, { message: 'Start is required.' });
+      required(path.activePeriodEnd, { message: 'End is required.' });
+      required(path.peopleRequired, { message: 'Number of people is required.' });
+      min(path.peopleRequired, 2, { message: 'At least 2 people are required.' });
+      required(path.gatheringRadius, { message: 'Gathering radius is required.' });
+      max(path.gatheringRadius, 50, { message: 'Gathering radius must be at most 50 m.' });
+      required(path.experienceGained, { message: 'XP is required.' });
+      min(path.experienceGained, 0, { message: 'XP must be at least 0.' });
+      max(path.experienceGained, 20000, { message: 'XP must be at most 20000.' });
+      required(path.endMessage, { message: 'End message is required.' });
     },
   );
 

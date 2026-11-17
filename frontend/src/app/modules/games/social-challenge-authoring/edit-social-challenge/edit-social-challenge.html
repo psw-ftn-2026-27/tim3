@@ -1,44 +1,44 @@
 <div class="card stack">
-  <h1>Izmena izazova</h1>
+  <h1>Edit challenge</h1>
 
   @if (challenge.isLoading()) {
-    <p class="loading">Učitavanje izazova...</p>
+    <p class="loading">Loading challenge...</p>
   } @else if (challenge.error()) {
     @switch (challengeErrorStatus()) {
       @case (401) {
         <div class="empty-state" role="alert">
-          <h2>Prijavite se da biste izmenili izazov</h2>
-          <p>Izazove menja administrator, a vaša sesija je možda istekla.</p>
+          <h2>Log in to edit this challenge</h2>
+          <p>Challenges are managed by administrators, and your session may have expired.</p>
           <div class="empty-state-actions">
-            <a class="button button--primary" routerLink="/login">Prijavite se</a>
+            <a class="button button--primary" routerLink="/login">Log in</a>
           </div>
         </div>
       }
       @case (403) {
         <div class="empty-state" role="alert">
-          <h2>Samo administrator može da menja izazove</h2>
-          <p>Društvene izazove pravi, menja i objavljuje administrator.</p>
+          <h2>Only administrators can edit challenges</h2>
+          <p>Administrators create, edit and publish social challenges.</p>
           <div class="empty-state-actions">
-            <a class="button button--primary" routerLink="/games">Igre</a>
+            <a class="button button--primary" routerLink="/games">Games</a>
           </div>
         </div>
       }
       @case (404) {
         <div class="empty-state" role="alert">
-          <h2>Izazov ne postoji</h2>
-          <p>Možda je obrisan. Izaberite drugi izazov sa spiska.</p>
+          <h2>This challenge does not exist</h2>
+          <p>It may have been removed. Pick another challenge from the list.</p>
           <div class="empty-state-actions">
-            <a class="button button--primary" routerLink="/games/challenges">Svi izazovi</a>
+            <a class="button button--primary" routerLink="/games/challenges">All challenges</a>
           </div>
         </div>
       }
       @default {
         <div class="empty-state" role="alert">
-          <h2>Izazov ne može da se učita</h2>
-          <p>Nešto nije u redu na našoj strani. Pokušajte ponovo za trenutak.</p>
+          <h2>Could not load the challenge</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
           <div class="empty-state-actions">
             <button class="button" type="button" (click)="challenge.reload()">
-              Pokušajte ponovo
+              Try again
             </button>
           </div>
         </div>
