@@ -6,6 +6,9 @@ import { Consent } from '../../core/consent/consent';
 
 const MEASUREMENT_ID = environment.analyticsMeasurementId;
 
+// Every ID on the server is a GUID; in a sent path each one is replaced with ':id'.
+const GUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+
 // The window properties Google's script reads: the command queue, and the switch that
 // turns sending off for this measurement ID.
 const google = window as unknown as Record<string, unknown> & { dataLayer?: unknown[] };
@@ -47,7 +50,12 @@ export class Analytics {
     const path = this.router.serializeUrl(url).split(/[?#]/)[0];
     if (path !== this.lastPath) {
       this.lastPath = path;
-      this.send('page_view', { page_path: path, page_location: location.origin + path });
+      // An ID in the path, such as the two users of a chat, never goes to Google.
+      const sentPath = path.replace(GUID, ':id');
+      const pageLocation = location.origin + sentPath;
+      // Google's own hits use this address too, instead of the full one from the browser.
+      gtag('set', { page_location: pageLocation });
+      this.send('page_view', { page_path: sentPath, page_location: pageLocation });
     }
   });
 
