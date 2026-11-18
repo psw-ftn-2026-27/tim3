@@ -44,6 +44,7 @@ public static class PaymentModuleExtensions
         services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
         services.AddScoped<ITourPurchaseTokenRepository, TourPurchaseTokenRepository>();
         services.AddScoped<CouponAllocation>();
+        services.AddScoped<CartPricing>();
         services.AddScoped<CartPurchasing>();
         services.AddScoped<ShoppingCartService>();
         services.AddScoped<ShoppingCartQueries>();

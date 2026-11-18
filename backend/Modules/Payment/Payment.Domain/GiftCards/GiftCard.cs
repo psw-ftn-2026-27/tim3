@@ -15,6 +15,7 @@ public sealed class GiftCard : AggregateRoot
     public string? Message { get; private set; }
     public DateTime PurchasedAt { get; private set; }
     public DateTime ExpiresAt { get; private set; }
+    public DateTime? RedeemedAt { get; private set; }
 
     private GiftCard() { }
 
@@ -49,8 +50,31 @@ public sealed class GiftCard : AggregateRoot
         ExpiresAt = purchasedAt.AddYears(3);
     }
 
+    // P1: only the recipient can use the card, and only while it is valid.
+    public bool CanBeUsedBy(Guid buyerId, DateTime moment)
+    {
+        return buyerId == RecipientId && StatusAt(moment) == GiftCardStatus.Valid;
+    }
+
+    // P5: the card is spent once, in full.
+    public void Redeem(Guid buyerId, DateTime moment)
+    {
+        if (!CanBeUsedBy(buyerId, moment))
+        {
+            throw new DomainException("The gift card cannot be used.");
+        }
+
+        RedeemedAt = moment;
+    }
+
+    // A redeemed card stays redeemed after it would have expired.
     public GiftCardStatus StatusAt(DateTime moment)
     {
+        if (RedeemedAt is not null)
+        {
+            return GiftCardStatus.Redeemed;
+        }
+
         return moment < ExpiresAt ? GiftCardStatus.Valid : GiftCardStatus.Expired;
     }
 }

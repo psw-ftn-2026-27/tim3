@@ -181,7 +181,7 @@ public class CouponAllocationTests
 
     private static void Enter(ShoppingCart cart, params Coupon[] coupons)
     {
-        var purchasing = new CartPurchasing(new CouponAllocation());
+        var purchasing = new CartPurchasing(new CartPricing(new CouponAllocation()));
         foreach (var coupon in coupons)
         {
             purchasing.EnterCoupon(cart, coupon, new HashSet<Guid>(), Today);

@@ -1,4 +1,5 @@
 using Payment.Domain.Coupons;
+using Payment.Domain.GiftCards;
 using Payment.Domain.Products;
 using Payment.Domain.TourPurchases;
 using Payment.Domain.Wallets;
@@ -8,11 +9,11 @@ namespace Payment.Domain.ShoppingCarts;
 
 public sealed class CartPurchasing
 {
-    private readonly CouponAllocation _allocation;
+    private readonly CartPricing _pricing;
 
-    public CartPurchasing(CouponAllocation allocation)
+    public CartPurchasing(CartPricing pricing)
     {
-        _allocation = allocation;
+        _pricing = pricing;
     }
 
     public void AddToCart(ShoppingCart cart, Product product, bool alreadyPurchased)
@@ -43,10 +44,22 @@ public sealed class CartPurchasing
         cart.EnterCoupon(coupon.Id);
     }
 
+    // P1 when choosing: only the recipient's valid card can be chosen.
+    public void EnterGiftCard(ShoppingCart cart, GiftCard giftCard, DateTime moment)
+    {
+        if (!giftCard.CanBeUsedBy(cart.UserId, moment))
+        {
+            throw new DomainException("The gift card is not yours or is no longer valid.");
+        }
+
+        cart.EnterGiftCard(giftCard.Id);
+    }
+
     public IReadOnlyList<TourPurchaseToken> Checkout(
         ShoppingCart cart,
         Wallet wallet,
         IReadOnlyCollection<Coupon> coupons,
+        GiftCard? giftCard,
         BuyerHistory history,
         IReadOnlySet<Guid> availableTourIds,
         long seenTotalInEc,
@@ -54,9 +67,8 @@ public sealed class CartPurchasing
     {
         ValidateCheckout(cart, wallet, availableTourIds, history.PurchasedTourIds);
 
-        var allocation = _allocation.Allocate(
-            cart, coupons, history.UsedCouponIds, DateOnly.FromDateTime(purchasedAt));
-        if (allocation.TotalInEc != seenTotalInEc)
+        var price = _pricing.Price(cart, coupons, history.UsedCouponIds, giftCard, purchasedAt);
+        if (price.TotalFromWalletInEc != seenTotalInEc)
         {
             throw new DomainException("The cart total has changed. Review the cart and confirm the purchase again.");
         }
@@ -66,14 +78,20 @@ public sealed class CartPurchasing
                 cart.UserId,
                 item.TourId,
                 purchasedAt,
-                allocation.AppliedTo(item.TourId)?.CouponId,
-                allocation.AppliedTo(item.TourId)?.DiscountInEc ?? 0))
+                price.Coupons.AppliedTo(item.TourId)?.CouponId,
+                price.DiscountOn(item.TourId)))
             .ToList();
         var charges = cart.Items
             .Select(item => new TourCharge(
-                item.TourId, item.PriceInEc, allocation.AppliedTo(item.TourId)?.DiscountInEc ?? 0))
+                item.TourId, item.PriceInEc, price.DiscountOn(item.TourId), price.GiftCardOn(item.TourId)))
             .ToList();
         wallet.ChargeForTours(charges, purchasedAt);
+        // P5: only a card that was applied is spent; one left in the cart unapplied stays as it is.
+        if (price.GiftCard is { IsApplied: true })
+        {
+            giftCard!.Redeem(cart.UserId, purchasedAt);
+        }
+
         cart.ClearAfterPurchase();
         return tokens;
     }

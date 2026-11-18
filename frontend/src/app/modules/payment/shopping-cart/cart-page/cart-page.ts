@@ -7,6 +7,8 @@ import { Analytics } from '../../../../shared/analytics/analytics';
 import { serverMessage } from '../../../../shared/util/server-message';
 import {
   CouponNotAppliedReason,
+  GiftCardForCartDto,
+  GiftCardNotAppliedReason,
   ProductForCartDto,
   ShoppingCartDto,
   WalletDto,
@@ -35,6 +37,9 @@ export class CartPage {
   );
   protected readonly wallet = httpResource<WalletDto>(() =>
     this.canViewCart() ? '/api/payment/wallet/me?pageSize=1' : undefined,
+  );
+  protected readonly giftCards = httpResource<GiftCardForCartDto[]>(() =>
+    this.canViewCart() ? `${CART_URL}/gift-cards` : undefined,
   );
   protected readonly selectedProduct = httpResource<ProductForCartDto>(() => {
     const tourId = this.tourId();
@@ -81,7 +86,7 @@ export class CartPage {
     ) {
       return 0;
     }
-    return Math.max(0, this.cart.value().discountedTotalInEc - this.wallet.value().balance);
+    return Math.max(0, this.cart.value().totalFromWalletInEc - this.wallet.value().balance);
   });
   protected readonly checkoutBlocked = computed(
     () =>
@@ -103,9 +108,17 @@ export class CartPage {
   protected readonly removingCouponId = signal<string | null>(null);
   protected readonly couponError = signal<string | null>(null);
   protected readonly removeCouponError = signal<{ couponId: string; message: string } | null>(null);
+  protected readonly applyingGiftCard = signal(false);
+  protected readonly removingGiftCard = signal(false);
+  protected readonly giftCardError = signal<string | null>(null);
+  protected readonly removeGiftCardError = signal<string | null>(null);
 
   protected readonly couponForm = form(signal({ code: '' }), (path) => {
     required(path.code, { message: 'Unesi kod kupona.' });
+  });
+
+  protected readonly giftCardForm = form(signal({ giftCardId: '' }), (path) => {
+    required(path.giftCardId, { message: 'Izaberi poklon karticu.' });
   });
 
   protected async add(tourId: string, name: string): Promise<void> {
@@ -226,12 +239,78 @@ export class CartPage {
     }
   }
 
+  protected async enterGiftCard(event: Event): Promise<void> {
+    event.preventDefault();
+    if (
+      this.pending() ||
+      this.cart.isLoading() ||
+      !this.cart.hasValue() ||
+      !this.giftCardForm().valid()
+    ) {
+      return;
+    }
+    this.pending.set(true);
+    this.applyingGiftCard.set(true);
+    this.cartNotice.set(null);
+    this.giftCardError.set(null);
+    this.removeGiftCardError.set(null);
+    this.checkoutError.set(null);
+    try {
+      await this.shoppingCart.enterGiftCard(this.giftCardForm.giftCardId().value());
+      this.giftCardForm().reset({ giftCardId: '' });
+      this.cart.reload();
+    } catch (error) {
+      this.giftCardError.set(serverMessage(error, 'Poklon kartica nije mogla da se primeni.'));
+    } finally {
+      this.applyingGiftCard.set(false);
+      this.pending.set(false);
+    }
+  }
+
+  protected async removeGiftCard(): Promise<void> {
+    if (this.pending() || this.cart.isLoading() || !this.cart.hasValue()) {
+      return;
+    }
+    this.pending.set(true);
+    this.removingGiftCard.set(true);
+    this.cartNotice.set(null);
+    this.giftCardError.set(null);
+    this.removeGiftCardError.set(null);
+    this.checkoutError.set(null);
+    try {
+      await this.shoppingCart.removeGiftCard();
+      this.cart.reload();
+    } catch (error) {
+      this.removeGiftCardError.set(serverMessage(error, 'Uklanjanje poklon kartice nije uspelo.'));
+    } finally {
+      this.removingGiftCard.set(false);
+      this.pending.set(false);
+    }
+  }
+
+  protected giftCardNotAppliedLabel(reason: GiftCardNotAppliedReason): string {
+    switch (reason) {
+      case 'Expired':
+        return 'istekla';
+      case 'Redeemed':
+        return 'već je iskorišćena';
+      case 'NotRecipient':
+        return 'nisi primalac kartice';
+      case 'TotalIsZero':
+        return 'zbir je već 0 EC';
+    }
+  }
+
+  protected date(iso: string): string {
+    return new Date(iso).toLocaleDateString('sr-Latn-RS');
+  }
+
   protected async checkout(): Promise<void> {
     if (this.checkoutBlocked() || !this.cart.hasValue()) {
       return;
     }
     const contents = this.cart.value();
-    const seenTotalInEc = contents.discountedTotalInEc;
+    const seenTotalInEc = contents.totalFromWalletInEc;
     this.pending.set(true);
     this.purchasing.set(true);
     this.cartNotice.set(null);
@@ -242,16 +321,19 @@ export class CartPage {
       this.analytics.record('cart_purchased', {
         tour_count: contents.items.length,
         total_in_ec: seenTotalInEc,
-        discount_in_ec: contents.totalInEc - seenTotalInEc,
+        discount_in_ec: contents.totalInEc - contents.discountedTotalInEc,
       });
       this.addError.set(null);
       this.removeError.set(null);
       this.couponError.set(null);
       this.removeCouponError.set(null);
+      this.giftCardError.set(null);
+      this.removeGiftCardError.set(null);
       this.focusCartTitle();
       this.checkoutConfirmed.set(true);
       this.cart.reload();
       this.wallet.reload();
+      this.giftCards.reload();
     } catch (error) {
       this.checkoutError.set(serverMessage(error, 'Kupovina nije uspela.'));
       this.cart.reload();

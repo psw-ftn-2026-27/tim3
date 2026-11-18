@@ -245,6 +245,88 @@
               </ul>
             }
 
+            <section class="stack" aria-labelledby="gift-card-title">
+              <h3 id="gift-card-title">Poklon kartica</h3>
+              @if (contents.giftCard; as giftCard) {
+                <div class="stack">
+                  <div class="cart-coupon">
+                    <div>
+                      <p>
+                        <strong>{{ giftCard.amountInEc }} EC</strong>
+                      </p>
+                      @if (giftCard.isApplied) {
+                        <p class="meta">
+                          primenjena, −{{ giftCard.appliedInEc }} EC, neiskorišćeno
+                          {{ giftCard.unusedInEc }} EC
+                        </p>
+                      } @else if (giftCard.notAppliedReason; as reason) {
+                        <p class="meta">nije primenjena: {{ giftCardNotAppliedLabel(reason) }}</p>
+                      }
+                    </div>
+                    <button
+                      class="button"
+                      type="button"
+                      aria-label="Ukloni poklon karticu"
+                      [disabled]="pending() || cart.isLoading()"
+                      (click)="removeGiftCard()"
+                    >
+                      {{ removingGiftCard() ? 'Uklanjanje…' : 'Ukloni' }}
+                    </button>
+                  </div>
+                  @if (removeGiftCardError(); as error) {
+                    <p class="error" role="alert">{{ error }}</p>
+                  }
+                </div>
+              } @else if (giftCards.isLoading()) {
+                <p class="loading" role="status">Učitavanje poklon kartica…</p>
+              } @else if (giftCards.error()) {
+                <div class="empty-state" role="alert">
+                  <h4>Poklon kartice nisu mogle da se učitaju</h4>
+                  <p>Pokušaj ponovo za koji trenutak.</p>
+                  <div class="empty-state-actions">
+                    <button class="button" type="button" (click)="giftCards.reload()">
+                      Pokušaj ponovo
+                    </button>
+                  </div>
+                </div>
+              } @else if (giftCards.hasValue()) {
+                @if (giftCards.value().length === 0) {
+                  <p class="empty">Nemaš važeću poklon karticu.</p>
+                } @else {
+                  <form class="stack" novalidate (submit)="enterGiftCard($event)">
+                    <div class="field">
+                      <label for="gift-card">Izaberi karticu</label>
+                      <select id="gift-card" [formField]="giftCardForm.giftCardId">
+                        <option value="">Izaberi…</option>
+                        @for (card of giftCards.value(); track card.id) {
+                          <option [value]="card.id">
+                            {{ card.amount }} EC, važi do {{ date(card.expiresAt) }}
+                          </option>
+                        }
+                      </select>
+                      @if (giftCardForm.giftCardId().touched()) {
+                        @for (error of giftCardForm.giftCardId().errors(); track error.kind) {
+                          <p class="error">{{ error.message }}</p>
+                        }
+                      }
+                    </div>
+                    @if (giftCardError(); as error) {
+                      <p class="error" role="alert">{{ error }}</p>
+                    }
+                    <div class="page-actions">
+                      <button
+                        class="button"
+                        type="submit"
+                        [disabled]="pending() || cart.isLoading() || !giftCardForm().valid()"
+                      >
+                        {{ applyingGiftCard() ? 'Primenjivanje…' : 'Primeni karticu' }}
+                      </button>
+                    </div>
+                  </form>
+                }
+              }
+            </section>
+
             @if (contents.items.length > 0) {
               <dl class="stack totals">
                 <div class="total">
@@ -256,6 +338,20 @@
                     <strong>{{ contents.discountedTotalInEc }} EC</strong>
                   </dd>
                 </div>
+                @if (contents.giftCard; as giftCard) {
+                  @if (giftCard.isApplied) {
+                    <div>
+                      <dt>Poklon kartica</dt>
+                      <dd class="amount">−{{ giftCard.appliedInEc }} EC</dd>
+                    </div>
+                    <div class="total">
+                      <dt>Za plaćanje iz novčanika</dt>
+                      <dd class="amount">
+                        <strong>{{ contents.totalFromWalletInEc }} EC</strong>
+                      </dd>
+                    </div>
+                  }
+                }
                 @if (wallet.hasValue() && !wallet.isLoading()) {
                   <div>
                     <dt>Raspoloživo stanje</dt>
@@ -313,7 +409,7 @@
                   (click)="checkout()"
                 >
                   {{
-                    purchasing() ? 'Kupovina…' : 'Kupi za ' + contents.discountedTotalInEc + ' EC'
+                    purchasing() ? 'Kupovina…' : 'Kupi za ' + contents.totalFromWalletInEc + ' EC'
                   }}
                 </button>
               </div>

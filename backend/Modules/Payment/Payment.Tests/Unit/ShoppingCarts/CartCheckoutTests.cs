@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Payment.Domain.Coupons;
+using Payment.Domain.GiftCards;
 using Payment.Domain.Products;
 using Payment.Domain.ShoppingCarts;
 using Payment.Domain.Wallets;
@@ -25,7 +26,7 @@ public sealed class CartCheckoutTests
         HashSet<Guid> available = [paid.TourId, free.TourId];
 
         var tokens = CreatePurchasing().Checkout(
-            cart, wallet, [], NoHistory(), available, 25, purchasedAt);
+            cart, wallet, [], null, NoHistory(), available, 25, purchasedAt);
 
         cart.Items.Should().BeEmpty();
         wallet.Balance.Should().Be(15);
@@ -57,7 +58,7 @@ public sealed class CartCheckoutTests
         HashSet<Guid> purchasedTours = purchased ? [product.TourId] : [];
 
         var checkout = () => CreatePurchasing().Checkout(
-            cart, wallet, [], new BuyerHistory(purchasedTours, new HashSet<Guid>()), availability, 25, now);
+            cart, wallet, [], null, new BuyerHistory(purchasedTours, new HashSet<Guid>()), availability, 25, now);
 
         checkout.Should().Throw<DomainException>();
         cart.Items.Should().ContainSingle().Which.TourId.Should().Be(product.TourId);
@@ -79,7 +80,7 @@ public sealed class CartCheckoutTests
         wallet.Deposit(40, Guid.NewGuid(), now.AddHours(-1));
 
         var checkout = () => CreatePurchasing().Checkout(
-            cart, wallet, [coupon], NoHistory(), new HashSet<Guid> { product.TourId }, 25, now);
+            cart, wallet, [coupon], null, NoHistory(), new HashSet<Guid> { product.TourId }, 25, now);
 
         checkout.Should().Throw<DomainException>();
         cart.Items.Should().ContainSingle();
@@ -106,7 +107,7 @@ public sealed class CartCheckoutTests
         HashSet<Guid> available = [discounted.TourId, fullPrice.TourId];
 
         var tokens = CreatePurchasing().Checkout(
-            cart, wallet, [applied, notApplied], NoHistory(), available, 35, now);
+            cart, wallet, [applied, notApplied], null, NoHistory(), available, 35, now);
 
         wallet.Balance.Should().Be(5);
         wallet.Transactions.Where(row => row.Kind == WalletTransactionKind.Purchase)
@@ -126,9 +127,54 @@ public sealed class CartCheckoutTests
         cart.CouponIds.Should().BeEmpty();
     }
 
+    [Fact]
+    public void A_purchase_covered_in_full_by_a_gift_card_succeeds_with_an_empty_wallet_and_spends_the_card()
+    {
+        var userId = Guid.NewGuid();
+        var cart = new ShoppingCart(userId);
+        var product = new Product(Guid.NewGuid(), "City walk", Guid.NewGuid(), 25);
+        cart.AddItem(product);
+        var now = DateTime.UtcNow;
+        var giftCard = new GiftCard(Guid.NewGuid(), userId, 30, null, now.AddDays(-1));
+        CreatePurchasing().EnterGiftCard(cart, giftCard, now);
+        var wallet = new Wallet(userId);
+
+        CreatePurchasing().Checkout(
+            cart, wallet, [], giftCard, NoHistory(), new HashSet<Guid> { product.TourId }, 0, now);
+
+        wallet.Balance.Should().Be(0);
+        wallet.Transactions.Should().ContainSingle().Which.Should().BeEquivalentTo(new
+        {
+            Kind = WalletTransactionKind.Purchase, TourId = (Guid?)product.TourId, Amount = 0, GiftCardInEc = 25
+        });
+        giftCard.StatusAt(now).Should().Be(GiftCardStatus.Redeemed);
+        cart.GiftCardId.Should().BeNull();
+    }
+
+    [Fact]
+    public void A_purchase_with_a_gift_card_that_is_not_applied_goes_through_without_it_and_leaves_the_card_intact()
+    {
+        var userId = Guid.NewGuid();
+        var cart = new ShoppingCart(userId);
+        var product = new Product(Guid.NewGuid(), "City walk", Guid.NewGuid(), 25);
+        cart.AddItem(product);
+        var now = DateTime.UtcNow;
+        var giftCard = new GiftCard(Guid.NewGuid(), userId, 10, null, now.AddYears(-3).AddDays(-1));
+        CreatePurchasing().EnterGiftCard(cart, giftCard, giftCard.PurchasedAt.AddDays(1));
+        var wallet = new Wallet(userId);
+        wallet.Deposit(40, Guid.NewGuid(), now.AddHours(-1));
+
+        CreatePurchasing().Checkout(
+            cart, wallet, [], giftCard, NoHistory(), new HashSet<Guid> { product.TourId }, 25, now);
+
+        wallet.Balance.Should().Be(15);
+        wallet.Transactions.Single(row => row.Kind == WalletTransactionKind.Purchase).GiftCardInEc.Should().Be(0);
+        giftCard.RedeemedAt.Should().BeNull();
+    }
+
     private static CartPurchasing CreatePurchasing()
     {
-        return new CartPurchasing(new CouponAllocation());
+        return new CartPurchasing(new CartPricing(new CouponAllocation()));
     }
 
     private static BuyerHistory NoHistory()

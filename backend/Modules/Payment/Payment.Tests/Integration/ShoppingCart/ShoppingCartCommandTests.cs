@@ -13,6 +13,7 @@ namespace Payment.Tests.Integration.ShoppingCart;
 public class ShoppingCartCommandTests : BaseIntegrationTest
 {
     private const string CouponsUrl = "/api/payment/cart/coupons";
+    private const string GiftCardUrl = "/api/payment/cart/gift-card";
 
     public ShoppingCartCommandTests(PaymentApiFactory factory) : base(factory) { }
 
@@ -184,6 +185,93 @@ public class ShoppingCartCommandTests : BaseIntegrationTest
         cart.CouponIds.Should().Equal(seed.CouponIds);
     }
 
+    [Fact]
+    public async Task A_buyer_chooses_their_valid_gift_card_and_it_stays_in_their_cart()
+    {
+        var seed = ShoppingCartSeed.OtherExplorerCart;
+        var giftCard = GiftCardSeed.DemoExplorerCardForSecondDemoExplorer;
+        using var client = Factory.CreateClientFor(seed.UserId, "explorer");
+
+        var response = await client.PostAsync(EnterGiftCardUrl(giftCard.Id), null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        var cart = await context.ShoppingCarts.SingleAsync(row => row.Id == seed.Id);
+        cart.GiftCardId.Should().Be(giftCard.Id);
+    }
+
+    [Fact]
+    public async Task Choosing_a_gift_card_creates_the_first_cart()
+    {
+        var userId = ShoppingCartSeed.ExplorerWithoutCartId;
+        var giftCard = GiftCardSeed.DemoExplorerCardForThirdDemoExplorer;
+        using var client = Factory.CreateClientFor(userId, "explorer");
+
+        var response = await client.PostAsync(EnterGiftCardUrl(giftCard.Id), null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        var cart = await context.ShoppingCarts.SingleAsync(row => row.UserId == userId);
+        cart.GiftCardId.Should().Be(giftCard.Id);
+    }
+
+    [Fact]
+    public async Task An_unknown_gift_card_leaves_the_cart_unchanged()
+    {
+        var seed = ShoppingCartSeed.OtherExplorerCart;
+        using var client = Factory.CreateClientFor(seed.UserId, "explorer");
+
+        var response = await client.PostAsync(EnterGiftCardUrl(Guid.NewGuid()), null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        var cart = await context.ShoppingCarts.SingleAsync(row => row.Id == seed.Id);
+        cart.GiftCardId.Should().Be(seed.GiftCardId);
+    }
+
+    [Fact]
+    public async Task A_gift_card_received_by_another_buyer_cannot_be_chosen()
+    {
+        var seed = ShoppingCartSeed.OtherExplorerCart;
+        var othersGiftCard = GiftCardSeed.SecondDemoExplorerCardForDemoExplorer;
+        using var client = Factory.CreateClientFor(seed.UserId, "explorer");
+
+        var response = await client.PostAsync(EnterGiftCardUrl(othersGiftCard.Id), null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        var cart = await context.ShoppingCarts.SingleAsync(row => row.Id == seed.Id);
+        cart.GiftCardId.Should().Be(seed.GiftCardId);
+    }
+
+    [Fact]
+    public async Task A_removed_gift_card_is_no_longer_in_the_cart()
+    {
+        var seed = ShoppingCartSeed.CartWithGiftCard;
+        using var client = Factory.CreateClientFor(seed.UserId, "explorer");
+
+        var response = await client.DeleteAsync(GiftCardUrl);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        var cart = await context.ShoppingCarts.SingleAsync(row => row.Id == seed.Id);
+        cart.GiftCardId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task A_gift_card_cannot_be_removed_from_a_cart_without_one()
+    {
+        var seed = ShoppingCartSeed.OtherExplorerCart;
+        using var client = Factory.CreateClientFor(seed.UserId, "explorer");
+
+        var response = await client.DeleteAsync(GiftCardUrl);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        var cart = await context.ShoppingCarts.SingleAsync(row => row.Id == seed.Id);
+        cart.GiftCardId.Should().Be(seed.GiftCardId);
+    }
+
     [Theory]
     [InlineData("POST", "items", null, HttpStatusCode.Unauthorized)]
     [InlineData("DELETE", "items", null, HttpStatusCode.Unauthorized)]
@@ -193,6 +281,10 @@ public class ShoppingCartCommandTests : BaseIntegrationTest
     [InlineData("DELETE", "items", "administrator", HttpStatusCode.Forbidden)]
     [InlineData("POST", "coupons", "administrator", HttpStatusCode.Forbidden)]
     [InlineData("DELETE", "coupons", "administrator", HttpStatusCode.Forbidden)]
+    [InlineData("POST", "gift-card", null, HttpStatusCode.Unauthorized)]
+    [InlineData("DELETE", "gift-card", null, HttpStatusCode.Unauthorized)]
+    [InlineData("POST", "gift-card", "administrator", HttpStatusCode.Forbidden)]
+    [InlineData("DELETE", "gift-card", "administrator", HttpStatusCode.Forbidden)]
     public async Task Only_authenticated_explorers_can_change_a_cart(
         string method, string part, string? role, HttpStatusCode expected)
     {
@@ -202,6 +294,8 @@ public class ShoppingCartCommandTests : BaseIntegrationTest
         var url = (method, part) switch
         {
             (_, "items") => ItemUrl(ProductSeed.CityWalk.TourId),
+            ("POST", "gift-card") => EnterGiftCardUrl(GiftCardSeed.DemoExplorerCardForSecondDemoExplorer.Id),
+            (_, "gift-card") => GiftCardUrl,
             ("POST", _) => CouponsUrl,
             _ => CouponUrl(CouponSeed.AuthorCityWalkCoupon.Id)
         };
@@ -218,4 +312,6 @@ public class ShoppingCartCommandTests : BaseIntegrationTest
     private static string ItemUrl(Guid tourId) => $"/api/payment/cart/items/{tourId}";
 
     private static string CouponUrl(Guid couponId) => $"{CouponsUrl}/{couponId}";
+
+    private static string EnterGiftCardUrl(Guid giftCardId) => $"{GiftCardUrl}/{giftCardId}";
 }

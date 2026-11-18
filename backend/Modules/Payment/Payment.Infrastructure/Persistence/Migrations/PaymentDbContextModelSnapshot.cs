@@ -75,6 +75,9 @@ namespace Payment.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("RecipientId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("RedeemedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BuyerId");
@@ -111,6 +114,9 @@ namespace Payment.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Payment.Domain.ShoppingCarts.ShoppingCart", b =>
                 {
                     b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("GiftCardId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("UserId")
@@ -201,6 +207,9 @@ namespace Payment.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int>("DiscountInEc")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("GiftCardInEc")
                         .HasColumnType("integer");
 
                     b.Property<string>("Kind")

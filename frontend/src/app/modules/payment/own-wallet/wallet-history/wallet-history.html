@@ -32,6 +32,9 @@
                 @if (transaction.kind === 'Purchase' && transaction.discountInEc > 0) {
                   <p class="meta">popust {{ transaction.discountInEc }} EC</p>
                 }
+                @if (transaction.kind === 'Purchase' && transaction.giftCardInEc > 0) {
+                  <p class="meta">poklon kartica {{ transaction.giftCardInEc }} EC</p>
+                }
               </td>
               <td>
                 <time [attr.datetime]="transaction.occurredAt">{{

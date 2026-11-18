@@ -11,6 +11,7 @@ public sealed class WalletTransaction : Entity
     public Guid? OriginalDepositId { get; private set; }
     public Guid? TourId { get; private set; }
     public int DiscountInEc { get; private set; }
+    public int GiftCardInEc { get; private set; }
 
     private WalletTransaction() { }
 
@@ -27,11 +28,12 @@ public sealed class WalletTransaction : Entity
 
     internal WalletTransaction(TourCharge charge, DateTime occurredAt) : base(Guid.NewGuid())
     {
-        Amount = -(charge.PriceInEc - charge.DiscountInEc);
+        Amount = -charge.FromWalletInEc;
         OccurredAt = occurredAt;
         Kind = WalletTransactionKind.Purchase;
         AdministratorId = Guid.Empty;
         TourId = charge.TourId;
         DiscountInEc = charge.DiscountInEc;
+        GiftCardInEc = charge.GiftCardInEc;
     }
 }

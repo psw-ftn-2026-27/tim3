@@ -1,4 +1,5 @@
 using Payment.Application.Coupons;
+using Payment.Application.GiftCards;
 using Payment.Application.Products;
 using Payment.Domain.Coupons;
 using Payment.Domain.ShoppingCarts;
@@ -11,37 +12,50 @@ public sealed class ShoppingCartQueries
 {
     private readonly IShoppingCartRepository _carts;
     private readonly ICouponRepository _coupons;
+    private readonly IGiftCardRepository _giftCards;
+    private readonly IGiftCardReadRepository _giftCardReads;
     private readonly ITourPurchaseTokenRepository _purchases;
     private readonly IProductReadRepository _products;
-    private readonly CouponAllocation _allocation;
+    private readonly CartPricing _pricing;
 
     public ShoppingCartQueries(
         IShoppingCartRepository carts,
         ICouponRepository coupons,
+        IGiftCardRepository giftCards,
+        IGiftCardReadRepository giftCardReads,
         ITourPurchaseTokenRepository purchases,
         IProductReadRepository products,
-        CouponAllocation allocation)
+        CartPricing pricing)
     {
         _carts = carts;
         _coupons = coupons;
+        _giftCards = giftCards;
+        _giftCardReads = giftCardReads;
         _purchases = purchases;
         _products = products;
-        _allocation = allocation;
+        _pricing = pricing;
     }
 
-    // Discounts depend on the current date and on the coupons the buyer has used, so they are computed, never stored.
+    // Discounts depend on the current moment, on the coupons the buyer has used and on the state of the gift card,
+    // so they are computed, never stored.
     public async Task<ShoppingCartDto> GetMyCartAsync(Guid userId)
     {
         var cart = await _carts.GetByUserIdAsync(userId);
         if (cart is null)
         {
-            return new ShoppingCartDto([], [], 0, 0);
+            return new ShoppingCartDto([], [], null, 0, 0, 0);
         }
 
         var coupons = await _coupons.GetByIdsAsync(cart.CouponIds);
+        var giftCard = cart.GiftCardId is null ? null : await _giftCards.GetByIdAsync(cart.GiftCardId.Value);
         var usedCouponIds = (await _purchases.GetUsedCouponIdsAsync(userId)).ToHashSet();
-        var allocation = _allocation.Allocate(cart, coupons, usedCouponIds, DateOnly.FromDateTime(DateTime.UtcNow));
-        return ToDto(cart, coupons, allocation);
+        var price = _pricing.Price(cart, coupons, usedCouponIds, giftCard, DateTime.UtcNow);
+        return ToDto(cart, coupons, price);
+    }
+
+    public async Task<List<GiftCardForCartDto>> GetMyGiftCardsForCartAsync(Guid userId)
+    {
+        return await _giftCardReads.GetUsableByRecipientAsync(userId, DateTime.UtcNow);
     }
 
     public async Task<ProductForCartDto> GetProductForCartAsync(Guid tourId)
@@ -50,7 +64,7 @@ public sealed class ShoppingCartQueries
             ?? throw new NotFoundException("The tour has no product on offer.");
     }
 
-    private static ShoppingCartDto ToDto(Cart cart, List<Coupon> coupons, CouponAllocationResult allocation)
+    private static ShoppingCartDto ToDto(Cart cart, List<Coupon> coupons, CartPrice price)
     {
         var items = cart.Items
             .Select(item => new OrderItemDto(
@@ -58,9 +72,20 @@ public sealed class ShoppingCartQueries
                 item.TourId,
                 item.Name,
                 item.PriceInEc,
-                item.PriceInEc - (allocation.AppliedTo(item.TourId)?.DiscountInEc ?? 0)))
+                item.PriceInEc - price.DiscountOn(item.TourId)))
             .ToList();
-        var enteredCoupons = allocation.Coupons
+        return new ShoppingCartDto(
+            items,
+            ToCouponDtos(cart, coupons, price),
+            ToGiftCardDto(price.GiftCard),
+            cart.TotalInEc,
+            price.TotalAfterCouponsInEc,
+            price.TotalFromWalletInEc);
+    }
+
+    private static List<CartCouponDto> ToCouponDtos(Cart cart, List<Coupon> coupons, CartPrice price)
+    {
+        return price.Coupons.Coupons
             .Select(result => new CartCouponDto(
                 result.CouponId,
                 coupons.Single(coupon => coupon.Id == result.CouponId).Code.Value,
@@ -70,6 +95,18 @@ public sealed class ShoppingCartQueries
                 result.DiscountInEc,
                 result.Reason))
             .ToList();
-        return new ShoppingCartDto(items, enteredCoupons, cart.TotalInEc, allocation.TotalInEc);
+    }
+
+    private static CartGiftCardDto? ToGiftCardDto(PricedGiftCard? giftCard)
+    {
+        return giftCard is null
+            ? null
+            : new CartGiftCardDto(
+                giftCard.GiftCardId,
+                giftCard.AmountInEc,
+                giftCard.IsApplied,
+                giftCard.AppliedInEc,
+                giftCard.UnusedInEc,
+                giftCard.Reason);
     }
 }

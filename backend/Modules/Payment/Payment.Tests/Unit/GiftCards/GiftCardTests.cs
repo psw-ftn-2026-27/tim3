@@ -68,6 +68,41 @@ public class GiftCardTests
         status.Should().Be(GiftCardStatus.Expired);
     }
 
+    [Fact]
+    public void A_redeemed_card_cannot_be_redeemed_again()
+    {
+        var giftCard = CreateGiftCard();
+        var redeemedAt = PurchaseTime.AddDays(1);
+        giftCard.Redeem(WellKnownUsers.SecondExplorer, redeemedAt);
+
+        var redeem = () => giftCard.Redeem(WellKnownUsers.SecondExplorer, redeemedAt.AddDays(1));
+
+        redeem.Should().Throw<DomainException>();
+        giftCard.RedeemedAt.Should().Be(redeemedAt);
+    }
+
+    [Fact]
+    public void A_card_cannot_be_redeemed_by_someone_other_than_its_recipient()
+    {
+        var giftCard = CreateGiftCard();
+
+        var redeem = () => giftCard.Redeem(WellKnownUsers.ThirdExplorer, PurchaseTime.AddDays(1));
+
+        redeem.Should().Throw<DomainException>();
+        giftCard.RedeemedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public void A_redeemed_card_stays_redeemed_after_it_would_have_expired()
+    {
+        var giftCard = CreateGiftCard();
+        giftCard.Redeem(WellKnownUsers.SecondExplorer, PurchaseTime.AddDays(1));
+
+        var status = giftCard.StatusAt(PurchaseTime.AddYears(3));
+
+        status.Should().Be(GiftCardStatus.Redeemed);
+    }
+
     private static GiftCard CreateGiftCard()
     {
         return new GiftCard(WellKnownUsers.Explorer, WellKnownUsers.SecondExplorer, 50, null, PurchaseTime);

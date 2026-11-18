@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Payment.Application.ShoppingCart;
+using Payment.Domain.GiftCards;
 using Payment.Domain.ShoppingCarts;
 using Payment.Tests.Integration.Seeds;
 using Shared.Tests;
@@ -48,6 +49,37 @@ public class ShoppingCartQueryTests : BaseIntegrationTest
         cart.Coupons.Should().Equal(
             new CartCouponDto(loser.Id, loser.Code.Value, false, null, null, 0, CouponNotAppliedReason.BetterCouponApplied),
             new CartCouponDto(winner.Id, winner.Code.Value, true, tour.TourId, tour.Name, discount, null));
+    }
+
+    [Fact]
+    public async Task The_cart_shows_the_gift_card_with_its_applied_and_unused_part_and_the_total_from_the_wallet()
+    {
+        var seed = ShoppingCartSeed.CartWithGiftCard;
+        var giftCard = GiftCardSeed.CardInGiftCardBuyerCart;
+        var applied = (int)Math.Min(giftCard.Amount, seed.TotalInEc);
+        using var client = Factory.CreateClientFor(seed.UserId, "explorer");
+
+        var cart = await client.GetFromJsonAsync<ShoppingCartDto>("/api/payment/cart", JsonOptions);
+
+        cart!.GiftCard.Should().Be(
+            new CartGiftCardDto(giftCard.Id, giftCard.Amount, true, applied, giftCard.Amount - applied, null));
+        cart.DiscountedTotalInEc.Should().Be(seed.TotalInEc);
+        cart.TotalFromWalletInEc.Should().Be(seed.TotalInEc - applied);
+    }
+
+    [Fact]
+    public async Task The_gift_cards_offered_for_the_cart_are_only_the_buyers_valid_unredeemed_ones()
+    {
+        var buyerId = ShoppingCartSeed.CartWithGiftCard.UserId;
+        var now = DateTime.UtcNow;
+        var expected = GiftCardSeed.All
+            .Where(card => card.RecipientId == buyerId && card.StatusAt(now) == GiftCardStatus.Valid)
+            .Select(card => new GiftCardForCartDto(card.Id, card.Amount, card.ExpiresAt));
+        using var client = Factory.CreateClientFor(buyerId, "explorer");
+
+        var cards = await client.GetFromJsonAsync<List<GiftCardForCartDto>>("/api/payment/cart/gift-cards", JsonOptions);
+
+        cards.Should().BeEquivalentTo(expected);
     }
 
     [Fact]
