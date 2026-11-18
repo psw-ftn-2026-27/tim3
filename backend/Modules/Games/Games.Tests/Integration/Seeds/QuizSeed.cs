@@ -13,6 +13,7 @@ internal static class QuizSeed
     public static readonly Quiz OtherAdministratorsQuiz;
     public static readonly Quiz ReadyToPublishCathedralQuiz;
     public static readonly Quiz PublishedSynagogueQuiz;
+    public static readonly Quiz PublishedDanubeParkQuiz;
     public static readonly Quiz RetiredBridgeQuiz;
     public static readonly Quiz ArchivedMarketQuiz;
 
@@ -37,6 +38,13 @@ internal static class QuizSeed
         PublishedSynagogueQuiz.UpdateDetails("Sinagoga", "Odgovori na tri pitanja o sinagogi.", 40, new Location(45.2556, 19.8406));
         PublishedSynagogueQuiz.Publish();
 
+        PublishedDanubeParkQuiz = new(WellKnownUsers.Administrator, "Dunavski park", "Odgovori na tri pitanja o parku.", 60);
+        PublishedDanubeParkQuiz.AddQuestion("Uz koju reku je park?", [new Answer("Dunav", true), new Answer("Tisa", false)]);
+        PublishedDanubeParkQuiz.AddQuestion("Koja ptica živi na jezercetu?", [new Answer("Labud", true), new Answer("Roda", false)]);
+        PublishedDanubeParkQuiz.AddQuestion("Čija bista stoji u parku?", [new Answer("Đure Jakšića", true), new Answer("Branka Radičevića", false)]);
+        PublishedDanubeParkQuiz.UpdateDetails("Dunavski park", "Odgovori na tri pitanja o parku.", 60, new Location(45.2548, 19.8512));
+        PublishedDanubeParkQuiz.Publish();
+
         RetiredBridgeQuiz = new(WellKnownUsers.Administrator, "Mostovi", "Odgovori na tri pitanja o mostovima.", 25);
         RetiredBridgeQuiz.AddQuestion("Koliko mostova ima Novi Sad?", [new Answer("Tri", true), new Answer("Sedam", false)]);
         RetiredBridgeQuiz.AddQuestion("Koji most je najstariji?", [new Answer("Varadinski", true), new Answer("Most slobode", false)]);
@@ -55,5 +63,5 @@ internal static class QuizSeed
         ArchivedMarketQuiz.Archive();
     }
 
-    public static Quiz[] All => [EmptyMuseumQuiz, FortressQuiz, OtherAdministratorsQuiz, ReadyToPublishCathedralQuiz, PublishedSynagogueQuiz, RetiredBridgeQuiz, ArchivedMarketQuiz];
+    public static Quiz[] All => [EmptyMuseumQuiz, FortressQuiz, OtherAdministratorsQuiz, ReadyToPublishCathedralQuiz, PublishedSynagogueQuiz, PublishedDanubeParkQuiz, RetiredBridgeQuiz, ArchivedMarketQuiz];
 }
