@@ -18,6 +18,11 @@ internal sealed class ProductRepository : IProductRepository
         return _dbContext.Products.SingleOrDefaultAsync(product => product.TourId == tourId);
     }
 
+    public Task<List<Product>> GetByAuthorIdAsync(Guid authorId)
+    {
+        return _dbContext.Products.Where(product => product.AuthorId == authorId).ToListAsync();
+    }
+
     public void Add(Product product)
     {
         _dbContext.Products.Add(product);

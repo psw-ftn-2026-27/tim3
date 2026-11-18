@@ -23,6 +23,33 @@ namespace Payment.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Payment.Domain.Coupons.Coupon", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DiscountPercent")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("ValidUntil")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.ToTable("Coupons", "payment");
+                });
+
             modelBuilder.Entity("Payment.Domain.GiftCards.GiftCard", b =>
                 {
                     b.Property<Guid>("Id")
@@ -181,6 +208,34 @@ namespace Payment.Infrastructure.Persistence.Migrations
                     b.HasIndex("WalletId");
 
                     b.ToTable("WalletTransactions", "payment");
+                });
+
+            modelBuilder.Entity("Payment.Domain.Coupons.Coupon", b =>
+                {
+                    b.OwnsOne("Payment.Domain.Coupons.CouponCode", "Code", b1 =>
+                        {
+                            b1.Property<Guid>("CouponId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(8)
+                                .HasColumnType("character varying(8)")
+                                .HasColumnName("Code");
+
+                            b1.HasKey("CouponId");
+
+                            b1.HasIndex("Value")
+                                .IsUnique();
+
+                            b1.ToTable("Coupons", "payment");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CouponId");
+                        });
+
+                    b.Navigation("Code")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Payment.Domain.ShoppingCarts.ShoppingCart", b =>

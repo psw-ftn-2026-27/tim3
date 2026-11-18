@@ -75,3 +75,26 @@ export interface ReceivedGiftCardDto {
   expiresAt: string;
   status: GiftCardStatus;
 }
+
+export interface CouponDto {
+  id: string;
+  code: string;
+  discountPercent: number;
+  validUntil: string;
+  productId: string | null;
+  productName: string | null;
+  isExpired: boolean;
+}
+
+export interface CreateCouponDto {
+  discountPercent: number;
+  validUntil: string;
+  productId: string | null;
+}
+
+export interface ProductForCouponDto {
+  id: string;
+  tourId: string;
+  name: string;
+  priceInEc: number;
+}

@@ -10,6 +10,7 @@ internal static class CheckoutTourSeed
     public static readonly Tour MuseumWalk;
     public static readonly Tour ArchivedWalk;
     public static readonly Tour PublishableWalk;
+    public static readonly Tour OtherAuthorRiverWalk;
 
     static CheckoutTourSeed()
     {
@@ -60,7 +61,17 @@ internal static class CheckoutTourSeed
             new KeyPoint("Start", "Meeting point", "/api/media/images/start.png", new GeoLocation(45.24, 19.85), null, true),
             new KeyPoint("Finish", "End of the walk", "/api/media/images/finish.png", new GeoLocation(45.25, 19.86), null, false)
         ], new TourLength(2, false));
+
+        OtherAuthorRiverWalk = new Tour(
+            WellKnownUsers.FourthExplorer, "River walk", description, TourDifficulty.Easy, ["walking"], new GroupSize(2, 10));
+        OtherAuthorRiverWalk.AddTransportTime(TransportMode.Walking, 60);
+        OtherAuthorRiverWalk.DefineKeyPoints(
+        [
+            new KeyPoint("Start", "Meeting point", "/api/media/images/start.png", new GeoLocation(45.24, 19.85), null, true),
+            new KeyPoint("Finish", "End of the walk", "/api/media/images/finish.png", new GeoLocation(45.25, 19.86), null, false)
+        ], new TourLength(2, false));
+        OtherAuthorRiverWalk.Publish(TourPrice.Paid(20));
     }
 
-    public static Tour[] All => [CityWalk, FreeWalk, MuseumWalk, ArchivedWalk, PublishableWalk];
+    public static Tour[] All => [CityWalk, FreeWalk, MuseumWalk, ArchivedWalk, PublishableWalk, OtherAuthorRiverWalk];
 }
