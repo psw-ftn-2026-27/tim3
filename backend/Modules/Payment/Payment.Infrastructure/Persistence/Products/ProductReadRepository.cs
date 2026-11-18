@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Payment.Application.CouponAuthoring;
 using Payment.Application.Products;
 using Payment.Application.ShoppingCart;
 
@@ -27,5 +28,14 @@ internal sealed class ProductReadRepository : IProductReadRepository
             .Where(product => product.TourId == tourId)
             .Select(product => new ProductForCartDto(product.TourId, product.Name, product.PriceInEc))
             .SingleOrDefaultAsync();
+    }
+
+    public Task<List<ProductForCouponDto>> GetPaidByAuthorAsync(Guid authorId)
+    {
+        return _dbContext.Products
+            .Where(product => product.AuthorId == authorId && product.PriceInEc > 0)
+            .OrderBy(product => product.Name)
+            .Select(product => new ProductForCouponDto(product.Id, product.TourId, product.Name, product.PriceInEc))
+            .ToListAsync();
     }
 }

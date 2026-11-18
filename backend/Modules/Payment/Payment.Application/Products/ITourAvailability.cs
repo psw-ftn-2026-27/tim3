@@ -1,4 +1,4 @@
-namespace Payment.Application.ShoppingCart;
+namespace Payment.Application.Products;
 
 public interface ITourAvailability
 {

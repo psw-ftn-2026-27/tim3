@@ -1,0 +1,155 @@
+<div class="stack">
+  <div class="page-head">
+    <h1>Moji kuponi</h1>
+    @if (isExplorer() && hasCoupons() && !showForm()) {
+      <div class="page-actions">
+        <button class="button button--primary" type="button" (click)="openForm()">
+          Napravi kupon
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (!isExplorer()) {
+    <div class="empty-state">
+      <h2>Kuponi su dostupni turistima</h2>
+      <p>Za pravljenje kupona potreban je turistički nalog.</p>
+      @if (!auth.isLoggedIn()) {
+        <div class="empty-state-actions">
+          <a class="button button--primary" routerLink="/login">Prijavi se</a>
+        </div>
+      }
+    </div>
+  } @else {
+    <app-payment-navigation current="coupons" />
+
+    @if (confirmation(); as message) {
+      <p class="success" role="status">{{ message }}</p>
+    }
+
+    @if (showForm()) {
+      <section class="card stack" aria-labelledby="create-coupon-title">
+        <h2 id="create-coupon-title">Novi kupon</h2>
+        <form class="stack" novalidate (submit)="create($event)">
+          <div class="field">
+            <label for="coupon-discount">Procenat popusta</label>
+            <input
+              id="coupon-discount"
+              type="number"
+              step="1"
+              [formField]="createForm.discountPercent"
+            />
+            @if (createForm.discountPercent().touched()) {
+              @for (error of createForm.discountPercent().errors(); track error.kind) {
+                <p class="error">{{ error.message }}</p>
+              }
+            }
+          </div>
+          <div class="field">
+            <label for="coupon-valid-until">Važi do (zaključno)</label>
+            <input id="coupon-valid-until" type="date" [formField]="createForm.validUntil" />
+            @if (createForm.validUntil().touched()) {
+              @for (error of createForm.validUntil().errors(); track error.kind) {
+                <p class="error">{{ error.message }}</p>
+              }
+            }
+          </div>
+
+          @if (products.isLoading()) {
+            <p class="loading" role="status">Učitavanje proizvoda…</p>
+          } @else if (products.error()) {
+            <div class="empty-state" role="alert">
+              <h3>Proizvode nije moguće učitati</h3>
+              <p>Nešto nije u redu na našoj strani. Pokušaj ponovo za trenutak.</p>
+              <div class="empty-state-actions">
+                <button
+                  class="button"
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="products.reload()"
+                >
+                  Pokušaj ponovo
+                </button>
+              </div>
+            </div>
+          } @else if (!hasProducts()) {
+            <p class="empty">Nemaš naplatne proizvode u ponudi za koje možeš da napraviš kupon.</p>
+          } @else {
+            <div class="field">
+              <label for="coupon-product">Važi za</label>
+              <select id="coupon-product" [formField]="createForm.productId">
+                <option [value]="allProducts">Svi moji proizvodi</option>
+                @for (product of products.value(); track product.id) {
+                  <option [value]="product.id">
+                    {{ product.name }} ({{ product.priceInEc }} EC)
+                  </option>
+                }
+              </select>
+            </div>
+          }
+
+          @if (createError(); as error) {
+            <p class="error" role="alert">{{ error }}</p>
+          }
+          <div class="page-actions">
+            <button
+              class="button button--primary"
+              type="submit"
+              [disabled]="pending() || !hasProducts() || !createForm().valid()"
+            >
+              @if (pending()) {
+                Pravljenje…
+              } @else {
+                Napravi kupon
+              }
+            </button>
+            <button class="button" type="button" [disabled]="pending()" (click)="closeForm()">
+              Odustani
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    @if (coupons.isLoading()) {
+      <p class="loading" role="status">Učitavanje kupona…</p>
+    } @else if (coupons.error()) {
+      @switch (couponsErrorStatus()) {
+        @case (401) {
+          <div class="empty-state" role="alert">
+            <h2>Prijavi se da vidiš svoje kupone</h2>
+            <p>Sesija je istekla, pa server više ne zna ko si.</p>
+            <div class="empty-state-actions">
+              <a class="button button--primary" routerLink="/login">Prijavi se</a>
+            </div>
+          </div>
+        }
+        @default {
+          <div class="empty-state" role="alert">
+            <h2>Kupone nije moguće učitati</h2>
+            <p>Nešto nije u redu na našoj strani. Pokušaj ponovo za trenutak.</p>
+            <div class="empty-state-actions">
+              <button class="button" type="button" (click)="coupons.reload()">
+                Pokušaj ponovo
+              </button>
+            </div>
+          </div>
+        }
+      }
+    } @else if (!hasCoupons()) {
+      <div class="empty-state">
+        <h2>Još nemaš kupone</h2>
+        <p>Napravi kupon i pošalji njegov kod ljudima kojima želiš da ponudiš popust.</p>
+        @if (!showForm()) {
+          <div class="empty-state-actions">
+            <button class="button button--primary" type="button" (click)="openForm()">
+              Napravi kupon
+            </button>
+          </div>
+        }
+      </div>
+    } @else {
+      <app-coupon-list [coupons]="coupons.value() ?? []" />
+    }
+  }
+</div>

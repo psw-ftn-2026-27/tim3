@@ -1,3 +1,4 @@
+using Payment.Application.Products;
 using Payment.Application.Wallets;
 using Payment.Domain.ShoppingCarts;
 using Payment.Domain.Wallets;

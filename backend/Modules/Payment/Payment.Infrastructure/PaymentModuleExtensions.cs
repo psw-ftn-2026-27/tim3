@@ -2,6 +2,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Payment.Application;
 using Payment.Application.AdminWallet;
+using Payment.Application.CouponAuthoring;
+using Payment.Application.Coupons;
 using Payment.Application.GiftCardPurchasing;
 using Payment.Application.GiftCardReceiving;
 using Payment.Application.GiftCards;
@@ -11,9 +13,11 @@ using Payment.Application.ShoppingCart;
 using Payment.Application.TourOffering;
 using Payment.Application.Wallets;
 using Payment.Contracts;
+using Payment.Domain.Coupons;
 using Payment.Domain.ShoppingCarts;
 using Payment.Infrastructure.Exploration;
 using Payment.Infrastructure.Persistence;
+using Payment.Infrastructure.Persistence.Coupons;
 using Payment.Infrastructure.Persistence.Products;
 using Payment.Infrastructure.Persistence.ShoppingCarts;
 using Payment.Infrastructure.Persistence.TourPurchases;
@@ -54,6 +58,11 @@ public static class PaymentModuleExtensions
         services.AddScoped<GiftCardPurchasingService>();
         services.AddScoped<GiftCardPurchasingQueries>();
         services.AddScoped<GiftCardReceivingQueries>();
+        services.AddScoped<ICouponRepository, CouponRepository>();
+        services.AddScoped<ICouponReadRepository, CouponReadRepository>();
+        services.AddScoped<CouponIssuing>();
+        services.AddScoped<CouponAuthoringService>();
+        services.AddScoped<CouponAuthoringQueries>();
 
         return services;
     }

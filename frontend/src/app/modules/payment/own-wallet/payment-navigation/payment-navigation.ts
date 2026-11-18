@@ -8,5 +8,5 @@ import { RouterLink } from '@angular/router';
   styleUrl: './payment-navigation.scss',
 })
 export class PaymentNavigation {
-  readonly current = input.required<'wallet' | 'cart' | 'gift-cards'>();
+  readonly current = input.required<'wallet' | 'cart' | 'gift-cards' | 'coupons'>();
 }

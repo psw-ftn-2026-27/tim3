@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Payment.Application;
+using Payment.Domain.Coupons;
 using Payment.Domain.Products;
 using Payment.Domain.ShoppingCarts;
 using Payment.Domain.TourPurchases;
@@ -9,6 +10,7 @@ using Payment.Infrastructure.Persistence.Products;
 using Payment.Infrastructure.Persistence.ShoppingCarts;
 using Payment.Infrastructure.Persistence.TourPurchases;
 using Payment.Domain.GiftCards;
+using Payment.Infrastructure.Persistence.Coupons;
 using Payment.Infrastructure.Persistence.GiftCards;
 using Payment.Infrastructure.Persistence.Wallets;
 using Shared.Domain.Exceptions;
@@ -26,6 +28,7 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
     public DbSet<ShoppingCart> ShoppingCarts => Set<ShoppingCart>();
     public DbSet<TourPurchaseToken> TourPurchaseTokens => Set<TourPurchaseToken>();
     public DbSet<GiftCard> GiftCards => Set<GiftCard>();
+    public DbSet<Coupon> Coupons => Set<Coupon>();
 
     async Task<int> IUnitOfWork.SaveChangesAsync(CancellationToken cancellationToken)
     {
@@ -103,5 +106,6 @@ internal sealed class PaymentDbContext : DbContext, IUnitOfWork
         builder.ConfigureShoppingCarts();
         builder.ConfigureTourPurchaseTokens();
         builder.ConfigureGiftCards();
+        builder.ConfigureCoupons();
     }
 }

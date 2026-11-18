@@ -1,5 +1,5 @@
 using Exploration.Contracts;
-using Payment.Application.ShoppingCart;
+using Payment.Application.Products;
 
 namespace Payment.Infrastructure.Exploration;
 
