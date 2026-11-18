@@ -41,4 +41,26 @@ public sealed class TourBrowsingQueries
         var prices = await _paymentApi.GetPricesByTourIdsAsync([tourId]);
         return preview with { PriceInEc = prices.TryGetValue(tourId, out var price) ? price : null };
     }
+
+    public async Task<PageResult<TourDto>> GetMyPurchasedToursAsync(Guid userId, int page, int pageSize)
+    {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var tourIds = await _paymentApi.GetPurchasedTourIdsAsync(userId);
+        return await _tourReadRepository.GetByIdsAsync(tourIds, page, pageSize);
+    }
+
+    public async Task<PurchasedTourDetailsDto> GetPurchasedTourDetailsAsync(Guid userId, Guid tourId)
+    {
+        if (!await _paymentApi.OwnsTourAsync(userId, tourId))
+        {
+            throw new NotFoundException("Purchased tour is unavailable.");
+        }
+
+        var tour = await _tourReadRepository.GetByIdAsync(tourId)
+            ?? throw new NotFoundException("Purchased tour is unavailable.");
+        var keyPoints = await _tourReadRepository.GetPurchasedKeyPointsAsync(tourId);
+        return new PurchasedTourDetailsDto(tour, keyPoints);
+    }
 }

@@ -27,7 +27,11 @@ internal static class TourSeed
 
         PublicationWithSavedOffer = new(WellKnownUsers.Explorer, "Staza kroz Kamenicu", "Obilazak počinje u centru Sremske Kamenice, prolazi kraj Zmaj Jovine kuće i vodi do Kameničkog parka, gde se završava pogledom na obalu Dunava.", TourDifficulty.Easy, ["priroda"], new GroupSize(2, 8));
         PublicationWithSavedOffer.AddTransportTime(TransportMode.Walking, 70);
-        PublicationWithSavedOffer.DefineKeyPoints(PublishableRiverside.KeyPoints.Select(point => new KeyPoint(point.Name, point.Description, point.ImageAddress, point.Location, point.Secret, point.VisibleWithoutPurchase)).ToList(), PublishableRiverside.Length);
+        PublicationWithSavedOffer.DefineKeyPoints(
+        [
+            new KeyPoint("Centar Kamenice", "Početak obilaska.", "/api/media/images/kamenica.png", new GeoLocation(45.2230, 19.8420), null, true),
+            new KeyPoint("Kamenički park", "Kraj obilaska.", "/api/media/images/kamenicki-park.png", new GeoLocation(45.2300, 19.8530), null, false)
+        ], new TourLength(1.8, false));
 
         PublishedVineyards = new(WellKnownUsers.Explorer, "Vinogradi Sremskih Karlovaca", "Tura vodi kroz vinograde na obroncima Fruške gore, uz obilazak dva porodična podruma i degustaciju bermeta u Sremskim Karlovcima.", TourDifficulty.Moderate, ["vino", "priroda"], new GroupSize(2, 8));
         PublishedVineyards.AddTransportTime(TransportMode.Bicycle, 60);

@@ -38,11 +38,16 @@
       <div class="page-actions">
         <a class="button" routerLink="/exploration">All tours</a>
         @if (isExplorer() && current.status === 'Published' && current.priceInEc !== null) {
-          <a class="button" routerLink="/payment/cart" [queryParams]="{ tourId: id() }">Dodaj u korpu</a>
+          <a class="button" routerLink="/payment/cart" [queryParams]="{ tourId: id() }"
+            >Dodaj u korpu</a
+          >
         }
         @if (current.isOwnTour) {
           <a class="button" routerLink="/exploration/mine">Back to My tours</a>
-          <a class="button button--primary" [routerLink]="['/exploration/mine', id(), 'key-points']">
+          <a
+            class="button button--primary"
+            [routerLink]="['/exploration/mine', id(), 'key-points']"
+          >
             Edit key points
           </a>
         }

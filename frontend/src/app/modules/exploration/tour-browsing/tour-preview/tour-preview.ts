@@ -13,7 +13,9 @@ import { TourPreviewDto } from '../../api/exploration-api-types';
 })
 export class TourPreview {
   private readonly auth = inject(Auth);
-  protected readonly isExplorer = computed(() => this.auth.user()?.roles.includes('explorer') ?? false);
+  protected readonly isExplorer = computed(
+    () => this.auth.user()?.roles.includes('explorer') ?? false,
+  );
 
   readonly id = input.required<string>();
 

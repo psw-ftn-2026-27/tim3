@@ -32,12 +32,6 @@ export interface PublishedTourDto extends TourDto {
   priceInEc: number | null;
 }
 
-export interface TourDetailsDto {
-  name: string;
-  description: string;
-  priceInEc: number | null;
-}
-
 export interface CreateTourDto {
   name: string;
   description: string;
@@ -113,4 +107,9 @@ export interface TourPreviewDto {
   isOwnTour: boolean;
   keyPoints: PreviewKeyPointDto[];
   priceInEc: number | null;
+}
+
+export interface PurchasedTourDetailsDto {
+  tour: TourDto;
+  keyPoints: PreviewKeyPointDto[];
 }
