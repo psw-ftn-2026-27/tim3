@@ -5,9 +5,9 @@
     <p class="empty">
       Još nema transakcija.
       @if (recipient() !== null) {
-        Uplatu unesi u formu iznad.
+        Za prvu uplatu izaberi „Uplati EC”.
       } @else {
-        Transakcije se pojavljuju kada administrator uplati EC.
+        Ovde će biti prikazane promene stanja novčanika.
       }
     </p>
   } @else {
@@ -16,7 +16,7 @@
         <thead>
           <tr>
             <th scope="col">Vrsta</th>
-            <th scope="col">Iznos</th>
+            <th scope="col" class="amount">Iznos</th>
             <th scope="col">Datum</th>
             @if (recipient() !== null) {
               <th scope="col">Radnja</th>
@@ -26,8 +26,10 @@
         <tbody>
           @for (transaction of transactions(); track transaction.id) {
             <tr>
-              <td>{{ transaction.kind === 'Deposit' ? 'Uplata' : 'Storno uplate' }}</td>
-              <td>{{ transaction.amount > 0 ? '+' : '' }}{{ transaction.amount }} EC</td>
+              <td>{{ kindLabel(transaction.kind) }}</td>
+              <td class="amount" [class.incoming]="transaction.amount > 0">
+                {{ transaction.amount > 0 ? '+' : '' }}{{ transaction.amount }} EC
+              </td>
               <td>
                 <time [attr.datetime]="transaction.occurredAt">{{
                   date(transaction.occurredAt)
@@ -39,6 +41,7 @@
                     <button
                       class="button"
                       type="button"
+                      [attr.aria-label]="'Storniraj uplatu od ' + transaction.amount + ' EC'"
                       [attr.aria-expanded]="reversalId() === transaction.id"
                       [disabled]="disabled()"
                       (click)="openReversal($event, transaction.id)"
@@ -61,7 +64,7 @@
                     @if (reversalError(); as message) {
                       <p class="error" role="alert">{{ message }}</p>
                     }
-                    <div class="actions">
+                    <div class="page-actions">
                       <button
                         class="button button--primary"
                         type="button"

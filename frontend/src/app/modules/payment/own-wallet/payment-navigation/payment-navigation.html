@@ -1,0 +1,20 @@
+<nav class="page-actions" aria-label="Plaćanja">
+  <a
+    class="button"
+    routerLink="/payment"
+    [attr.aria-current]="current() === 'wallet' ? 'page' : null"
+    >Moj novčanik</a
+  >
+  <a
+    class="button"
+    routerLink="/payment/cart"
+    [attr.aria-current]="current() === 'cart' ? 'page' : null"
+    >Korpa</a
+  >
+  <a
+    class="button"
+    routerLink="/payment/gift-cards"
+    [attr.aria-current]="current() === 'gift-cards' ? 'page' : null"
+    >Poklon kartice</a
+  >
+</nav>

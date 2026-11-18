@@ -1,4 +1,5 @@
 using Exploration.Contracts;
+using Exploration.Domain.Tours;
 using Exploration.Tests.Integration.Seeds;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,5 +35,32 @@ public class ExplorationApiTests : BaseIntegrationTest
         var authorId = await explorationApi.GetTourAuthorIdAsync(Guid.NewGuid());
 
         authorId.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(TourStatus.Published, true)]
+    [InlineData(TourStatus.Draft, false)]
+    [InlineData(TourStatus.Archived, false)]
+    public async Task Another_module_can_offer_only_published_tours(TourStatus status, bool expectedAvailability)
+    {
+        var tour = TourSeed.All.First(tour => tour.Status == status);
+        using var scope = Factory.Services.CreateScope();
+        var explorationApi = scope.ServiceProvider.GetRequiredService<IExplorationApi>();
+
+        var available = await explorationApi.GetTourAvailabilityAsync(tour.Id);
+
+        available.Should().Be(expectedAvailability);
+    }
+
+    [Fact]
+    public async Task A_missing_tour_is_unavailable_to_another_module()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var explorationApi = scope.ServiceProvider.GetRequiredService<IExplorationApi>();
+        var tourId = Guid.NewGuid();
+
+        var available = await explorationApi.GetTourAvailabilityAsync(tourId);
+
+        available.Should().BeFalse();
     }
 }

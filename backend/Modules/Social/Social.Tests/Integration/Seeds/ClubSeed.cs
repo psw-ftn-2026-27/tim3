@@ -6,7 +6,8 @@ namespace Social.Tests.Integration.Seeds;
 // Hikers and FortressLovers have only their owners as members. In Cyclists, owned by Explorer,
 // FourthExplorer is a member and ThirdExplorer's request to join is pending. Runners, owned by
 // Explorer, has a pending invitation for ThirdExplorer; Photographers, owned by SecondExplorer,
-// has a pending invitation for FourthExplorer.
+// has a pending invitation for FourthExplorer. In Historians, owned by SecondExplorer, ThirdExplorer
+// is a moderator, FourthExplorer is a regular member and Explorer's request to join is pending.
 internal static class ClubSeed
 {
     public static readonly Club Hikers;
@@ -14,6 +15,7 @@ internal static class ClubSeed
     public static readonly Club CyclistsWithAMemberAndAPendingRequest;
     public static readonly Club RunnersWithAPendingInvitation;
     public static readonly Club PhotographersWithAPendingInvitation;
+    public static readonly Club HistoriansWithAModeratorAMemberAndAPendingRequest;
 
     static ClubSeed()
     {
@@ -31,6 +33,14 @@ internal static class ClubSeed
 
         PhotographersWithAPendingInvitation = new(WellKnownUsers.SecondExplorer, "Fotografi prirode", "Klub za istraživače koji fotografišu prirodu na turama.", ["/api/media/images/fotografi.jpg"]);
         PhotographersWithAPendingInvitation.Invite(WellKnownUsers.SecondExplorer, WellKnownUsers.FourthExplorer);
+
+        HistoriansWithAModeratorAMemberAndAPendingRequest = new(WellKnownUsers.SecondExplorer, "Istoričari Srema", "Klub za istraživače istorije sremskih sela i manastira.", ["/api/media/images/istoricari.jpg"]);
+        HistoriansWithAModeratorAMemberAndAPendingRequest.Invite(WellKnownUsers.SecondExplorer, WellKnownUsers.ThirdExplorer);
+        HistoriansWithAModeratorAMemberAndAPendingRequest.AcceptInvitation(WellKnownUsers.ThirdExplorer);
+        HistoriansWithAModeratorAMemberAndAPendingRequest.PromoteToModerator(WellKnownUsers.SecondExplorer, WellKnownUsers.ThirdExplorer);
+        HistoriansWithAModeratorAMemberAndAPendingRequest.Invite(WellKnownUsers.SecondExplorer, WellKnownUsers.FourthExplorer);
+        HistoriansWithAModeratorAMemberAndAPendingRequest.AcceptInvitation(WellKnownUsers.FourthExplorer);
+        HistoriansWithAModeratorAMemberAndAPendingRequest.RequestToJoin(WellKnownUsers.Explorer);
     }
 
     public static Club[] All =>
@@ -39,6 +49,7 @@ internal static class ClubSeed
         FortressLovers,
         CyclistsWithAMemberAndAPendingRequest,
         RunnersWithAPendingInvitation,
-        PhotographersWithAPendingInvitation
+        PhotographersWithAPendingInvitation,
+        HistoriansWithAModeratorAMemberAndAPendingRequest
     ];
 }

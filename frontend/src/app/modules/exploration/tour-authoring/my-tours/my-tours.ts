@@ -6,6 +6,8 @@ import { serverMessage } from '../../../../shared/util/server-message';
 import { TourDto, TransportMode } from '../../api/exploration-api-types';
 import { TourAuthoring } from '../tour-authoring';
 
+const MAX_EC_AMOUNT = 2_147_483_647;
+
 @Component({
   imports: [FormField, RouterLink],
   selector: 'app-my-tours',
@@ -52,9 +54,12 @@ export class MyTours {
     });
     validate(path.amount, ({ value, valueOf }) => {
       const amount = value();
-      return valueOf(path.price) !== 'Paid' || amount === null || amount > 0
+      if (valueOf(path.price) !== 'Paid' || amount === null) {
+        return null;
+      }
+      return Number.isInteger(amount) && amount >= 1 && amount <= MAX_EC_AMOUNT
         ? null
-        : { kind: 'positive', message: 'Amount must be greater than zero.' };
+        : { kind: 'amount', message: 'Enter a whole amount from 1 to 2,147,483,647 EC.' };
     });
   });
 
@@ -75,7 +80,7 @@ export class MyTours {
   protected async publish(event: Event): Promise<void> {
     event.preventDefault();
     const tourId = this.publishTourId();
-    if (tourId === null || !this.publishForm().valid()) {
+    if (tourId === null || this.pending() || !this.publishForm().valid()) {
       return;
     }
     const isFree = this.publishForm.price().value() === 'Free';

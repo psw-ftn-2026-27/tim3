@@ -1,0 +1,24 @@
+<div class="empty-state" role="alert">
+  @switch (status()) {
+    @case (401) {
+      <h3>Prijavi se ponovo</h3>
+      <p>Sesija je istekla.</p>
+      <div class="empty-state-actions">
+        <a class="button button--primary" routerLink="/login">Prijavi se</a>
+      </div>
+    }
+    @case (403) {
+      <h3>Poklon kartice su dostupne turistima</h3>
+      <p>Za pristup je potreban turistički nalog.</p>
+    }
+    @default {
+      <h3>{{ title() }}</h3>
+      <p>Pokušaj ponovo za koji trenutak.</p>
+      <div class="empty-state-actions">
+        <button class="button" type="button" [disabled]="busy()" (click)="retry.emit()">
+          Pokušaj ponovo
+        </button>
+      </div>
+    }
+  }
+</div>

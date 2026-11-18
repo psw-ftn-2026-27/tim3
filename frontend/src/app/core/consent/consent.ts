@@ -17,6 +17,9 @@ export class Consent {
   // True when the user opened the bar again with the "Cookie settings" link.
   private readonly reopened = signal(false);
 
+  // True when analytics may send: configured and accepted by the user.
+  readonly accepted = computed(() => this.configured && this.choice() === 'accepted');
+
   readonly barShown = computed(
     () => this.configured && (this.choice() === null || this.reopened()),
   );

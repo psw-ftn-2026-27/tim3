@@ -1,3 +1,4 @@
+using Games.Domain.Locations;
 using Shared.Domain;
 using Shared.Domain.Exceptions;
 
@@ -16,6 +17,7 @@ public sealed class Quiz : AggregateRoot
     public string Description { get; private set; }
     public int ExperiencePoints { get; private set; }
     public QuizStatus Status { get; private set; }
+    public Location? Location { get; private set; }
     public IReadOnlyList<Question> Questions => _questions;
 
     private Quiz()
@@ -27,8 +29,7 @@ public sealed class Quiz : AggregateRoot
     public Quiz(Guid authorId, string title, string description, int experiencePoints)
         : base(Guid.NewGuid())
     {
-        EnsureTitle(title);
-        EnsureExperiencePoints(experiencePoints);
+        EnsureValidDetails(title, experiencePoints);
 
         AuthorId = authorId;
         Title = title;
@@ -37,15 +38,15 @@ public sealed class Quiz : AggregateRoot
         Status = QuizStatus.Draft;
     }
 
-    public void UpdateDetails(string title, string description, int experiencePoints)
+    public void UpdateDetails(string title, string description, int experiencePoints, Location? location)
     {
         EnsureDraft();
-        EnsureTitle(title);
-        EnsureExperiencePoints(experiencePoints);
+        EnsureValidDetails(title, experiencePoints);
 
         Title = title;
         Description = description;
         ExperiencePoints = experiencePoints;
+        Location = location;
     }
 
     public void AddQuestion(string text, List<Answer> answers)
@@ -68,10 +69,6 @@ public sealed class Quiz : AggregateRoot
 
     public void Publish()
     {
-        if (Status != QuizStatus.Draft && Status != QuizStatus.Retired)
-        {
-            throw new DomainException("Only a draft or retired quiz can be published.");
-        }
         if (_questions.Count < MinQuestionsToPublish)
         {
             throw new DomainException($"A quiz requires at least {MinQuestionsToPublish} questions to be published.");
@@ -80,29 +77,23 @@ public sealed class Quiz : AggregateRoot
         {
             throw new DomainException("A quiz requires instructions to be published.");
         }
-
-        Status = QuizStatus.Published;
-    }
-
-    public void Retire()
-    {
-        if (Status != QuizStatus.Published)
+        if (Location is null)
         {
-            throw new DomainException("Only a published quiz can be retired.");
+            throw new DomainException("A quiz requires a location to be published.");
         }
 
-        Status = QuizStatus.Retired;
+        TransitionTo(QuizStatus.Published,
+            "Only a draft or retired quiz can be published.",
+            QuizStatus.Draft, QuizStatus.Retired);
     }
 
-    public void Archive()
-    {
-        if (Status != QuizStatus.Retired)
-        {
-            throw new DomainException("Only a retired quiz can be archived.");
-        }
+    public void Retire() => TransitionTo(QuizStatus.Retired,
+        "Only a published quiz can be retired.",
+        QuizStatus.Published);
 
-        Status = QuizStatus.Archived;
-    }
+    public void Archive() => TransitionTo(QuizStatus.Archived,
+        "Only a retired quiz can be archived.",
+        QuizStatus.Retired);
 
     public void EnsureCanBeDeleted()
     {
@@ -110,6 +101,16 @@ public sealed class Quiz : AggregateRoot
         {
             throw new DomainException("Only a draft or archived quiz can be deleted.");
         }
+    }
+
+    private void TransitionTo(QuizStatus target, string errorMessage, params QuizStatus[] allowedFrom)
+    {
+        if (!allowedFrom.Contains(Status))
+        {
+            throw new DomainException(errorMessage);
+        }
+
+        Status = target;
     }
 
     private Question GetQuestion(Guid questionId)
@@ -130,16 +131,13 @@ public sealed class Quiz : AggregateRoot
         }
     }
 
-    private static void EnsureTitle(string title)
+    // The details a quiz is created and updated with: a title and the experience points it awards.
+    private static void EnsureValidDetails(string title, int experiencePoints)
     {
         if (string.IsNullOrWhiteSpace(title))
         {
             throw new DomainException("A quiz requires a title.");
         }
-    }
-
-    private static void EnsureExperiencePoints(int experiencePoints)
-    {
         if (experiencePoints < MinExperiencePoints || experiencePoints > MaxExperiencePoints)
         {
             throw new DomainException($"A quiz must award between {MinExperiencePoints} and {MaxExperiencePoints} experience points.");

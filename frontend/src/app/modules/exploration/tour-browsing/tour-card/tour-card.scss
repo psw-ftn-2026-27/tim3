@@ -120,8 +120,3 @@
   gap: var(--space-1);
   padding-top: var(--space-3);
 }
-
-// The Chat button keeps its own width instead of stretching across the card.
-.chat {
-  align-self: flex-start;
-}

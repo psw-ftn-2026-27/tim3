@@ -1,0 +1,122 @@
+<div class="stack">
+  @if (tour.isLoading()) {
+    <p class="loading">Loading tour...</p>
+  } @else if (tour.error()) {
+    @switch (tourErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to see the tour</h2>
+          <p>Tours are shown to logged-in users, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (404) {
+        <div class="empty-state" role="alert">
+          <h2>Tour not found.</h2>
+          <p>It may not exist, or it is not published. Pick one of the published tours.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/exploration">All tours</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the tour</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="tour.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if (tour.value(); as current) {
+    <div class="page-head">
+      <h1>{{ current.name }}</h1>
+
+      <div class="page-actions">
+        <a class="button" routerLink="/exploration">All tours</a>
+        @if (isExplorer() && current.status === 'Published' && current.priceInEc !== null) {
+          <a class="button" routerLink="/payment/cart" [queryParams]="{ tourId: id() }"
+            >Dodaj u korpu</a
+          >
+        }
+        @if (current.isOwnTour) {
+          <a class="button" routerLink="/exploration/mine">Back to My tours</a>
+          <a
+            class="button button--primary"
+            [routerLink]="['/exploration/mine', id(), 'key-points']"
+          >
+            Edit key points
+          </a>
+        }
+      </div>
+    </div>
+
+    @if (current.status === 'Draft') {
+      <p class="meta">This tour is a draft. Tourists cannot see it yet.</p>
+    } @else if (current.status === 'Archived') {
+      <p class="meta">This tour is archived. Tourists cannot see it.</p>
+    }
+
+    <div class="card stack">
+      <p class="meta">Difficulty: {{ current.difficulty }}</p>
+
+      <p>{{ current.description }}</p>
+      @if (current.priceInEc !== null) {
+        <p class="meta">{{ current.priceInEc }} EC</p>
+      }
+
+      @if (current.tags.length > 0) {
+        <ul class="tags">
+          @for (tag of current.tags; track tag) {
+            <li class="badge">{{ tag }}</li>
+          }
+        </ul>
+      }
+
+      @if (current.recommendedGroupSize; as size) {
+        @if (size.from === size.to) {
+          <p class="meta">Group size: {{ size.from }}</p>
+        } @else {
+          <p class="meta">Group size: {{ size.from }}–{{ size.to }}</p>
+        }
+      } @else {
+        <p class="meta">Group size: not specified</p>
+      }
+
+      <ul class="times">
+        @for (time of current.transportTimes; track time.transport) {
+          <li>{{ time.transport }}: {{ time.minutes }} min</li>
+        } @empty {
+          <li class="empty">No transport times yet. Check back later.</li>
+        }
+      </ul>
+
+      <p>Length: {{ lengthText() }}</p>
+    </div>
+
+    <div class="card stack">
+      <h2>Key points</h2>
+
+      @if (current.keyPoints.length === 0) {
+        <p class="empty">Key points are revealed after purchase.</p>
+      } @else {
+        <app-location-map [locations]="locations()" [route]="'none'" />
+
+        <ol class="key-points">
+          @for (point of current.keyPoints; track $index) {
+            <li class="key-point">
+              <img class="thumbnail" [src]="point.imageAddress" [alt]="point.name" />
+              <div>
+                <h3>{{ $index + 1 }}. {{ point.name }}</h3>
+                <p>{{ point.description }}</p>
+              </div>
+            </li>
+          }
+        </ol>
+      }
+    </div>
+  }
+</div>

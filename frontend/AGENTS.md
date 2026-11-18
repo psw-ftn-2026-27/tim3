@@ -35,6 +35,10 @@ frontend/src/
                              theme (light/dark toggle), consent (analytics
                              cookie choice), app.routes.ts                    [platform]
     shared/
+      analytics/             sends to Google Analytics with consent: page views and
+                             events from modules; analytics-events.ts is the one
+                             file under shared/ a module team may edit, in its own
+                             PR, with platform review (see its README)        [platform]
       util/
       api/                   shared types (PageResult, ProblemDetails),
                              mirror the server, no client-only fields          [platform]
@@ -76,7 +80,8 @@ folders plus at most one service file. That is the whole layout, and it follows 
 
 The smart/dumb split is visible in the code rather than in folder names: the routes
 file lists every page, a page may inject services, a presentational component injects
-nothing.
+nothing. A page may also inject the platform `Analytics` service to record an event
+right after a successful command (`shared/analytics/README.md`, in Serbian).
 
 ## Rules
 
@@ -115,6 +120,10 @@ construct means adding a lesson, so treat it as a platform decision.
 - State: `signal()` and `computed()`. `effect()` only when a signal must
   drive something outside the component tree, and it needs a reason. Page-scoped state, including its read resources, lives in the page.
   State that outlives a page lives in a service holding signals, `providedIn: 'root'`.
+  The platform analytics service in `shared/analytics/` alone holds an `effect()` that reads
+  `Router.lastSuccessfulNavigation` and the consent, and reads the user with `untracked()`.
+- Types: the typed event map in `shared/analytics/` (`keyof` with a generic parameter) is a
+  platform-only construct; students only call `record()` and add names to the map.
 - Timers: a page that must repeat something on its own (the chat reloading its messages,
   a position check every 10 seconds) starts one `setInterval` in its constructor and clears
   it with `inject(DestroyRef).onDestroy(...)`, so the timer stops when the user leaves the
@@ -131,7 +140,7 @@ construct means adding a lesson, so treat it as a platform decision.
 - Routing: `router-outlet`, `routerLink`, `routerLinkActive` (with `ariaCurrentWhenActive`,
   only in the main nav), `loadChildren`, route parameters bound as
   signal inputs via `withComponentInputBinding`; `inject(Router)` only for navigation
-  after a command.
+  after a command, and in the analytics service in `shared/analytics/` to track page views.
 - No RxJS in student code. `Observable` appears only as the return type of `HttpClient`
   writes, immediately awaited. No NgRx, no facades.
 
@@ -181,8 +190,9 @@ assigned to the platform team, and misalignment is an accepted learning experien
   nullable to `| null`, nested DTO to a nested interface, collection to an array.
   A field the client does not use is still mirrored.
 - A page component owns the interaction: it declares its read resource, injects its
-  group's service for commands, and passes plain values down to presentational
-  components, which take `input()`s and raise `output()`s and inject nothing.
+  group's service for commands (and `Analytics` to record an event after one succeeds),
+  and passes plain values down to presentational components, which take `input()`s and
+  raise `output()`s and inject nothing.
 - Build-time settings live in `src/environments/`: `environment.ts` for production and
   `environment.development.ts`, which `fileReplacements` in `angular.json` swaps in for
   the development build (`npm start`). Code imports only `environment`. Today it holds

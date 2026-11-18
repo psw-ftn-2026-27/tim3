@@ -16,4 +16,14 @@ public class TourPriceTests
 
         creation.Should().Throw<DomainException>();
     }
+
+    [Theory]
+    [InlineData(10.5)]
+    [InlineData(2147483648.0)]
+    public void Paid_tour_requires_a_whole_amount_supported_by_payment(double amount)
+    {
+        var creation = () => TourPrice.Paid((decimal)amount);
+
+        creation.Should().Throw<DomainException>();
+    }
 }

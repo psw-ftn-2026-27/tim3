@@ -11,4 +11,6 @@ public interface IIdentityApi
     Task<List<UserDisplayName>> GetDisplayNamesAsync(List<Guid> userIds);
 
     Task<bool> ExistsAsync(Guid userId);
+
+    Task<bool> IsExplorerAsync(Guid userId);
 }

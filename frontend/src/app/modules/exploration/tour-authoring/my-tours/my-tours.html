@@ -97,6 +97,10 @@
                 }
               </td>
               <td class="actions">
+                <a class="button" [routerLink]="['/exploration/mine', tour.id, 'key-points']">
+                  Key points
+                </a>
+                <a class="button" [routerLink]="['/exploration/tours', tour.id]">Preview</a>
                 @if (tour.status !== 'Archived') {
                   <button
                     class="button"
@@ -141,7 +145,59 @@
             </tr>
             @if (rowError()?.rowId === tour.id) {
               <tr>
-                <td colspan="6"><p class="error" role="alert">{{ rowError()?.message }}</p></td>
+                <td colspan="6">
+                  <p class="error" role="alert">{{ rowError()?.message }}</p>
+                </td>
+              </tr>
+            }
+            @if (publishTourId() === tour.id) {
+              <tr>
+                <td colspan="6">
+                  <form class="stack publish-form" (submit)="publish($event)">
+                    <h2>Publish {{ tour.name }}</h2>
+
+                    <fieldset class="price" [disabled]="pending()">
+                      <legend>Price</legend>
+                      <label>
+                        <input type="radio" value="Free" [formField]="publishForm.price" />
+                        Free (0 EC)
+                      </label>
+                      <label>
+                        <input type="radio" value="Paid" [formField]="publishForm.price" />
+                        Paid
+                      </label>
+                    </fieldset>
+
+                    @if (publishForm.price().value() === 'Paid') {
+                      <div class="field">
+                        <label for="amount">Price in EC</label>
+                        <input
+                          id="amount"
+                          type="number"
+                          step="1"
+                          [formField]="publishForm.amount"
+                        />
+                        @if (publishForm.amount().touched()) {
+                          @for (message of publishForm.amount().errors(); track $index) {
+                            <p class="error">{{ message.message }}</p>
+                          }
+                        }
+                      </div>
+                    }
+
+                    @if (formError()) {
+                      <p class="error" role="alert">{{ formError() }}</p>
+                    }
+
+                    <button
+                      class="button button--primary"
+                      type="submit"
+                      [disabled]="!publishForm().valid() || pending()"
+                    >
+                      Publish
+                    </button>
+                  </form>
+                </td>
               </tr>
             }
           }
@@ -187,48 +243,6 @@
         [disabled]="!form().valid() || pending()"
       >
         Save
-      </button>
-    </form>
-  }
-
-  @if (publishTourId()) {
-    <form class="card stack" (submit)="publish($event)">
-      <h2>Publish tour</h2>
-
-      <fieldset class="price">
-        <legend>Price</legend>
-        <label>
-          <input type="radio" value="Free" [formField]="publishForm.price" />
-          Free
-        </label>
-        <label>
-          <input type="radio" value="Paid" [formField]="publishForm.price" />
-          Paid
-        </label>
-      </fieldset>
-
-      @if (publishForm.price().value() === 'Paid') {
-        <div class="field">
-          <label for="amount">Amount</label>
-          <input id="amount" type="number" step="any" [formField]="publishForm.amount" />
-          @if (publishForm.amount().touched()) {
-            @for (message of publishForm.amount().errors(); track $index) {
-              <p class="error">{{ message.message }}</p>
-            }
-          }
-        </div>
-      }
-
-      @if (formError()) {
-        <p class="error" role="alert">{{ formError() }}</p>
-      }
-
-      <button
-        class="button button--primary"
-        type="submit"
-        [disabled]="!publishForm().valid() || pending()"
-      >
-        Publish
       </button>
     </form>
   }

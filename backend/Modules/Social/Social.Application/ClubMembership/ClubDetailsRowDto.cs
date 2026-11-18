@@ -9,4 +9,5 @@ public sealed record ClubDetailsRowDto(
     string Description,
     List<string> Images,
     List<Guid> MemberIds,
+    List<Guid> ModeratorIds,
     List<Guid> RequesterIds);
