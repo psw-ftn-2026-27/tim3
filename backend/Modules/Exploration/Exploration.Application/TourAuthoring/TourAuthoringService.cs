@@ -39,6 +39,15 @@ public sealed class TourAuthoringService
         await _unitOfWork.SaveChangesAsync();
     }
 
+    public async Task DefineKeyPointsAsync(Guid tourId, Guid authorId, DefineKeyPointsDto dto)
+    {
+        var tour = await GetOwnedTourAsync(tourId, authorId);
+
+        var keyPoints = dto.KeyPoints.Select(ToKeyPoint).ToList();
+        tour.DefineKeyPoints(keyPoints, new TourLength(dto.Length.Kilometres, dto.Length.IsStraightLine));
+        await _unitOfWork.SaveChangesAsync();
+    }
+
     public async Task PublishAsync(Guid tourId, Guid authorId, PublishTourDto dto)
     {
         var tour = await GetOwnedTourAsync(tourId, authorId);
@@ -71,6 +80,14 @@ public sealed class TourAuthoringService
             throw new NotFoundException($"Tour {tourId} does not exist.");
         }
         return tour;
+    }
+
+    private static KeyPoint ToKeyPoint(KeyPointInputDto dto)
+    {
+        var location = dto.Location is null
+            ? null
+            : new GeoLocation(dto.Location.Latitude, dto.Location.Longitude);
+        return new KeyPoint(dto.Name, dto.Description, dto.ImageAddress, location, dto.Secret, dto.VisibleWithoutPurchase);
     }
 
     private static TourPrice? ToTourPrice(PublishTourDto dto)

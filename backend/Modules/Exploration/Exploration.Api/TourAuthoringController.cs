@@ -35,6 +35,13 @@ public sealed class TourAuthoringController : ControllerBase
         return NoContent();
     }
 
+    [HttpPut("{id:guid}/key-points")]
+    public async Task<ActionResult> DefineKeyPoints(Guid id, DefineKeyPointsDto dto)
+    {
+        await _authoringService.DefineKeyPointsAsync(id, User.GetUserId(), dto);
+        return NoContent();
+    }
+
     [HttpPost("{id:guid}/publish")]
     public async Task<ActionResult> Publish(Guid id, PublishTourDto dto)
     {
@@ -60,5 +67,11 @@ public sealed class TourAuthoringController : ControllerBase
     public async Task<ActionResult<List<TourDto>>> GetMine()
     {
         return await _authoringQueries.GetByAuthorAsync(User.GetUserId());
+    }
+
+    [HttpGet("{id:guid}/key-points")]
+    public async Task<ActionResult<TourKeyPointsDto>> GetKeyPoints(Guid id)
+    {
+        return await _authoringQueries.GetKeyPointsAsync(id, User.GetUserId());
     }
 }

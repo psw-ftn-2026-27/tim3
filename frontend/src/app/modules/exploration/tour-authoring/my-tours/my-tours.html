@@ -97,6 +97,10 @@
                 }
               </td>
               <td class="actions">
+                <a class="button" [routerLink]="['/exploration/mine', tour.id, 'key-points']">
+                  Key points
+                </a>
+                <a class="button" [routerLink]="['/exploration/tours', tour.id]">Preview</a>
                 @if (tour.status !== 'Archived') {
                   <button
                     class="button"
