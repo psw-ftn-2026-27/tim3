@@ -17,14 +17,7 @@ public sealed class Coupon : AggregateRoot
 
     private Coupon() { }
 
-    public Coupon(
-        Guid authorId,
-        Guid? productId,
-        CouponCode code,
-        int discountPercent,
-        DateOnly validUntil,
-        DateOnly today,
-        DateTime createdAt)
+    public Coupon(Guid authorId, CouponRequest request, CouponCode code, DateTime createdAt)
         : base(Guid.NewGuid())
     {
         if (authorId == Guid.Empty)
@@ -32,22 +25,22 @@ public sealed class Coupon : AggregateRoot
             throw new DomainException("A coupon must have an author.");
         }
 
-        if (discountPercent < MinDiscountPercent || discountPercent > MaxDiscountPercent)
+        if (request.DiscountPercent < MinDiscountPercent || request.DiscountPercent > MaxDiscountPercent)
         {
             throw new DomainException(
                 $"The coupon discount must be a whole percent between {MinDiscountPercent} and {MaxDiscountPercent}.");
         }
 
-        if (validUntil < today)
+        if (request.ValidUntil < DateOnly.FromDateTime(createdAt))
         {
             throw new DomainException("A coupon cannot be valid only until a day before today.");
         }
 
         AuthorId = authorId;
-        ProductId = productId;
+        ProductId = request.ProductId;
         Code = code ?? throw new DomainException("A coupon requires a code.");
-        DiscountPercent = discountPercent;
-        ValidUntil = validUntil;
+        DiscountPercent = request.DiscountPercent;
+        ValidUntil = request.ValidUntil;
         CreatedAt = createdAt;
     }
 

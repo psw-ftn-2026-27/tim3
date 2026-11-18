@@ -1,7 +1,6 @@
 using Payment.Application.Coupons;
 using Payment.Application.Products;
 using Payment.Domain.Coupons;
-using Payment.Domain.Products;
 
 namespace Payment.Application.CouponAuthoring;
 
@@ -29,27 +28,12 @@ public sealed class CouponAuthoringService
 
     public async Task CreateAsync(Guid authorId, CreateCouponDto dto)
     {
-        var now = DateTime.UtcNow;
         var products = await _products.GetByAuthorIdAsync(authorId);
-        var availableTourIds = await GetAvailableTourIdsAsync(products);
+        var availableTourIds = await _availability.GetAvailableTourIdsAsync(products.Select(product => product.TourId));
+        var request = new CouponRequest(dto.ProductId, dto.DiscountPercent, dto.ValidUntil);
 
-        var coupon = _issuing.Issue(
-            authorId, products, availableTourIds, dto.ProductId, dto.DiscountPercent, dto.ValidUntil,
-            DateOnly.FromDateTime(now), CouponCode.Generate(), now);
+        var coupon = _issuing.Issue(authorId, products, availableTourIds, request, DateTime.UtcNow);
         _coupons.Add(coupon);
         await _unitOfWork.SaveChangesAsync();
-    }
-
-    private async Task<HashSet<Guid>> GetAvailableTourIdsAsync(List<Product> products)
-    {
-        var available = new HashSet<Guid>();
-        foreach (var product in products)
-        {
-            if (await _availability.IsAvailableAsync(product.TourId))
-            {
-                available.Add(product.TourId);
-            }
-        }
-        return available;
     }
 }

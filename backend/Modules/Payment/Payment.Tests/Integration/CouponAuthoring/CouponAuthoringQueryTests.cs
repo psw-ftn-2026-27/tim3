@@ -16,15 +16,33 @@ public class CouponAuthoringQueryTests : BaseIntegrationTest
     }
 
     [Fact]
-    public async Task Author_sees_only_their_own_coupons()
+    public async Task Author_sees_only_their_own_coupons_newest_first()
     {
         var authorId = WellKnownUsers.ThirdExplorer;
-        var expectedIds = CouponSeed.All.Where(coupon => coupon.AuthorId == authorId).Select(coupon => coupon.Id);
+        var expectedIds = CouponSeed.All
+            .Where(coupon => coupon.AuthorId == authorId)
+            .OrderByDescending(coupon => coupon.CreatedAt)
+            .Select(coupon => coupon.Id);
         using var client = Factory.CreateClientFor(authorId, "explorer");
 
         var coupons = await client.GetFromJsonAsync<List<CouponDto>>("/api/payment/coupons", JsonOptions);
 
-        coupons!.Select(coupon => coupon.Id).Should().BeEquivalentTo(expectedIds);
+        coupons!.Select(coupon => coupon.Id).Should().Equal(expectedIds);
+    }
+
+    [Fact]
+    public async Task Coupons_past_their_last_valid_day_are_marked_as_expired()
+    {
+        var authorId = WellKnownUsers.ThirdExplorer;
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var expected = CouponSeed.All
+            .Where(coupon => coupon.AuthorId == authorId)
+            .ToDictionary(coupon => coupon.Id, coupon => coupon.IsExpiredOn(today));
+        using var client = Factory.CreateClientFor(authorId, "explorer");
+
+        var coupons = await client.GetFromJsonAsync<List<CouponDto>>("/api/payment/coupons", JsonOptions);
+
+        coupons!.ToDictionary(coupon => coupon.Id, coupon => coupon.IsExpired).Should().Equal(expected);
     }
 
     [Fact]

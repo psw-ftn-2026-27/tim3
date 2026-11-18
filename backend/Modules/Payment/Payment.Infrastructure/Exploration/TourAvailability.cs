@@ -16,4 +16,18 @@ internal sealed class TourAvailability : ITourAvailability
     {
         return _exploration.GetTourAvailabilityAsync(tourId);
     }
+
+    // Exploration's contract answers one tour at a time, so the loop lives here, once.
+    public async Task<HashSet<Guid>> GetAvailableTourIdsAsync(IEnumerable<Guid> tourIds)
+    {
+        var available = new HashSet<Guid>();
+        foreach (var tourId in tourIds)
+        {
+            if (await _exploration.GetTourAvailabilityAsync(tourId))
+            {
+                available.Add(tourId);
+            }
+        }
+        return available;
+    }
 }

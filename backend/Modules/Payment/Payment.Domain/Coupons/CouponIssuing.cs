@@ -9,15 +9,12 @@ public sealed class CouponIssuing
         Guid authorId,
         IReadOnlyCollection<Product> authorProducts,
         IReadOnlySet<Guid> availableTourIds,
-        Guid? productId,
-        int discountPercent,
-        DateOnly validUntil,
-        DateOnly today,
-        CouponCode code,
-        DateTime createdAt)
+        CouponRequest request,
+        DateTime now)
     {
+        // P1 is a domain rule, so ownership is checked here even though the caller loads only the author's products.
         var ownProducts = authorProducts.Where(product => product.AuthorId == authorId).ToList();
-        if (productId is null)
+        if (request.ProductId is null)
         {
             if (!ownProducts.Any(product => IsPaidAndOnOffer(product, availableTourIds)))
             {
@@ -26,8 +23,8 @@ public sealed class CouponIssuing
         }
         else
         {
-            var product = ownProducts.SingleOrDefault(product => product.Id == productId)
-                ?? throw new NotFoundException($"Product {productId} does not exist among your products.");
+            var product = ownProducts.SingleOrDefault(product => product.Id == request.ProductId)
+                ?? throw new NotFoundException($"Product {request.ProductId} does not exist among your products.");
             if (product.PriceInEc == 0)
             {
                 throw new DomainException("A coupon cannot be tied to a free product.");
@@ -39,7 +36,7 @@ public sealed class CouponIssuing
             }
         }
 
-        return new Coupon(authorId, productId, code, discountPercent, validUntil, today, createdAt);
+        return new Coupon(authorId, request, CouponCode.Generate(), now);
     }
 
     private static bool IsPaidAndOnOffer(Product product, IReadOnlySet<Guid> availableTourIds)

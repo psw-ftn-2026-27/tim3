@@ -25,14 +25,7 @@ public sealed class CouponAuthoringQueries
     public async Task<List<ProductForCouponDto>> GetMyProductsForCouponAsync(Guid authorId)
     {
         var paidProducts = await _products.GetPaidByAuthorAsync(authorId);
-        var productsOnOffer = new List<ProductForCouponDto>();
-        foreach (var product in paidProducts)
-        {
-            if (await _availability.IsAvailableAsync(product.TourId))
-            {
-                productsOnOffer.Add(product);
-            }
-        }
-        return productsOnOffer;
+        var availableTourIds = await _availability.GetAvailableTourIdsAsync(paidProducts.Select(product => product.TourId));
+        return paidProducts.Where(product => availableTourIds.Contains(product.TourId)).ToList();
     }
 }

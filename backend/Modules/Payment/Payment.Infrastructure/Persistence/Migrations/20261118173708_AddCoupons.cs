@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Payment.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class DodatiKuponi : Migration
+    public partial class AddCoupons : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

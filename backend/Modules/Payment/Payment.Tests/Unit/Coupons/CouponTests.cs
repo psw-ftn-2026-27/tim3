@@ -70,6 +70,7 @@ public class CouponTests
     private static Coupon CreateCoupon(int discountPercent, DateOnly validUntil)
     {
         return new Coupon(
-            WellKnownUsers.ThirdExplorer, null, new CouponCode("ABCD1234"), discountPercent, validUntil, Today, CreatedAt);
+            WellKnownUsers.ThirdExplorer, new CouponRequest(null, discountPercent, validUntil), new CouponCode("ABCD1234"),
+            CreatedAt);
     }
 }

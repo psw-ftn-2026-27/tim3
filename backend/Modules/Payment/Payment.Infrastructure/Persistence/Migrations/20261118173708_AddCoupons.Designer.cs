@@ -12,8 +12,8 @@ using Payment.Infrastructure.Persistence;
 namespace Payment.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(PaymentDbContext))]
-    [Migration("20261118165645_DodatiKuponi")]
-    partial class DodatiKuponi
+    [Migration("20261118173708_AddCoupons")]
+    partial class AddCoupons
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

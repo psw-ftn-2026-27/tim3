@@ -14,6 +14,29 @@ public class CouponIssuingTests
     private static readonly Guid Author = WellKnownUsers.ThirdExplorer;
 
     [Fact]
+    public void A_coupon_for_an_own_paid_product_on_offer_is_issued_for_that_product()
+    {
+        var product = new Product(Guid.NewGuid(), "City walk", Author, 25);
+        HashSet<Guid> available = [product.TourId];
+
+        var coupon = Issue([product], available, product.Id);
+
+        coupon.ProductId.Should().Be(product.Id);
+    }
+
+    [Fact]
+    public void A_general_coupon_is_issued_when_the_author_has_a_paid_product_on_offer()
+    {
+        var freeProduct = new Product(Guid.NewGuid(), "Free walk", Author, 0);
+        var paidProduct = new Product(Guid.NewGuid(), "City walk", Author, 25);
+        HashSet<Guid> available = [freeProduct.TourId, paidProduct.TourId];
+
+        var coupon = Issue([freeProduct, paidProduct], available, null);
+
+        coupon.ProductId.Should().BeNull();
+    }
+
+    [Fact]
     public void A_coupon_for_another_authors_product_is_rejected()
     {
         var ownProduct = new Product(Guid.NewGuid(), "City walk", Author, 25);
@@ -61,6 +84,6 @@ public class CouponIssuingTests
     private static Coupon Issue(Product[] products, HashSet<Guid> availableTourIds, Guid? productId)
     {
         return new CouponIssuing().Issue(
-            Author, products, availableTourIds, productId, 10, Today.AddDays(10), Today, new CouponCode("ABCD1234"), Now);
+            Author, products, availableTourIds, new CouponRequest(productId, 10, Today.AddDays(10)), Now);
     }
 }
