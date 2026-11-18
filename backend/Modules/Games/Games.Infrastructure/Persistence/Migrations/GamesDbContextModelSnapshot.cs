@@ -23,44 +23,6 @@ namespace Games.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Games.Domain.LocationChallenges.HiddenPoint", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("LocationChallengeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Photo")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LocationChallengeId");
-
-                    b.ToTable("HiddenPoints", "games");
-                });
-
-            modelBuilder.Entity("Games.Domain.LocationChallenges.LocationChallenge", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("ExperienceGained")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("LocationChallenges", "games");
-                });
-
             modelBuilder.Entity("Games.Domain.Quizzes.Question", b =>
                 {
                     b.Property<Guid>("Id")
@@ -145,62 +107,6 @@ namespace Games.Infrastructure.Persistence.Migrations
                     b.ToTable("SocialChallenges", "games");
                 });
 
-            modelBuilder.Entity("Games.Domain.LocationChallenges.HiddenPoint", b =>
-                {
-                    b.HasOne("Games.Domain.LocationChallenges.LocationChallenge", null)
-                        .WithMany("HiddenPoints")
-                        .HasForeignKey("LocationChallengeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.OwnsOne("Games.Domain.LocationChallenges.Location", "Location", b1 =>
-                        {
-                            b1.Property<Guid>("HiddenPointId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<double>("Latitude")
-                                .HasColumnType("double precision");
-
-                            b1.Property<double>("Longitude")
-                                .HasColumnType("double precision");
-
-                            b1.HasKey("HiddenPointId");
-
-                            b1.ToTable("HiddenPoints", "games");
-
-                            b1.WithOwner()
-                                .HasForeignKey("HiddenPointId");
-                        });
-
-                    b.Navigation("Location")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Games.Domain.LocationChallenges.LocationChallenge", b =>
-                {
-                    b.OwnsOne("Games.Domain.LocationChallenges.Location", "StartLocation", b1 =>
-                        {
-                            b1.Property<Guid>("LocationChallengeId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<double>("Latitude")
-                                .HasColumnType("double precision");
-
-                            b1.Property<double>("Longitude")
-                                .HasColumnType("double precision");
-
-                            b1.HasKey("LocationChallengeId");
-
-                            b1.ToTable("LocationChallenges", "games");
-
-                            b1.WithOwner()
-                                .HasForeignKey("LocationChallengeId");
-                        });
-
-                    b.Navigation("StartLocation")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Games.Domain.Quizzes.Question", b =>
                 {
                     b.HasOne("Games.Domain.Quizzes.Quiz", null)
@@ -259,11 +165,6 @@ namespace Games.Infrastructure.Persistence.Migrations
 
                     b.Navigation("ActivePeriod")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Games.Domain.LocationChallenges.LocationChallenge", b =>
-                {
-                    b.Navigation("HiddenPoints");
                 });
 
             modelBuilder.Entity("Games.Domain.Quizzes.Quiz", b =>
