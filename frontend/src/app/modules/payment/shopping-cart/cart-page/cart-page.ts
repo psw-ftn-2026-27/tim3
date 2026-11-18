@@ -3,6 +3,7 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormField, form, required } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../../../../core/auth/auth';
+import { Analytics } from '../../../../shared/analytics/analytics';
 import { serverMessage } from '../../../../shared/util/server-message';
 import {
   CouponNotAppliedReason,
@@ -21,6 +22,7 @@ import { CART_URL, ShoppingCart } from '../shopping-cart';
 })
 export class CartPage {
   private readonly shoppingCart = inject(ShoppingCart);
+  private readonly analytics = inject(Analytics);
   protected readonly auth = inject(Auth);
 
   readonly tourId = input<string>();
@@ -228,7 +230,8 @@ export class CartPage {
     if (this.checkoutBlocked() || !this.cart.hasValue()) {
       return;
     }
-    const seenTotalInEc = this.cart.value().discountedTotalInEc;
+    const contents = this.cart.value();
+    const seenTotalInEc = contents.discountedTotalInEc;
     this.pending.set(true);
     this.purchasing.set(true);
     this.cartNotice.set(null);
@@ -236,6 +239,11 @@ export class CartPage {
     this.checkoutConfirmed.set(false);
     try {
       await this.shoppingCart.checkout({ seenTotalInEc });
+      this.analytics.record('cart_purchased', {
+        tour_count: contents.items.length,
+        total_in_ec: seenTotalInEc,
+        discount_in_ec: contents.totalInEc - seenTotalInEc,
+      });
       this.addError.set(null);
       this.removeError.set(null);
       this.couponError.set(null);

@@ -3,6 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormField, form, max, maxLength, min, required, validate } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../../../../core/auth/auth';
+import { Analytics } from '../../../../shared/analytics/analytics';
 import { PageResult } from '../../../../shared/api/page-result';
 import {
   PurchasedGiftCardDto,
@@ -43,6 +44,7 @@ const UNEXPECTED_ERROR = 'Kupovina trenutno nije moguća, pokušaj ponovo.';
 export class GiftCards {
   protected readonly auth = inject(Auth);
   private readonly purchasing = inject(GiftCardPurchasing);
+  private readonly analytics = inject(Analytics);
 
   protected readonly recipientsPageSize = 20;
   protected readonly purchasedPageSize = 10;
@@ -168,6 +170,7 @@ export class GiftCards {
         amount,
         message: message === '' ? null : message,
       });
+      this.analytics.record('gift_card_purchased', { amount });
       this.closeForm();
       this.confirmation.set(
         `Kupljena je poklon kartica od ${amount} EC za korisnika ${recipient.displayName}.`,
