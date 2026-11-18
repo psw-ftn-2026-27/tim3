@@ -1,6 +1,7 @@
 import { HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Analytics } from '../../../../shared/analytics/analytics';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { BlogDto } from '../../api/social-api-types';
 import { BlogAuthoring } from '../blog-authoring';
@@ -13,6 +14,7 @@ import { BlogAuthoring } from '../blog-authoring';
 })
 export class MyBlogs {
   private readonly blogAuthoring = inject(BlogAuthoring);
+  private readonly analytics = inject(Analytics);
 
   protected readonly blogs = httpResource<BlogDto[]>(() => '/api/social/blogs/mine');
 
@@ -30,6 +32,7 @@ export class MyBlogs {
     this.rowError.set(null);
     try {
       await this.blogAuthoring.publish(blogId);
+      this.analytics.record('blog_published', { blog_id: blogId });
       this.blogs.reload();
     } catch (failure) {
       this.rowError.set({
