@@ -47,16 +47,15 @@ public sealed class CartPurchasing
         ShoppingCart cart,
         Wallet wallet,
         IReadOnlyCollection<Coupon> coupons,
-        IReadOnlySet<Guid> usedCouponIds,
+        BuyerHistory history,
         IReadOnlySet<Guid> availableTourIds,
-        IReadOnlySet<Guid> purchasedTourIds,
         long seenTotalInEc,
-        DateOnly today,
         DateTime purchasedAt)
     {
-        ValidateCheckout(cart, wallet, availableTourIds, purchasedTourIds);
+        ValidateCheckout(cart, wallet, availableTourIds, history.PurchasedTourIds);
 
-        var allocation = _allocation.Allocate(cart, coupons, usedCouponIds, today);
+        var allocation = _allocation.Allocate(
+            cart, coupons, history.UsedCouponIds, DateOnly.FromDateTime(purchasedAt));
         if (allocation.TotalInEc != seenTotalInEc)
         {
             throw new DomainException("The cart total has changed. Review the cart and confirm the purchase again.");

@@ -25,7 +25,7 @@ public sealed class CartCheckoutTests
         HashSet<Guid> available = [paid.TourId, free.TourId];
 
         var tokens = CreatePurchasing().Checkout(
-            cart, wallet, [], new HashSet<Guid>(), available, new HashSet<Guid>(), 25, Today(purchasedAt), purchasedAt);
+            cart, wallet, [], NoHistory(), available, 25, purchasedAt);
 
         cart.Items.Should().BeEmpty();
         wallet.Balance.Should().Be(15);
@@ -57,7 +57,7 @@ public sealed class CartCheckoutTests
         HashSet<Guid> purchasedTours = purchased ? [product.TourId] : [];
 
         var checkout = () => CreatePurchasing().Checkout(
-            cart, wallet, [], new HashSet<Guid>(), availability, purchasedTours, 25, Today(now), now);
+            cart, wallet, [], new BuyerHistory(purchasedTours, new HashSet<Guid>()), availability, 25, now);
 
         checkout.Should().Throw<DomainException>();
         cart.Items.Should().ContainSingle().Which.TourId.Should().Be(product.TourId);
@@ -79,8 +79,7 @@ public sealed class CartCheckoutTests
         wallet.Deposit(40, Guid.NewGuid(), now.AddHours(-1));
 
         var checkout = () => CreatePurchasing().Checkout(
-            cart, wallet, [coupon], new HashSet<Guid>(), new HashSet<Guid> { product.TourId }, new HashSet<Guid>(),
-            25, Today(now), now);
+            cart, wallet, [coupon], NoHistory(), new HashSet<Guid> { product.TourId }, 25, now);
 
         checkout.Should().Throw<DomainException>();
         cart.Items.Should().ContainSingle();
@@ -107,7 +106,7 @@ public sealed class CartCheckoutTests
         HashSet<Guid> available = [discounted.TourId, fullPrice.TourId];
 
         var tokens = CreatePurchasing().Checkout(
-            cart, wallet, [applied, notApplied], new HashSet<Guid>(), available, new HashSet<Guid>(), 35, Today(now), now);
+            cart, wallet, [applied, notApplied], NoHistory(), available, 35, now);
 
         wallet.Balance.Should().Be(5);
         wallet.Transactions.Where(row => row.Kind == WalletTransactionKind.Purchase)
@@ -130,6 +129,11 @@ public sealed class CartCheckoutTests
     private static CartPurchasing CreatePurchasing()
     {
         return new CartPurchasing(new CouponAllocation());
+    }
+
+    private static BuyerHistory NoHistory()
+    {
+        return new BuyerHistory(new HashSet<Guid>(), new HashSet<Guid>());
     }
 
     private static DateOnly Today(DateTime now)

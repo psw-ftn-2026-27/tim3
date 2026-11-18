@@ -40,15 +40,14 @@ public sealed class ShoppingCartCheckoutService
         var cart = await _carts.GetByUserIdAsync(userId)
             ?? throw new DomainException("The cart is empty.");
         var availableTourIds = await GetAvailableTourIdsAsync(cart.Items);
-        var purchasedTourIds = (await _purchases.GetPurchasedTourIdsAsync(userId)).ToHashSet();
+        var history = new BuyerHistory(
+            (await _purchases.GetPurchasedTourIdsAsync(userId)).ToHashSet(),
+            (await _purchases.GetUsedCouponIdsAsync(userId)).ToHashSet());
         var coupons = await _coupons.GetByIdsAsync(cart.CouponIds);
-        var usedCouponIds = (await _purchases.GetUsedCouponIdsAsync(userId)).ToHashSet();
         var existingWallet = await _wallets.GetByUserIdAsync(userId);
         var wallet = existingWallet ?? new Wallet(userId);
-        var now = DateTime.UtcNow;
         var tokens = _purchasing.Checkout(
-            cart, wallet, coupons, usedCouponIds, availableTourIds, purchasedTourIds, dto.SeenTotalInEc,
-            DateOnly.FromDateTime(now), now);
+            cart, wallet, coupons, history, availableTourIds, dto.SeenTotalInEc, DateTime.UtcNow);
         if (existingWallet is null)
         {
             _wallets.Add(wallet);
