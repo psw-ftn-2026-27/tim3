@@ -30,11 +30,15 @@ public sealed class TourBrowsingQueries
         return new PageResult<PublishedTourDto>(items, published.TotalCount);
     }
 
-    public async Task<TourDetailsDto> GetDetailsAsync(Guid tourId)
+    public async Task<TourPreviewDto> GetPreviewAsync(Guid tourId, Guid userId)
     {
-        var details = await _tourReadRepository.GetPublishedDetailsAsync(tourId)
-            ?? throw new NotFoundException($"Tour {tourId} does not exist.");
+        var preview = await _tourReadRepository.GetPreviewAsync(tourId, userId);
+        if (preview is null)
+        {
+            throw new NotFoundException($"Tour {tourId} does not exist.");
+        }
+
         var prices = await _paymentApi.GetPricesByTourIdsAsync([tourId]);
-        return details with { PriceInEc = prices.TryGetValue(tourId, out var price) ? price : null };
+        return preview with { PriceInEc = prices.TryGetValue(tourId, out var price) ? price : null };
     }
 }

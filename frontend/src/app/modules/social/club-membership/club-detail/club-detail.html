@@ -91,15 +91,66 @@
       <section class="card stack">
         <h2>Members</h2>
 
-        @if (removeError()) {
-          <p class="error">{{ removeError() }}</p>
+        @if (memberError()) {
+          <p class="error" role="alert">{{ memberError() }}</p>
         }
 
         <ul class="users">
           @for (member of details.members; track member.userId) {
             <li class="request">
-              <span>{{ member.displayName }}</span>
-              @if (isOwner() && member.userId !== details.ownerId) {
+              <span>
+                {{ member.displayName }}
+                @if (member.role !== 'Member') {
+                  <span class="badge">{{ member.role }}</span>
+                }
+              </span>
+              @if (confirmingOwnerId() === member.userId) {
+                <div class="stack">
+                  <p>Make {{ member.displayName }} the owner? You become a regular member.</p>
+                  <div class="actions">
+                    <button
+                      class="button button--primary"
+                      type="button"
+                      [disabled]="pending()"
+                      (click)="transferOwnership(member.userId)"
+                    >
+                      Confirm
+                    </button>
+                    <button class="button" type="button" (click)="confirmingOwnerId.set(null)">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              } @else if (isOwner() && member.role !== 'Owner') {
+                <div class="actions">
+                  @if (member.role === 'Member') {
+                    <button
+                      class="button"
+                      type="button"
+                      [disabled]="pending()"
+                      (click)="promoteToModerator(member.userId)"
+                    >
+                      Make moderator
+                    </button>
+                  }
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="confirmingOwnerId.set(member.userId)"
+                  >
+                    Make owner
+                  </button>
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="removeMember(member.userId)"
+                  >
+                    Remove
+                  </button>
+                </div>
+              } @else if (canModerate() && member.role === 'Member') {
                 <button
                   class="button"
                   type="button"
@@ -113,7 +164,7 @@
           } @empty {
             <li class="empty">
               The club has no members yet.
-              @if (isOwner()) {
+              @if (canModerate()) {
                 Accept join requests below.
               } @else {
                 Explorers join by sending a join request.
@@ -123,7 +174,7 @@
         </ul>
       </section>
 
-      @if (isOwner()) {
+      @if (canModerate()) {
         <section class="card stack">
           <h2>Join requests</h2>
 
@@ -161,7 +212,9 @@
             }
           </ul>
         </section>
+      }
 
+      @if (isOwner()) {
         <section class="card stack">
           <h2>Pending invitations</h2>
 

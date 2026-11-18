@@ -23,7 +23,8 @@ public sealed class ClubMembershipQueries
             throw new NotFoundException($"Club {clubId} does not exist.");
         }
 
-        var visibleRequesterIds = club.OwnerId == userId ? club.RequesterIds : [];
+        var role = RoleOf(userId, club);
+        var visibleRequesterIds = role is MemberRole.Owner or MemberRole.Moderator ? club.RequesterIds : [];
         var names = await GetDisplayNamesAsync([.. club.MemberIds, .. visibleRequesterIds]);
 
         return new ClubDetailsDto(
@@ -32,8 +33,9 @@ public sealed class ClubMembershipQueries
             club.Name,
             club.Description,
             club.Images,
-            ToUserDtos(club.MemberIds, names),
+            ToMemberDtos(club, names),
             MembershipOf(userId, club),
+            role,
             ToUserDtos(visibleRequesterIds, names));
     }
 
@@ -48,6 +50,32 @@ public sealed class ClubMembershipQueries
             return MembershipState.Pending;
         }
         return MembershipState.None;
+    }
+
+    private static MemberRole? RoleOf(Guid userId, ClubDetailsRowDto club)
+    {
+        return club.MemberIds.Contains(userId) ? RoleOfMember(userId, club) : null;
+    }
+
+    // The owner's row carries the Member role, so the owner is recognized by the club's OwnerId.
+    private static MemberRole RoleOfMember(Guid memberId, ClubDetailsRowDto club)
+    {
+        if (memberId == club.OwnerId)
+        {
+            return MemberRole.Owner;
+        }
+        if (club.ModeratorIds.Contains(memberId))
+        {
+            return MemberRole.Moderator;
+        }
+        return MemberRole.Member;
+    }
+
+    private static List<ClubMemberDto> ToMemberDtos(ClubDetailsRowDto club, Dictionary<Guid, string> names)
+    {
+        return club.MemberIds
+            .Select(memberId => new ClubMemberDto(memberId, names.GetValueOrDefault(memberId, ""), RoleOfMember(memberId, club)))
+            .ToList();
     }
 
     private static List<ClubUserDto> ToUserDtos(List<Guid> userIds, Dictionary<Guid, string> names)

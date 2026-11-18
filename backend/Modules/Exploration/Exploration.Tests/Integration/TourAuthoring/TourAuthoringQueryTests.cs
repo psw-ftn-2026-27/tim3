@@ -1,4 +1,6 @@
+using System.Net;
 using System.Net.Http.Json;
+using Exploration.Application.TourAuthoring;
 using Exploration.Application.Tours;
 using Exploration.Tests.Integration.Seeds;
 using FluentAssertions;
@@ -37,5 +39,30 @@ public class TourAuthoringQueryTests : BaseIntegrationTest
                 tour.Id,
                 RecommendedGroupSize = new GroupSizeDto(tour.RecommendedGroupSize!.From, tour.RecommendedGroupSize.To)
             }));
+    }
+
+    [Fact]
+    public async Task Author_reads_the_key_points_of_their_tour_in_order_with_secrets_and_visibility()
+    {
+        var tour = TourSeed.PublishableRiverside;
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+
+        var keyPoints = await client.GetFromJsonAsync<TourKeyPointsDto>($"/api/exploration/tours/{tour.Id}/key-points", JsonOptions);
+
+        keyPoints!.Id.Should().Be(tour.Id);
+        keyPoints.KeyPoints.Should().BeEquivalentTo(
+            tour.KeyPoints.Select(keyPoint => new { keyPoint.Id, keyPoint.Order, keyPoint.Secret, keyPoint.VisibleWithoutPurchase }),
+            options => options.WithStrictOrdering());
+        keyPoints.Length.Should().Be(new TourLengthDto(tour.Length.Kilometres, tour.Length.IsStraightLine));
+    }
+
+    [Fact]
+    public async Task Explorer_cannot_read_the_key_points_of_another_authors_tour()
+    {
+        var client = Factory.CreateClientFor(Guid.NewGuid(), "explorer");
+
+        var response = await client.GetAsync($"/api/exploration/tours/{TourSeed.PublishableRiverside.Id}/key-points");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

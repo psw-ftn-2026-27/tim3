@@ -14,7 +14,7 @@
     Difficulty: {{ tour().difficulty }}
   </span>
 
-  <h2>{{ tour().name }}</h2>
+  <h2><a [routerLink]="['/exploration/tours', tour().id]">{{ tour().name }}</a></h2>
 
   <p class="meta">
     @switch (tour().priceInEc) {
@@ -59,7 +59,7 @@
   </ul>
 
   <div class="page-actions">
-    <a class="button button--primary" [routerLink]="['/exploration', tour().id]">View tour</a>
+    <a class="button button--primary" [routerLink]="['/exploration/tours', tour().id]">View tour</a>
     @if (canAddToCart() && tour().priceInEc !== null) {
       <a class="button" routerLink="/payment/cart" [queryParams]="{ tourId: tour().id }">
         Dodaj u korpu

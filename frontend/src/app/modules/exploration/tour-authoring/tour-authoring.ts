@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import {
   CreateTourDto,
+  DefineKeyPointsDto,
   PublishTourDto,
   TourDto,
   TransportTimeDto,
@@ -32,5 +33,9 @@ export class TourAuthoring {
 
   async addTransportTime(id: string, dto: TransportTimeDto): Promise<void> {
     await firstValueFrom(this.http.post<void>(`${BASE_URL}/${id}/transport-times`, dto));
+  }
+
+  async defineKeyPoints(id: string, dto: DefineKeyPointsDto): Promise<void> {
+    await firstValueFrom(this.http.put<void>(`${BASE_URL}/${id}/key-points`, dto));
   }
 }

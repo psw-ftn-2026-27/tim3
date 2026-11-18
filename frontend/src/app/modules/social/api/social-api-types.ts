@@ -117,9 +117,17 @@ export interface ConnectedUserDto {
 
 export type MembershipState = 'None' | 'Pending' | 'Member';
 
+export type MemberRole = 'Owner' | 'Moderator' | 'Member';
+
 export interface ClubUserDto {
   userId: string;
   displayName: string;
+}
+
+export interface ClubMemberDto {
+  userId: string;
+  displayName: string;
+  role: MemberRole;
 }
 
 export interface ClubDetailsDto {
@@ -128,8 +136,9 @@ export interface ClubDetailsDto {
   name: string;
   description: string;
   images: string[];
-  members: ClubUserDto[];
+  members: ClubMemberDto[];
   membership: MembershipState;
+  role: MemberRole | null;
   pendingRequests: ClubUserDto[];
 }
 

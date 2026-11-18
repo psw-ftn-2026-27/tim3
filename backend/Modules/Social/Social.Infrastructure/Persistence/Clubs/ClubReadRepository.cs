@@ -43,6 +43,10 @@ internal sealed class ClubReadRepository : IClubReadRepository
                 club.Description,
                 club.Images,
                 club.Members.Select(member => member.UserId).ToList(),
+                club.Members
+                    .Where(member => member.Role == ClubRole.Moderator)
+                    .Select(member => member.UserId)
+                    .ToList(),
                 club.JoinRequests.Select(request => request.UserId).ToList()))
             .FirstOrDefaultAsync();
     }
