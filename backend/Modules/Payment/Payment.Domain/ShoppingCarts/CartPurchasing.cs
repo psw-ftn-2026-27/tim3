@@ -21,6 +21,22 @@ public sealed class CartPurchasing
         IReadOnlySet<Guid> purchasedTourIds,
         DateTime purchasedAt)
     {
+        ValidateCheckout(cart, wallet, availableTourIds, purchasedTourIds);
+
+        var tokens = cart.Items
+            .Select(item => new TourPurchaseToken(cart.UserId, item.TourId, purchasedAt))
+            .ToList();
+        wallet.ChargeForTours(cart.Items, purchasedAt);
+        cart.ClearAfterPurchase();
+        return tokens;
+    }
+
+    private static void ValidateCheckout(
+        ShoppingCart cart,
+        Wallet wallet,
+        IReadOnlySet<Guid> availableTourIds,
+        IReadOnlySet<Guid> purchasedTourIds)
+    {
         if (cart.Items.Count == 0)
         {
             throw new DomainException("The cart is empty.");
@@ -40,13 +56,6 @@ public sealed class CartPurchasing
 
             EnsureNotPurchased(purchasedTourIds.Contains(item.TourId));
         }
-
-        var tokens = cart.Items
-            .Select(item => new TourPurchaseToken(cart.UserId, item.TourId, purchasedAt))
-            .ToList();
-        wallet.ChargeForTours(cart.Items, purchasedAt);
-        cart.ClearAfterPurchase();
-        return tokens;
     }
 
     private static void EnsureNotPurchased(bool alreadyPurchased)
