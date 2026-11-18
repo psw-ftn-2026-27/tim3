@@ -22,6 +22,18 @@ public sealed record CouponCode
         Value = value;
     }
 
+    // A buyer may type the code in any case. Text that cannot be a code names no coupon.
+    public static CouponCode FromInput(string text)
+    {
+        var value = text?.ToUpperInvariant();
+        if (value is null || value.Length != Length || !value.All(AllowedCharacters.Contains))
+        {
+            throw new NotFoundException("The coupon does not exist.");
+        }
+
+        return new CouponCode(value);
+    }
+
     public static CouponCode Generate()
     {
         return new CouponCode(RandomNumberGenerator.GetString(AllowedCharacters, Length));

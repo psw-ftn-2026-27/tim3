@@ -8,6 +8,7 @@ export interface WalletTransactionDto {
   occurredAt: string;
   kind: WalletTransactionKind;
   tourId: string | null;
+  discountInEc: number;
 }
 
 export interface WalletDto {
@@ -30,11 +31,35 @@ export interface OrderItemDto {
   tourId: string;
   name: string;
   priceInEc: number;
+  discountedPriceInEc: number;
+}
+
+export type CouponNotAppliedReason =
+  'Expired' | 'AlreadyUsed' | 'NoMatchingItem' | 'BetterCouponApplied' | 'DiscountTooSmall';
+
+export interface CartCouponDto {
+  couponId: string;
+  code: string;
+  isApplied: boolean;
+  tourId: string | null;
+  tourName: string | null;
+  discountInEc: number;
+  notAppliedReason: CouponNotAppliedReason | null;
 }
 
 export interface ShoppingCartDto {
   items: OrderItemDto[];
+  coupons: CartCouponDto[];
   totalInEc: number;
+  discountedTotalInEc: number;
+}
+
+export interface EnterCouponDto {
+  code: string;
+}
+
+export interface CheckoutDto {
+  seenTotalInEc: number;
 }
 
 export interface ProductForCartDto {

@@ -29,6 +29,9 @@
               <td>{{ kindLabel(transaction.kind) }}</td>
               <td class="amount" [class.incoming]="transaction.amount > 0">
                 {{ transaction.amount > 0 ? '+' : '' }}{{ transaction.amount }} EC
+                @if (transaction.kind === 'Purchase' && transaction.discountInEc > 0) {
+                  <p class="meta">popust {{ transaction.discountInEc }} EC</p>
+                }
               </td>
               <td>
                 <time [attr.datetime]="transaction.occurredAt">{{

@@ -21,6 +21,7 @@ public class ShoppingCartTests
         item.ProductId.Should().Be(product.Id);
         item.Name.Should().Be(product.Name);
         item.PriceInEc.Should().Be(25);
+        item.AuthorId.Should().Be(product.AuthorId);
         cart.TotalInEc.Should().Be(35);
     }
 
@@ -58,7 +59,7 @@ public class ShoppingCartTests
     public void A_tour_the_buyer_already_owns_cannot_be_added()
     {
         var cart = new ShoppingCart(Guid.NewGuid());
-        var purchasing = new CartPurchasing();
+        var purchasing = new CartPurchasing(new CouponAllocation());
         var product = CreateProduct(25);
 
         var add = () => purchasing.AddToCart(cart, product, alreadyPurchased: true);

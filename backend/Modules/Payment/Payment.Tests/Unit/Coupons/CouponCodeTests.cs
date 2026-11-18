@@ -15,6 +15,24 @@ public class CouponCodeTests
         code.Value.Should().MatchRegex("^[A-Z0-9]{8}$");
     }
 
+    [Fact]
+    public void A_code_typed_in_lowercase_is_the_same_code_as_in_uppercase()
+    {
+        var code = CouponCode.FromInput("abcd1234");
+
+        code.Should().Be(new CouponCode("ABCD1234"));
+    }
+
+    [Theory]
+    [InlineData("ABCD123")]
+    [InlineData("abcd-123")]
+    public void Typed_text_that_cannot_be_a_code_names_no_coupon(string text)
+    {
+        var create = () => CouponCode.FromInput(text);
+
+        create.Should().Throw<NotFoundException>();
+    }
+
     [Theory]
     [InlineData("ABCD123")]
     [InlineData("ABCD12345")]

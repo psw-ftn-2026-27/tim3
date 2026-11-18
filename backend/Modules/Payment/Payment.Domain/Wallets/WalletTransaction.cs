@@ -1,4 +1,3 @@
-using Payment.Domain.ShoppingCarts;
 using Shared.Domain;
 
 namespace Payment.Domain.Wallets;
@@ -11,6 +10,7 @@ public sealed class WalletTransaction : Entity
     public Guid? AdministratorId { get; private set; }
     public Guid? OriginalDepositId { get; private set; }
     public Guid? TourId { get; private set; }
+    public int DiscountInEc { get; private set; }
 
     private WalletTransaction() { }
 
@@ -25,12 +25,13 @@ public sealed class WalletTransaction : Entity
         OriginalDepositId = originalDepositId;
     }
 
-    internal WalletTransaction(OrderItem item, DateTime occurredAt) : base(Guid.NewGuid())
+    internal WalletTransaction(TourCharge charge, DateTime occurredAt) : base(Guid.NewGuid())
     {
-        Amount = -item.PriceInEc;
+        Amount = -(charge.PriceInEc - charge.DiscountInEc);
         OccurredAt = occurredAt;
         Kind = WalletTransactionKind.Purchase;
         AdministratorId = Guid.Empty;
-        TourId = item.TourId;
+        TourId = charge.TourId;
+        DiscountInEc = charge.DiscountInEc;
     }
 }

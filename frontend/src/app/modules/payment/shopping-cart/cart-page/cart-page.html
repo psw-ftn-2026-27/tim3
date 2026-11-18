@@ -131,8 +131,8 @@
           <p class="loading" role="status">Osvežavanje korpe…</p>
         }
 
-        @if (contents.items.length > 0) {
-          <div class="cart-layout">
+        <div class="cart-layout">
+          @if (contents.items.length > 0) {
             <section class="stack" aria-labelledby="cart-items-title">
               <h2 id="cart-items-title">Stavke u korpi ({{ contents.items.length }})</h2>
               <ul class="stack cart-items">
@@ -140,7 +140,12 @@
                   <li class="card stack">
                     <div class="cart-item">
                       <h3 class="tour-name">{{ item.name }}</h3>
-                      <strong class="amount">{{ item.priceInEc }} EC</strong>
+                      <span class="amount">
+                        @if (item.discountedPriceInEc < item.priceInEc) {
+                          <s class="original-price">{{ item.priceInEc }} EC</s>
+                        }
+                        <strong>{{ item.discountedPriceInEc }} EC</strong>
+                      </span>
                       <button
                         class="button"
                         type="button"
@@ -158,14 +163,97 @@
                 }
               </ul>
             </section>
+          } @else if (
+            !tourId() ||
+            (!selectedProduct.isLoading() &&
+              !selectedProduct.hasValue() &&
+              !selectedProduct.error())
+          ) {
+            <div class="empty-state">
+              <h2>Korpa je prazna</h2>
+              <p>Dodaj ture iz ponude da započneš kupovinu.</p>
+              <div class="empty-state-actions">
+                <a class="button button--primary" routerLink="/exploration">Ponuda tura</a>
+              </div>
+            </div>
+          }
 
-            <section class="card stack" aria-labelledby="checkout-title">
-              <h2 id="checkout-title">Pregled kupovine</h2>
+          <section class="card stack" aria-labelledby="checkout-title">
+            <h2 id="checkout-title">Pregled kupovine</h2>
+
+            <form class="stack" novalidate (submit)="enterCoupon($event)">
+              <div class="field">
+                <label for="coupon-code">Kod kupona</label>
+                <input
+                  id="coupon-code"
+                  type="text"
+                  autocomplete="off"
+                  [formField]="couponForm.code"
+                />
+                @if (couponForm.code().touched()) {
+                  @for (error of couponForm.code().errors(); track error.kind) {
+                    <p class="error">{{ error.message }}</p>
+                  }
+                }
+              </div>
+              @if (couponError(); as error) {
+                <p class="error" role="alert">{{ error }}</p>
+              }
+              <div class="page-actions">
+                <button
+                  class="button"
+                  type="submit"
+                  [disabled]="pending() || cart.isLoading() || !couponForm().valid()"
+                >
+                  {{ applyingCoupon() ? 'Primenjivanje…' : 'Primeni' }}
+                </button>
+              </div>
+            </form>
+
+            @if (contents.coupons.length > 0) {
+              <ul class="stack cart-coupons" aria-label="Uneti kuponi">
+                @for (coupon of contents.coupons; track coupon.couponId) {
+                  <li class="stack">
+                    <div class="cart-coupon">
+                      <div>
+                        <p>
+                          <strong>{{ coupon.code }}</strong>
+                        </p>
+                        @if (coupon.isApplied) {
+                          <p class="meta">
+                            primenjen na {{ coupon.tourName }}, −{{ coupon.discountInEc }} EC
+                          </p>
+                        } @else if (coupon.notAppliedReason; as reason) {
+                          <p class="meta">nije primenjen: {{ notAppliedLabel(reason) }}</p>
+                        }
+                      </div>
+                      <button
+                        class="button"
+                        type="button"
+                        [attr.aria-label]="'Ukloni kupon ' + coupon.code"
+                        [disabled]="pending() || cart.isLoading()"
+                        (click)="removeCoupon(coupon.couponId)"
+                      >
+                        {{ removingCouponId() === coupon.couponId ? 'Uklanjanje…' : 'Ukloni' }}
+                      </button>
+                    </div>
+                    @if (removeCouponError()?.couponId === coupon.couponId) {
+                      <p class="error" role="alert">{{ removeCouponError()?.message }}</p>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+
+            @if (contents.items.length > 0) {
               <dl class="stack totals">
                 <div class="total">
                   <dt>Ukupno za kupovinu</dt>
                   <dd class="amount">
-                    <strong>{{ contents.totalInEc }} EC</strong>
+                    @if (contents.discountedTotalInEc < contents.totalInEc) {
+                      <s class="original-price">{{ contents.totalInEc }} EC</s>
+                    }
+                    <strong>{{ contents.discountedTotalInEc }} EC</strong>
                   </dd>
                 </div>
                 @if (wallet.hasValue() && !wallet.isLoading()) {
@@ -224,23 +312,14 @@
                   [disabled]="checkoutBlocked()"
                   (click)="checkout()"
                 >
-                  {{ purchasing() ? 'Kupovina…' : 'Kupi za ' + contents.totalInEc + ' EC' }}
+                  {{
+                    purchasing() ? 'Kupovina…' : 'Kupi za ' + contents.discountedTotalInEc + ' EC'
+                  }}
                 </button>
               </div>
-            </section>
-          </div>
-        } @else if (
-          !tourId() ||
-          (!selectedProduct.isLoading() && !selectedProduct.hasValue() && !selectedProduct.error())
-        ) {
-          <div class="empty-state">
-            <h2>Korpa je prazna</h2>
-            <p>Dodaj ture iz ponude da započneš kupovinu.</p>
-            <div class="empty-state-actions">
-              <a class="button button--primary" routerLink="/exploration">Ponuda tura</a>
-            </div>
-          </div>
-        }
+            }
+          </section>
+        </div>
       }
     }
   } @else {

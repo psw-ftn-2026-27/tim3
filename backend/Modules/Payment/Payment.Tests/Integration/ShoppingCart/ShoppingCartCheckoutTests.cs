@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Payment.Application.ShoppingCart;
 using Payment.Domain.Wallets;
 using Payment.Infrastructure.Persistence;
 using Payment.Tests.Integration.Seeds;
@@ -27,7 +28,7 @@ public sealed class ShoppingCartCheckoutTests : BaseIntegrationTest
         var wallet = WalletSeed.ExplorerWalletWithDeposit;
         using var client = Factory.CreateClientFor(cart.UserId, "explorer");
 
-        var response = await client.PostAsync(CheckoutUrl, null);
+        var response = await client.PostAsJsonAsync(CheckoutUrl, new CheckoutDto(cart.TotalInEc));
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         using var context = Factory.CreateContext<PaymentDbContext>();
@@ -53,7 +54,7 @@ public sealed class ShoppingCartCheckoutTests : BaseIntegrationTest
         var product = ProductSeed.FreeWalk;
         using var client = Factory.CreateClientFor(cart.UserId, "explorer");
 
-        var response = await client.PostAsync(CheckoutUrl, null);
+        var response = await client.PostAsJsonAsync(CheckoutUrl, new CheckoutDto(cart.TotalInEc));
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         using var context = Factory.CreateContext<PaymentDbContext>();
@@ -77,7 +78,7 @@ public sealed class ShoppingCartCheckoutTests : BaseIntegrationTest
         var wallet = hasWallet ? WalletSeed.EmptyExplorerWallet : null;
         using var client = Factory.CreateClientFor(cart.UserId, "explorer");
 
-        var response = await client.PostAsync(CheckoutUrl, null);
+        var response = await client.PostAsJsonAsync(CheckoutUrl, new CheckoutDto(cart.TotalInEc));
 
         await AssertRejectedAsync(response);
         await AssertCheckoutUnchangedAsync(cart, wallet);
@@ -89,7 +90,7 @@ public sealed class ShoppingCartCheckoutTests : BaseIntegrationTest
         var cart = ShoppingCartSeed.AlreadyPurchasedCart;
         using var client = Factory.CreateClientFor(cart.UserId, "explorer");
 
-        var response = await client.PostAsync(CheckoutUrl, null);
+        var response = await client.PostAsJsonAsync(CheckoutUrl, new CheckoutDto(cart.TotalInEc));
 
         await AssertRejectedAsync(response);
         await AssertCheckoutUnchangedAsync(cart, WalletSeed.ExplorerWalletWithReversal);
@@ -101,10 +102,53 @@ public sealed class ShoppingCartCheckoutTests : BaseIntegrationTest
         var cart = ShoppingCartSeed.ArchivedCheckoutCart;
         using var client = Factory.CreateClientFor(cart.UserId, "explorer");
 
-        var response = await client.PostAsync(CheckoutUrl, null);
+        var response = await client.PostAsJsonAsync(CheckoutUrl, new CheckoutDto(cart.TotalInEc));
 
         await AssertRejectedAsync(response);
         await AssertCheckoutUnchangedAsync(cart, WalletSeed.DemoExplorerWalletWithDeposit);
+    }
+
+    [Fact]
+    public async Task Buying_with_a_coupon_charges_the_discounted_total_and_records_the_coupon_and_discount()
+    {
+        var cart = ShoppingCartSeed.CartWithWinningAndLosingCoupon;
+        var wallet = WalletSeed.CouponBuyerWalletWithDeposit;
+        var discounted = ProductSeed.CityWalk;
+        var coupon = CouponSeed.AuthorGeneralCoupon;
+        var discount = discounted.PriceInEc * coupon.DiscountPercent / 100;
+        using var client = Factory.CreateClientFor(cart.UserId, "explorer");
+
+        var response = await client.PostAsJsonAsync(CheckoutUrl, new CheckoutDto(cart.TotalInEc - discount));
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var context = Factory.CreateContext<PaymentDbContext>();
+        var savedWallet = await context.Wallets.Include(row => row.Transactions).SingleAsync(row => row.Id == wallet.Id);
+        savedWallet.Balance.Should().Be(wallet.Balance - (int)cart.TotalInEc + discount);
+        savedWallet.Transactions.Where(row => row.Kind == WalletTransactionKind.Purchase)
+            .Select(row => new { row.TourId, row.Amount, row.DiscountInEc })
+            .Should().BeEquivalentTo(cart.Items.Select(item => item.TourId == discounted.TourId
+                ? new { TourId = (Guid?)item.TourId, Amount = -(item.PriceInEc - discount), DiscountInEc = discount }
+                : new { TourId = (Guid?)item.TourId, Amount = -item.PriceInEc, DiscountInEc = 0 }));
+        var tokens = await context.TourPurchaseTokens.Where(row => row.BuyerId == cart.UserId).ToListAsync();
+        tokens.Select(row => new { row.TourId, row.CouponId, row.DiscountInEc }).Should().BeEquivalentTo(
+            cart.Items.Select(item => item.TourId == discounted.TourId
+                ? new { item.TourId, CouponId = (Guid?)coupon.Id, DiscountInEc = discount }
+                : new { item.TourId, CouponId = (Guid?)null, DiscountInEc = 0 }));
+        var savedCart = await context.ShoppingCarts.SingleAsync(row => row.Id == cart.Id);
+        savedCart.Items.Should().BeEmpty();
+        savedCart.CouponIds.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task A_purchase_with_a_total_that_no_longer_matches_leaves_the_database_intact()
+    {
+        var cart = ShoppingCartSeed.CartWithWinningAndLosingCoupon;
+        using var client = Factory.CreateClientFor(cart.UserId, "explorer");
+
+        var response = await client.PostAsJsonAsync(CheckoutUrl, new CheckoutDto(cart.TotalInEc));
+
+        await AssertRejectedAsync(response);
+        await AssertCheckoutUnchangedAsync(cart, WalletSeed.CouponBuyerWalletWithDeposit);
     }
 
     [Theory]
@@ -116,7 +160,7 @@ public sealed class ShoppingCartCheckoutTests : BaseIntegrationTest
             ? Factory.CreateClient()
             : Factory.CreateClientFor(WellKnownUsers.Administrator, role);
 
-        var response = await client.PostAsync(CheckoutUrl, null);
+        var response = await client.PostAsJsonAsync(CheckoutUrl, new CheckoutDto(0));
 
         response.StatusCode.Should().Be(expected);
     }
@@ -130,8 +174,8 @@ public sealed class ShoppingCartCheckoutTests : BaseIntegrationTest
         using var secondClient = Factory.CreateClientFor(cart.UserId, "explorer");
 
         var responses = await Task.WhenAll(
-            firstClient.PostAsync(CheckoutUrl, null),
-            secondClient.PostAsync(CheckoutUrl, null));
+            firstClient.PostAsJsonAsync(CheckoutUrl, new CheckoutDto(cart.TotalInEc)),
+            secondClient.PostAsJsonAsync(CheckoutUrl, new CheckoutDto(cart.TotalInEc)));
 
         responses.Select(response => response.StatusCode).Should().BeEquivalentTo(
             [HttpStatusCode.NoContent, HttpStatusCode.BadRequest]);
@@ -157,6 +201,7 @@ public sealed class ShoppingCartCheckoutTests : BaseIntegrationTest
         using var context = Factory.CreateContext<PaymentDbContext>();
         var savedCart = await context.ShoppingCarts.SingleAsync(row => row.Id == cart.Id);
         savedCart.Items.Should().BeEquivalentTo(cart.Items);
+        savedCart.CouponIds.Should().Equal(cart.CouponIds);
         var savedWallet = await context.Wallets.Include(row => row.Transactions)
             .SingleOrDefaultAsync(row => row.UserId == cart.UserId);
         if (wallet is null)

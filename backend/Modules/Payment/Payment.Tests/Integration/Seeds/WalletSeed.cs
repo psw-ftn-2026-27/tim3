@@ -9,6 +9,7 @@ internal static class WalletSeed
     public static readonly Wallet ExplorerWalletWithReversal;
     public static readonly Wallet ExplorerWalletWithDeposit;
     public static readonly Wallet DemoExplorerWalletWithDeposit;
+    public static readonly Wallet CouponBuyerWalletWithDeposit;
 
     public static readonly Wallet[] All;
 
@@ -28,6 +29,13 @@ internal static class WalletSeed
         DemoExplorerWalletWithDeposit = new Wallet(Guid.Parse("20000000-0000-0000-0000-000000000001"));
         DemoExplorerWalletWithDeposit.Deposit(60, WellKnownUsers.Administrator, historyStart);
 
-        All = [EmptyExplorerWallet, ExplorerWalletWithReversal, ExplorerWalletWithDeposit, DemoExplorerWalletWithDeposit];
+        CouponBuyerWalletWithDeposit = new Wallet(WellKnownUsers.FifthExplorer);
+        CouponBuyerWalletWithDeposit.Deposit(40, WellKnownUsers.Administrator, historyStart);
+
+        All =
+        [
+            EmptyExplorerWallet, ExplorerWalletWithReversal, ExplorerWalletWithDeposit, DemoExplorerWalletWithDeposit,
+            CouponBuyerWalletWithDeposit
+        ];
     }
 }

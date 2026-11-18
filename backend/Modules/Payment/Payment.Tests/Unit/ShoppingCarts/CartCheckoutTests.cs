@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Payment.Domain.Coupons;
 using Payment.Domain.Products;
 using Payment.Domain.ShoppingCarts;
 using Payment.Domain.Wallets;
@@ -23,7 +24,8 @@ public sealed class CartCheckoutTests
         wallet.Deposit(40, Guid.NewGuid(), purchasedAt.AddHours(-1));
         HashSet<Guid> available = [paid.TourId, free.TourId];
 
-        var tokens = new CartPurchasing().Checkout(cart, wallet, available, new HashSet<Guid>(), purchasedAt);
+        var tokens = CreatePurchasing().Checkout(
+            cart, wallet, [], new HashSet<Guid>(), available, new HashSet<Guid>(), 25, Today(purchasedAt), purchasedAt);
 
         cart.Items.Should().BeEmpty();
         wallet.Balance.Should().Be(15);
@@ -54,11 +56,90 @@ public sealed class CartCheckoutTests
         HashSet<Guid> availability = available ? [product.TourId] : [];
         HashSet<Guid> purchasedTours = purchased ? [product.TourId] : [];
 
-        var checkout = () => new CartPurchasing().Checkout(cart, wallet, availability, purchasedTours, now);
+        var checkout = () => CreatePurchasing().Checkout(
+            cart, wallet, [], new HashSet<Guid>(), availability, purchasedTours, 25, Today(now), now);
 
         checkout.Should().Throw<DomainException>();
         cart.Items.Should().ContainSingle().Which.TourId.Should().Be(product.TourId);
         wallet.Balance.Should().Be(balance);
         wallet.Transactions.Should().ContainSingle().Which.Kind.Should().Be(WalletTransactionKind.Deposit);
+    }
+
+    [Fact]
+    public void A_purchase_is_refused_when_the_total_differs_from_the_one_the_buyer_saw()
+    {
+        var userId = Guid.NewGuid();
+        var cart = new ShoppingCart(userId);
+        var product = new Product(Guid.NewGuid(), "City walk", Guid.NewGuid(), 25);
+        cart.AddItem(product);
+        var now = DateTime.UtcNow;
+        var coupon = CreateCoupon(product.AuthorId, 20, now);
+        CreatePurchasing().EnterCoupon(cart, coupon, new HashSet<Guid>(), Today(now));
+        var wallet = new Wallet(userId);
+        wallet.Deposit(40, Guid.NewGuid(), now.AddHours(-1));
+
+        var checkout = () => CreatePurchasing().Checkout(
+            cart, wallet, [coupon], new HashSet<Guid>(), new HashSet<Guid> { product.TourId }, new HashSet<Guid>(),
+            25, Today(now), now);
+
+        checkout.Should().Throw<DomainException>();
+        cart.Items.Should().ContainSingle();
+        cart.CouponIds.Should().Equal(coupon.Id);
+        wallet.Balance.Should().Be(40);
+    }
+
+    [Fact]
+    public void A_purchase_with_a_coupon_charges_the_discounted_total_records_the_coupon_and_clears_all_coupons()
+    {
+        var userId = Guid.NewGuid();
+        var cart = new ShoppingCart(userId);
+        var discounted = new Product(Guid.NewGuid(), "City walk", Guid.NewGuid(), 25);
+        var fullPrice = new Product(Guid.NewGuid(), "Museum walk", Guid.NewGuid(), 15);
+        cart.AddItem(discounted);
+        cart.AddItem(fullPrice);
+        var now = DateTime.UtcNow;
+        var applied = CreateCoupon(discounted.AuthorId, 20, now);
+        var notApplied = CreateCoupon(discounted.AuthorId, 10, now);
+        CreatePurchasing().EnterCoupon(cart, applied, new HashSet<Guid>(), Today(now));
+        CreatePurchasing().EnterCoupon(cart, notApplied, new HashSet<Guid>(), Today(now));
+        var wallet = new Wallet(userId);
+        wallet.Deposit(40, Guid.NewGuid(), now.AddHours(-1));
+        HashSet<Guid> available = [discounted.TourId, fullPrice.TourId];
+
+        var tokens = CreatePurchasing().Checkout(
+            cart, wallet, [applied, notApplied], new HashSet<Guid>(), available, new HashSet<Guid>(), 35, Today(now), now);
+
+        wallet.Balance.Should().Be(5);
+        wallet.Transactions.Where(row => row.Kind == WalletTransactionKind.Purchase)
+            .Select(row => new { row.TourId, row.Amount, row.DiscountInEc })
+            .Should().BeEquivalentTo(new[]
+            {
+                new { TourId = (Guid?)discounted.TourId, Amount = -20, DiscountInEc = 5 },
+                new { TourId = (Guid?)fullPrice.TourId, Amount = -15, DiscountInEc = 0 }
+            });
+        tokens.Select(token => new { token.TourId, token.CouponId, token.DiscountInEc })
+            .Should().BeEquivalentTo(new[]
+            {
+                new { discounted.TourId, CouponId = (Guid?)applied.Id, DiscountInEc = 5 },
+                new { fullPrice.TourId, CouponId = (Guid?)null, DiscountInEc = 0 }
+            });
+        cart.Items.Should().BeEmpty();
+        cart.CouponIds.Should().BeEmpty();
+    }
+
+    private static CartPurchasing CreatePurchasing()
+    {
+        return new CartPurchasing(new CouponAllocation());
+    }
+
+    private static DateOnly Today(DateTime now)
+    {
+        return DateOnly.FromDateTime(now);
+    }
+
+    private static Coupon CreateCoupon(Guid authorId, int discountPercent, DateTime now)
+    {
+        return new Coupon(
+            authorId, new CouponRequest(null, discountPercent, Today(now).AddDays(10)), CouponCode.Generate(), now);
     }
 }

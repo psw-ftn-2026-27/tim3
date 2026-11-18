@@ -8,6 +8,7 @@ internal static class CouponSeed
     public static readonly Coupon AuthorCityWalkCoupon;
     public static readonly Coupon AuthorExpiredGeneralCoupon;
     public static readonly Coupon OtherAuthorRiverWalkCoupon;
+    public static readonly Coupon AuthorGeneralCoupon;
 
     public static readonly Coupon[] All;
 
@@ -25,6 +26,10 @@ internal static class CouponSeed
             new CouponRequest(ProductSeed.OtherAuthorRiverWalk.Id, 15, new DateOnly(2099, 12, 31)),
             new CouponCode("RIVER099"), createdAt);
 
-        All = [AuthorCityWalkCoupon, AuthorExpiredGeneralCoupon, OtherAuthorRiverWalkCoupon];
+        AuthorGeneralCoupon = new Coupon(
+            WellKnownUsers.ThirdExplorer, new CouponRequest(null, 20, new DateOnly(2099, 12, 31)),
+            new CouponCode("WALK2099"), createdAt.AddDays(2));
+
+        All = [AuthorCityWalkCoupon, AuthorExpiredGeneralCoupon, OtherAuthorRiverWalkCoupon, AuthorGeneralCoupon];
     }
 }

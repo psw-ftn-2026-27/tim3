@@ -21,6 +21,28 @@
   overflow-wrap: anywhere;
 }
 
+.cart-coupons {
+  padding: 0;
+  list-style: none;
+}
+
+.cart-coupon {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  overflow-wrap: anywhere;
+}
+
+.cart-coupon p {
+  margin: 0;
+}
+
+.original-price {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
 .amount {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
