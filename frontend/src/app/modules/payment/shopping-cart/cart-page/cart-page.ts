@@ -4,12 +4,14 @@ import { RouterLink } from '@angular/router';
 import { Auth } from '../../../../core/auth/auth';
 import { serverMessage } from '../../../../shared/util/server-message';
 import { ProductForCartDto, ShoppingCartDto, WalletDto } from '../../api/payment-api-types';
+import { PaymentNavigation } from '../../own-wallet/payment-navigation/payment-navigation';
 import { CART_URL, ShoppingCart } from '../shopping-cart';
 
 @Component({
   selector: 'app-cart-page',
-  imports: [RouterLink],
+  imports: [RouterLink, PaymentNavigation],
   templateUrl: './cart-page.html',
+  styleUrl: './cart-page.scss',
 })
 export class CartPage {
   private readonly shoppingCart = inject(ShoppingCart);
@@ -45,6 +47,20 @@ export class CartPage {
     return error instanceof HttpErrorResponse ? error.status : null;
   });
   protected readonly pending = signal(false);
+  protected readonly adding = signal(false);
+  protected readonly addedTourId = signal<string | null>(null);
+  protected readonly removingTourId = signal<string | null>(null);
+  protected readonly cartNotice = signal<string | null>(null);
+  protected readonly selectedTourInCart = computed(
+    () =>
+      this.cart.hasValue() && this.cart.value().items.some((item) => item.tourId === this.tourId()),
+  );
+  protected readonly awaitingSelectedTour = computed(
+    () =>
+      this.selectedProduct.hasValue() &&
+      !this.selectedTourInCart() &&
+      this.addedTourId() !== this.selectedProduct.value().tourId,
+  );
   protected readonly purchasing = signal(false);
   protected readonly missingEc = computed(() => {
     if (
@@ -76,34 +92,45 @@ export class CartPage {
   protected readonly checkoutError = signal<string | null>(null);
   protected readonly checkoutConfirmed = signal(false);
 
-  protected async add(tourId: string): Promise<void> {
-    if (this.pending() || this.cart.isLoading()) {
+  protected async add(tourId: string, name: string): Promise<void> {
+    if (this.pending() || this.cart.isLoading() || !this.cart.hasValue()) {
       return;
     }
     this.pending.set(true);
+    this.adding.set(true);
+    this.cartNotice.set(null);
     this.addError.set(null);
     this.checkoutError.set(null);
     this.checkoutConfirmed.set(false);
     try {
       await this.shoppingCart.add(tourId);
+      this.focusCartTitle();
+      this.addedTourId.set(tourId);
+      this.cartNotice.set(`Tura „${name}” je dodata u korpu.`);
       this.cart.reload();
     } catch (error) {
       this.addError.set({ tourId, message: serverMessage(error, 'Dodavanje ture nije uspelo.') });
     } finally {
+      this.adding.set(false);
       this.pending.set(false);
     }
   }
 
-  protected async remove(tourId: string): Promise<void> {
-    if (this.pending() || this.cart.isLoading()) {
+  protected async remove(tourId: string, name: string): Promise<void> {
+    if (this.pending() || this.cart.isLoading() || !this.cart.hasValue()) {
       return;
     }
     this.pending.set(true);
+    this.removingTourId.set(tourId);
+    this.cartNotice.set(null);
     this.removeError.set(null);
     this.checkoutError.set(null);
     this.checkoutConfirmed.set(false);
     try {
       await this.shoppingCart.remove(tourId);
+      this.focusCartTitle();
+      if (this.addedTourId() === tourId) this.addedTourId.set(null);
+      this.cartNotice.set(`Tura „${name}” je uklonjena iz korpe.`);
       this.cart.reload();
     } catch (error) {
       this.removeError.set({
@@ -111,6 +138,7 @@ export class CartPage {
         message: serverMessage(error, 'Uklanjanje ture nije uspelo.'),
       });
     } finally {
+      this.removingTourId.set(null);
       this.pending.set(false);
     }
   }
@@ -121,20 +149,27 @@ export class CartPage {
     }
     this.pending.set(true);
     this.purchasing.set(true);
+    this.cartNotice.set(null);
     this.checkoutError.set(null);
     this.checkoutConfirmed.set(false);
     try {
       await this.shoppingCart.checkout();
       this.addError.set(null);
       this.removeError.set(null);
+      this.focusCartTitle();
       this.checkoutConfirmed.set(true);
       this.cart.reload();
       this.wallet.reload();
     } catch (error) {
       this.checkoutError.set(serverMessage(error, 'Kupovina nije uspela.'));
+      this.wallet.reload();
     } finally {
       this.pending.set(false);
       this.purchasing.set(false);
     }
+  }
+
+  private focusCartTitle(): void {
+    document.getElementById('payment-cart-title')?.focus();
   }
 }

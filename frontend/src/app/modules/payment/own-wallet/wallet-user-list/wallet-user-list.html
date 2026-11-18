@@ -1,0 +1,86 @@
+<section class="card stack" aria-labelledby="wallet-users-title">
+  <div>
+    <p class="meta">Administracija</p>
+    <h2 id="wallet-users-title" tabindex="-1">Korisnici</h2>
+  </div>
+  <form class="stack" (submit)="searchRequested.emit($event)">
+    <div class="field">
+      <label for="wallet-user-search">Pretraži po prikaznom imenu</label>
+      <input
+        id="wallet-user-search"
+        type="search"
+        [formField]="searchField()"
+        [readOnly]="disabled()"
+      />
+    </div>
+    <div class="page-actions">
+      <button class="button" type="submit" [disabled]="disabled()">Pretraži</button>
+    </div>
+  </form>
+  @if (loading()) {
+    <p class="loading" role="status">Učitavanje korisnika…</p>
+  } @else if (failed()) {
+    <div class="empty-state" role="alert">
+      @switch (errorStatus()) {
+        @case (401) {
+          <h2>Prijavi se da vidiš korisnike</h2>
+          <p>Sesija je istekla. Prijavi se ponovo.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Prijavi se</a>
+          </div>
+        }
+        @case (403) {
+          <h2>Samo administrator vidi novčanike korisnika</h2>
+          <p>Novčanike korisnika pregleda i uplate unosi administrator.</p>
+        }
+        @default {
+          <h2>Listu korisnika nije moguće učitati</h2>
+          <p>Nešto nije u redu na našoj strani. Pokušaj ponovo za trenutak.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" [disabled]="disabled()" (click)="retry.emit()">
+              Pokušaj ponovo
+            </button>
+          </div>
+        }
+      }
+    </div>
+  } @else if (users(); as result) {
+    @if (result.items.length === 0) {
+      <div class="empty-state">
+        <h2>Nema korisnika</h2>
+        <p>Pokušaj sa drugim prikaznim imenom ili praznom pretragom.</p>
+      </div>
+    } @else {
+      <p class="meta" role="status">Pronađeno korisnika: {{ result.totalCount }}</p>
+      <ul class="user-list" aria-label="Korisnički novčanici">
+        @for (user of result.items; track user.userId) {
+          <li>
+            <button
+              class="button user-choice"
+              type="button"
+              [attr.aria-pressed]="selectedId() === user.userId"
+              [attr.aria-label]="user.displayName + ', stanje ' + user.balance + ' EC'"
+              aria-controls="wallet-detail"
+              [disabled]="disabled()"
+              (click)="userSelected.emit(user)"
+            >
+              <span class="user-name">{{ user.displayName }}</span>
+              <span class="user-balance">{{ user.balance }} EC</span>
+              @if (selectedId() === user.userId) {
+                <span class="selection-label">Izabran</span>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    }
+    <app-wallet-pagination
+      label="Stranice korisnika"
+      [page]="page()"
+      [pageSize]="pageSize()"
+      [totalCount]="result.totalCount"
+      [disabled]="disabled()"
+      (pageChange)="pageChange.emit($event)"
+    />
+  }
+</section>

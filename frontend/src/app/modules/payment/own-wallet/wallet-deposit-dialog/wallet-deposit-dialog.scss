@@ -1,0 +1,22 @@
+:host {
+  display: contents;
+}
+dialog {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 0;
+  border-radius: var(--radius-lg);
+  padding: 0;
+  width: min(32rem, calc(100% - var(--space-5)));
+  max-height: calc(100dvh - var(--space-6));
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+}
+dialog::backdrop {
+  background: var(--backdrop);
+}
+.recipient {
+  border-block: var(--border);
+  padding-block: var(--space-4);
+  overflow-wrap: anywhere;
+}

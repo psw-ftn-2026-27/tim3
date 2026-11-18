@@ -1,5 +1,5 @@
 @if (giftCards().length === 0) {
-  <p>Još nema dobijenih kartica.</p>
+  <p class="empty">Još nema dobijenih kartica.</p>
 } @else {
   <div class="table-wrapper">
     <table class="table" aria-label="Dobijene poklon kartice">
@@ -21,7 +21,9 @@
             <td>
               <time [attr.datetime]="giftCard.expiresAt">{{ date(giftCard.expiresAt) }}</time>
             </td>
-            <td>{{ statusLabel(giftCard.status) }}</td>
+            <td>
+              <span class="badge">{{ statusLabel(giftCard.status) }}</span>
+            </td>
           </tr>
         }
       </tbody>

@@ -10,8 +10,10 @@ import {
   RecipientDto,
   WalletDto,
 } from '../../api/payment-api-types';
+import { PaymentNavigation } from '../../own-wallet/payment-navigation/payment-navigation';
 import { WalletPagination } from '../../own-wallet/wallet-pagination/wallet-pagination';
 import { GiftCardPurchasing } from '../gift-card-purchasing';
+import { GiftCardLoadError } from '../gift-card-load-error/gift-card-load-error';
 import { PurchasedGiftCardList } from '../purchased-gift-card-list/purchased-gift-card-list';
 import { ReceivedGiftCardList } from '../received-gift-card-list/received-gift-card-list';
 import { RecipientList } from '../recipient-list/recipient-list';
@@ -26,6 +28,8 @@ const UNEXPECTED_ERROR = 'Kupovina trenutno nije moguća, pokušaj ponovo.';
 @Component({
   imports: [
     FormField,
+    GiftCardLoadError,
+    PaymentNavigation,
     PurchasedGiftCardList,
     ReceivedGiftCardList,
     RecipientList,
@@ -122,6 +126,7 @@ export class GiftCards {
     this.confirmation.set(null);
     this.buyError.set(null);
     this.showForm.set(true);
+    this.focusPurchaseTitle();
   }
 
   protected search(event: Event): void {
@@ -191,11 +196,17 @@ export class GiftCards {
     return UNEXPECTED_ERROR;
   }
 
-  private closeForm(): void {
+  protected closeForm(): void {
+    this.focusPurchaseTitle();
+    this.buyError.set(null);
     this.showForm.set(false);
     this.selectedRecipient.set(null);
     this.searchText.set(null);
     this.searchForm().reset({ text: '' });
     this.buyForm().reset({ amount: null, message: '' });
+  }
+
+  private focusPurchaseTitle(): void {
+    document.getElementById('buy-gift-card-title')?.focus();
   }
 }
