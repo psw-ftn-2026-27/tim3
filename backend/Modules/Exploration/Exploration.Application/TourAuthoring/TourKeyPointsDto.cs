@@ -1,3 +1,4 @@
+using Exploration.Application.Tours;
 using Exploration.Domain.Tours;
 
 namespace Exploration.Application.TourAuthoring;

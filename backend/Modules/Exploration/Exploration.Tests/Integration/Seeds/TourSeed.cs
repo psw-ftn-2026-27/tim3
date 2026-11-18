@@ -12,6 +12,7 @@ internal static class TourSeed
     public static readonly Tour PublishedVineyards;
     public static readonly Tour PublishedMonasteries;
     public static readonly Tour ArchivedHomesteads;
+    public static readonly Tour PublishedOldTownWithHiddenMiddleKeyPoint;
 
     static TourSeed()
     {
@@ -50,7 +51,17 @@ internal static class TourSeed
         ], new TourLength(6.5, false));
         ArchivedHomesteads.Publish(TourPrice.Free());
         ArchivedHomesteads.Archive();
+
+        PublishedOldTownWithHiddenMiddleKeyPoint = new(WellKnownUsers.Explorer, "Stari grad Novog Sada", "Tura polazi sa Trga slobode, vodi kroz Zmaj Jovinu i Dunavsku ulicu do Dunavskog parka i otkriva priče o građanima koji su obeležili stari Novi Sad.", TourDifficulty.Easy, ["istorija", "grad"], new GroupSize(2, 15));
+        PublishedOldTownWithHiddenMiddleKeyPoint.AddTransportTime(TransportMode.Walking, 75);
+        PublishedOldTownWithHiddenMiddleKeyPoint.DefineKeyPoints(
+        [
+            new KeyPoint("Trg slobode", "Polazak ispred Gradske kuće.", "/api/media/images/trg-slobode.png", new GeoLocation(45.2551, 19.8451), "Na fasadi Gradske kuće jedna figura gleda na suprotnu stranu od ostalih.", true),
+            new KeyPoint("Zmaj Jovina ulica", "Pešačka ulica sa kućom Zmaj Jove.", "/api/media/images/zmaj-jovina.png", new GeoLocation(45.2557, 19.8470), "U pasažu je sačuvan bunar iz osamnaestog veka.", false),
+            new KeyPoint("Dunavski park", "Kraj ture kod jezerceta u parku.", "/api/media/images/dunavski-park.png", new GeoLocation(45.2545, 19.8530), "Najstarije drvo u parku posadio je prvi upravnik parka.", true)
+        ], new TourLength(1.3, true));
+        PublishedOldTownWithHiddenMiddleKeyPoint.Publish(TourPrice.Free());
     }
 
-    public static Tour[] All => [FortressWalk, CityStroll, SecondExplorersTrail, PublishableRiverside, PublishedVineyards, PublishedMonasteries, ArchivedHomesteads];
+    public static Tour[] All => [FortressWalk, CityStroll, SecondExplorersTrail, PublishableRiverside, PublishedVineyards, PublishedMonasteries, ArchivedHomesteads, PublishedOldTownWithHiddenMiddleKeyPoint];
 }

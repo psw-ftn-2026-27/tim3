@@ -2,6 +2,7 @@ using Exploration.Application.TourBrowsing;
 using Exploration.Application.Tours;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Api;
 using Shared.Domain;
 
 namespace Exploration.Api;
@@ -22,5 +23,11 @@ public sealed class TourBrowsingController : ControllerBase
     public async Task<ActionResult<PageResult<TourDto>>> GetPublished([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         return await _browsingQueries.GetPublishedAsync(page, pageSize);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<TourPreviewDto>> GetPreview(Guid id)
+    {
+        return await _browsingQueries.GetPreviewAsync(id, User.GetUserId());
     }
 }

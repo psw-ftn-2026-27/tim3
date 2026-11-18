@@ -1,4 +1,5 @@
 using Exploration.Application.TourAuthoring;
+using Exploration.Application.TourBrowsing;
 using Exploration.Application.Tours;
 using Exploration.Domain.Tours;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +50,36 @@ internal sealed class TourReadRepository : ITourReadRepository
                         keyPoint.VisibleWithoutPurchase))
                     .ToList(),
                 new TourLengthDto(tour.Length.Kilometres, tour.Length.IsStraightLine)))
+            .SingleOrDefaultAsync();
+    }
+
+    public Task<TourPreviewDto?> GetPreviewAsync(Guid tourId, Guid userId)
+    {
+        return _dbContext.Tours
+            .Where(tour => tour.Id == tourId && (tour.Status == TourStatus.Published || tour.AuthorId == userId))
+            .Select(tour => new TourPreviewDto(
+                tour.Name,
+                tour.Description,
+                tour.Difficulty,
+                tour.Tags,
+                tour.RecommendedGroupSize == null
+                    ? null
+                    : new GroupSizeDto(tour.RecommendedGroupSize.From, tour.RecommendedGroupSize.To),
+                tour.TransportTimes
+                    .Select(time => new TransportTimeDto(time.Transport, time.Minutes))
+                    .ToList(),
+                new TourLengthDto(tour.Length.Kilometres, tour.Length.IsStraightLine),
+                tour.Status,
+                tour.AuthorId == userId,
+                tour.KeyPoints
+                    .Where(keyPoint => keyPoint.VisibleWithoutPurchase)
+                    .OrderBy(keyPoint => keyPoint.Order)
+                    .Select(keyPoint => new PreviewKeyPointDto(
+                        keyPoint.Name,
+                        keyPoint.Description,
+                        keyPoint.ImageAddress,
+                        new GeoLocationDto(keyPoint.Location.Latitude, keyPoint.Location.Longitude)))
+                    .ToList()))
             .SingleOrDefaultAsync();
     }
 

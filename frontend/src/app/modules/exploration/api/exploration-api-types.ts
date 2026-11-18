@@ -83,3 +83,23 @@ export interface DefineKeyPointsDto {
   keyPoints: KeyPointInputDto[];
   length: TourLengthDto;
 }
+
+export interface PreviewKeyPointDto {
+  name: string;
+  description: string;
+  imageAddress: string;
+  location: GeoLocationDto;
+}
+
+export interface TourPreviewDto {
+  name: string;
+  description: string;
+  difficulty: TourDifficulty;
+  tags: string[];
+  recommendedGroupSize: GroupSizeDto | null;
+  transportTimes: TransportTimeDto[];
+  length: TourLengthDto;
+  status: TourStatus;
+  isOwnTour: boolean;
+  keyPoints: PreviewKeyPointDto[];
+}
