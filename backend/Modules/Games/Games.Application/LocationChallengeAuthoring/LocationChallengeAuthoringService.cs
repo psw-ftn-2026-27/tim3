@@ -1,5 +1,6 @@
 using Games.Application.LocationChallenges;
 using Games.Domain.LocationChallenges;
+using Games.Domain.Locations;
 using Shared.Domain.Exceptions;
 
 namespace Games.Application.LocationChallengeAuthoring;

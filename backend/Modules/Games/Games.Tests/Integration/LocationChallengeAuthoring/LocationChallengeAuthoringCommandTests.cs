@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using Games.Application.LocationChallengeAuthoring;
 using Games.Domain.LocationChallenges;
+using Games.Domain.Locations;
 using Games.Infrastructure.Persistence;
 using Games.Tests.Integration.Seeds;
 using Shared.Tests;

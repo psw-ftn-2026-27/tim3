@@ -1,4 +1,5 @@
 using Games.Domain.LocationChallenges;
+using Games.Domain.Locations;
 
 namespace Games.Tests.Integration.Seeds;
 

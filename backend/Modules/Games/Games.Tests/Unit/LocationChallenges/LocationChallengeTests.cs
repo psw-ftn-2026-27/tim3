@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Games.Domain.LocationChallenges;
+using Games.Domain.Locations;
 using Shared.Domain.Exceptions;
 using Xunit;
 
