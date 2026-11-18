@@ -1,11 +1,11 @@
 <div class="stack">
   <div class="page-head">
-    <h1>Društveni izazovi</h1>
+    <h1>Social challenges</h1>
 
     <div class="page-actions">
       <a class="button" routerLink="/games">Games</a>
       @if (isAdministrator()) {
-        <a class="button button--primary" routerLink="/games/challenges/create">Novi izazov</a>
+        <a class="button button--primary" routerLink="/games/challenges/create">New challenge</a>
       }
     </div>
   </div>
@@ -15,34 +15,34 @@
   }
 
   @if (challenges.isLoading()) {
-    <p class="loading">Učitavanje izazova...</p>
+    <p class="loading">Loading challenges...</p>
   } @else if (challenges.error()) {
     @switch (challengesErrorStatus()) {
       @case (401) {
         <div class="empty-state" role="alert">
-          <h2>Prijavite se da biste videli izazove</h2>
-          <p>Društvene izazove pregleda administrator, a vaša sesija je možda istekla.</p>
+          <h2>Log in to see challenges</h2>
+          <p>Social challenges are managed by administrators, and your session may have expired.</p>
           <div class="empty-state-actions">
-            <a class="button button--primary" routerLink="/login">Prijavite se</a>
+            <a class="button button--primary" routerLink="/login">Log in</a>
           </div>
         </div>
       }
       @case (403) {
         <div class="empty-state" role="alert">
-          <h2>Samo administrator može da vidi izazove</h2>
-          <p>Društvene izazove pregleda i objavljuje administrator.</p>
+          <h2>Only administrators can see challenges</h2>
+          <p>Administrators review and publish social challenges.</p>
           <div class="empty-state-actions">
-            <a class="button button--primary" routerLink="/games">Igre</a>
+            <a class="button button--primary" routerLink="/games">Games</a>
           </div>
         </div>
       }
       @default {
         <div class="empty-state" role="alert">
-          <h2>Izazovi ne mogu da se učitaju</h2>
-          <p>Nešto nije u redu na našoj strani. Pokušajte ponovo za trenutak.</p>
+          <h2>Could not load the challenges</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
           <div class="empty-state-actions">
             <button class="button" type="button" (click)="challenges.reload()">
-              Pokušajte ponovo
+              Try again
             </button>
           </div>
         </div>
@@ -50,17 +50,17 @@
     }
   } @else if ((challenges.value()?.totalCount ?? 0) === 0) {
     <div class="empty-state">
-      <h2>Još nema izazova</h2>
+      <h2>No challenges yet</h2>
       <p>
         @if (isAdministrator()) {
-          Napravite prvi izazov za koji se igrači okupe na istom mestu u isto doba dana.
+          Create the first challenge, where players gather at the same place at the same time of day.
         } @else {
-          Izazovi se pojavljuju ovde kada ih administrator napravi.
+          Challenges appear here once an administrator creates them.
         }
       </p>
       @if (isAdministrator()) {
         <div class="empty-state-actions">
-          <a class="button button--primary" routerLink="/games/challenges/create">Novi izazov</a>
+          <a class="button button--primary" routerLink="/games/challenges/create">New challenge</a>
         </div>
       }
     </div>
@@ -69,13 +69,13 @@
       <table class="table">
         <thead>
           <tr>
-            <th scope="col">Naziv</th>
-            <th scope="col">Doba dana</th>
-            <th scope="col">Broj ljudi</th>
-            <th scope="col">Opseg (m)</th>
+            <th scope="col">Name</th>
+            <th scope="col">Time of day</th>
+            <th scope="col">People</th>
+            <th scope="col">Radius (m)</th>
             <th scope="col">XP</th>
-            <th scope="col">Stanje</th>
-            <th scope="col">Akcije</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -93,17 +93,17 @@
                 <div class="actions">
                   @if (awaitingConfirmation()?.id === challenge.id) {
                     <button class="button button--primary" type="button" [disabled]="pending()" (click)="confirm()">
-                      {{ awaitingConfirmation()?.action === 'delete' ? 'Potvrdi brisanje' : 'Potvrdi arhiviranje' }}
+                      {{ awaitingConfirmation()?.action === 'delete' ? 'Confirm delete' : 'Confirm archive' }}
                     </button>
                     <button class="button" type="button" [disabled]="pending()" (click)="cancelConfirmation()">
-                      {{ awaitingConfirmation()?.action === 'delete' ? 'Odustani od brisanja' : 'Odustani od arhiviranja' }}
+                      {{ awaitingConfirmation()?.action === 'delete' ? 'Cancel delete' : 'Cancel archive' }}
                     </button>
                   } @else {
                     @switch (challenge.status) {
                       @case ('Draft') {
-                        <a class="button" [routerLink]="['/games/challenges', challenge.id, 'edit']">Izmeni</a>
+                        <a class="button" [routerLink]="['/games/challenges', challenge.id, 'edit']">Edit</a>
                         <button class="button" type="button" [disabled]="pending()" (click)="publish(challenge.id)">
-                          Objavi
+                          Publish
                         </button>
                         <button
                           class="button"
@@ -111,12 +111,12 @@
                           [disabled]="pending()"
                           (click)="askForConfirmation(challenge.id, 'delete')"
                         >
-                          Obriši
+                          Delete
                         </button>
                       }
                       @case ('Published') {
                         <button class="button" type="button" [disabled]="pending()" (click)="retire(challenge.id)">
-                          Penzioniši
+                          Retire
                         </button>
                         <button
                           class="button"
@@ -124,12 +124,12 @@
                           [disabled]="pending()"
                           (click)="askForConfirmation(challenge.id, 'archive')"
                         >
-                          Arhiviraj
+                          Archive
                         </button>
                       }
                       @case ('Retired') {
                         <button class="button" type="button" [disabled]="pending()" (click)="reactivate(challenge.id)">
-                          Ponovo objavi
+                          Publish again
                         </button>
                         <button
                           class="button"
@@ -137,7 +137,7 @@
                           [disabled]="pending()"
                           (click)="askForConfirmation(challenge.id, 'archive')"
                         >
-                          Arhiviraj
+                          Archive
                         </button>
                       }
                       @case ('Archived') {
@@ -147,7 +147,7 @@
                           [disabled]="pending()"
                           (click)="askForConfirmation(challenge.id, 'delete')"
                         >
-                          Obriši
+                          Delete
                         </button>
                       }
                     }
@@ -168,7 +168,7 @@
 
     <div class="paging">
       <button class="button" type="button" [disabled]="page() === 1" (click)="previousPage()">
-        Prethodna
+        Previous
       </button>
       <button
         class="button"
@@ -176,7 +176,7 @@
         [disabled]="!hasNextPage(challenges.value()?.totalCount)"
         (click)="nextPage()"
       >
-        Sledeća
+        Next
       </button>
     </div>
   }

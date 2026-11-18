@@ -77,3 +77,48 @@ export interface QuestionInputDto {
   text: string;
   answers: AnswerDto[];
 }
+
+export interface LocationChallengeSummaryDto {
+  id: string;
+  name: string;
+  experienceGained: number;
+  hiddenPointCount: number;
+}
+
+export interface HiddenPointDto {
+  id: string;
+  photo: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface LocationChallengeDto {
+  id: string;
+  name: string;
+  startLatitude: number;
+  startLongitude: number;
+  experienceGained: number;
+  hiddenPoints: HiddenPointDto[];
+}
+
+export interface CreateHiddenPointDto {
+  photo: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface CreateLocationChallengeDto {
+  name: string;
+  startLatitude: number;
+  startLongitude: number;
+  experienceGained: number;
+  hiddenPoints: CreateHiddenPointDto[];
+}
+
+export interface UpdateLocationChallengeDto {
+  name: string;
+  startLatitude: number;
+  startLongitude: number;
+  experienceGained: number;
+  hiddenPoints: CreateHiddenPointDto[];
+}

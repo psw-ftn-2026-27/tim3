@@ -18,6 +18,14 @@
     >
       Social challenges
     </button>
+    <button
+      class="tab"
+      type="button"
+      [class.tab--active]="tab() === 'location'"
+      (click)="tab.set('location')"
+    >
+      Location challenges
+    </button>
   </div>
 
   @switch (tab()) {
@@ -37,19 +45,39 @@
       @if (isAdministrator()) {
         <div class="grid">
           <a class="card tile" routerLink="/games/challenges">
-            <h2>Svi društveni izazovi</h2>
-            <p class="meta">Pregled, objava, penzionisanje i arhiviranje izazova.</p>
+            <h2>All social challenges</h2>
+            <p class="meta">Review, publish, retire and archive challenges.</p>
           </a>
           <a class="card tile" routerLink="/games/challenges/create">
-            <h2>Novi društveni izazov</h2>
-            <p class="meta">Izazov za koji se igrači okupe na istom mestu u isto doba dana.</p>
+            <h2>New social challenge</h2>
+            <p class="meta">A challenge where players gather at the same place at the same time of day.</p>
           </a>
         </div>
       } @else {
         <div class="empty-state empty-card">
           <span class="rings" aria-hidden="true"></span>
-          <h2>Nema izazova za prikaz</h2>
-          <p>Društvene izazove pregleda administrator.</p>
+          <h2>No challenges to show</h2>
+          <p>Social challenges are managed by administrators.</p>
+        </div>
+      }
+    }
+    @case ('location') {
+      @if (isAdministrator()) {
+        <div class="grid">
+          <a class="card tile" routerLink="/games/location-challenges">
+            <h2>All location challenges</h2>
+            <p class="meta">Review, edit and delete challenges with hidden points.</p>
+          </a>
+          <a class="card tile" routerLink="/games/location-challenges/create">
+            <h2>New location challenge</h2>
+            <p class="meta">A challenge where players look for the places the photos were taken from.</p>
+          </a>
+        </div>
+      } @else {
+        <div class="empty-state empty-card">
+          <span class="rings" aria-hidden="true"></span>
+          <h2>No challenges to show</h2>
+          <p>Location challenges are managed by administrators.</p>
         </div>
       }
     }
