@@ -7,11 +7,13 @@ namespace Payment.Domain.ShoppingCarts;
 public sealed class ShoppingCart : AggregateRoot
 {
     private readonly List<OrderItem> _items = [];
-    // Checkout must detect edits to the cart even when only its items changed.
+    private readonly List<Guid> _couponIds = [];
+    // Checkout must detect edits to the cart even when only its items or coupons changed.
     private long _revision;
 
     public Guid UserId { get; private set; }
     public IReadOnlyCollection<OrderItem> Items => _items.AsReadOnly();
+    public IReadOnlyList<Guid> CouponIds => _couponIds.AsReadOnly();
     public long TotalInEc => _items.Sum(item => (long)item.PriceInEc);
 
     private ShoppingCart() { }
@@ -33,8 +35,9 @@ public sealed class ShoppingCart : AggregateRoot
             throw new DomainException("The tour is already in the cart.");
         }
 
-        _items.Add(new OrderItem(product.Id, product.TourId, product.Name, product.PriceInEc));
         _revision++;
+        _items.Add(new OrderItem(
+            product.Id, product.TourId, product.Name, product.PriceInEc, product.AuthorId, _revision));
     }
 
     public void RemoveItem(Guid tourId)
@@ -45,9 +48,31 @@ public sealed class ShoppingCart : AggregateRoot
         _revision++;
     }
 
+    internal void EnterCoupon(Guid couponId)
+    {
+        if (_couponIds.Contains(couponId))
+        {
+            throw new DomainException("The coupon is already in the cart.");
+        }
+
+        _couponIds.Add(couponId);
+        _revision++;
+    }
+
+    public void RemoveCoupon(Guid couponId)
+    {
+        if (!_couponIds.Remove(couponId))
+        {
+            throw new NotFoundException("The coupon is not in the cart.");
+        }
+
+        _revision++;
+    }
+
     internal void ClearAfterPurchase()
     {
         _items.Clear();
+        _couponIds.Clear();
         _revision++;
     }
 }

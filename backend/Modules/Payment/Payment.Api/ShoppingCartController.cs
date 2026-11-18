@@ -48,10 +48,24 @@ public sealed class ShoppingCartController : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("checkout")]
-    public async Task<ActionResult<object>> Checkout()
+    [HttpPost("coupons")]
+    public async Task<ActionResult<object>> EnterCoupon(EnterCouponDto dto)
     {
-        await _checkout.CheckoutAsync(User.GetUserId());
+        await _service.EnterCouponAsync(User.GetUserId(), dto);
+        return NoContent();
+    }
+
+    [HttpDelete("coupons/{couponId:guid}")]
+    public async Task<ActionResult<object>> RemoveCoupon(Guid couponId)
+    {
+        await _service.RemoveCouponAsync(User.GetUserId(), couponId);
+        return NoContent();
+    }
+
+    [HttpPost("checkout")]
+    public async Task<ActionResult<object>> Checkout(CheckoutDto dto)
+    {
+        await _checkout.CheckoutAsync(User.GetUserId(), dto);
         return NoContent();
     }
 }

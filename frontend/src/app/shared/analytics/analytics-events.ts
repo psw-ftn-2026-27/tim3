@@ -10,4 +10,5 @@ export interface AnalyticsEvents {
   quiz_published: { quiz_id: string };
   challenge_published: { challenge_id: string };
   blog_published: { blog_id: string };
+  cart_purchased: { tour_count: number; total_in_ec: number; discount_in_ec: number };
 }

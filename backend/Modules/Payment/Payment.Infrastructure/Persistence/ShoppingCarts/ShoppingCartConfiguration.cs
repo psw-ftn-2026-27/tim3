@@ -17,6 +17,8 @@ internal static class ShoppingCartConfiguration
         builder.HasIndex(cart => cart.UserId).IsUnique();
         builder.Property<long>("_revision").HasColumnName("Revision").IsConcurrencyToken();
         builder.Ignore(cart => cart.TotalInEc);
+        builder.Ignore(cart => cart.CouponIds);
+        builder.PrimitiveCollection<List<Guid>>("_couponIds").HasColumnName("CouponIds").HasDefaultValueSql("'{}'::uuid[]");
 
         builder.OwnsMany(cart => cart.Items, items =>
         {

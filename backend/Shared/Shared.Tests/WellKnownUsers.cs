@@ -12,4 +12,6 @@ public static class WellKnownUsers
     public static readonly Guid SecondExplorer = Guid.Parse("00000000-0000-0000-0000-000000000003");
     public static readonly Guid ThirdExplorer = Guid.Parse("00000000-0000-0000-0000-000000000004");
     public static readonly Guid FourthExplorer = Guid.Parse("00000000-0000-0000-0000-000000000005");
+    public static readonly Guid FifthExplorer = Guid.Parse("00000000-0000-0000-0000-000000000006");
+    public static readonly Guid SixthExplorer = Guid.Parse("00000000-0000-0000-0000-000000000007");
 }

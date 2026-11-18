@@ -1,3 +1,4 @@
+using Payment.Domain.ShoppingCarts;
 using Shared.Tests;
 using Cart = Payment.Domain.ShoppingCarts.ShoppingCart;
 
@@ -14,6 +15,8 @@ internal static class ShoppingCartSeed
     public static readonly Cart FreeCheckoutCart;
     public static readonly Cart AlreadyPurchasedCart;
     public static readonly Cart ArchivedCheckoutCart;
+    public static readonly Cart CartWithWinningAndLosingCoupon;
+    public static readonly Cart CartOfBuyerWhoUsedGeneralCoupon;
 
     static ShoppingCartSeed()
     {
@@ -36,8 +39,23 @@ internal static class ShoppingCartSeed
         ArchivedCheckoutCart = new Cart(WalletSeed.DemoExplorerWalletWithDeposit.UserId);
         ArchivedCheckoutCart.AddItem(ProductSeed.CityWalk);
         ArchivedCheckoutCart.AddItem(ProductSeed.ArchivedWalk);
+
+        // Both coupons fall on City walk; the general one has the larger percent, so the City walk coupon is not applied.
+        var purchasing = new CartPurchasing(new CouponAllocation());
+        var enteredOn = new DateOnly(2026, 1, 1);
+        CartWithWinningAndLosingCoupon = new Cart(WellKnownUsers.FifthExplorer);
+        CartWithWinningAndLosingCoupon.AddItem(ProductSeed.CityWalk);
+        CartWithWinningAndLosingCoupon.AddItem(ProductSeed.MuseumWalk);
+        purchasing.EnterCoupon(CartWithWinningAndLosingCoupon, CouponSeed.AuthorCityWalkCoupon, new HashSet<Guid>(), enteredOn);
+        purchasing.EnterCoupon(CartWithWinningAndLosingCoupon, CouponSeed.AuthorGeneralCoupon, new HashSet<Guid>(), enteredOn);
+
+        CartOfBuyerWhoUsedGeneralCoupon = new Cart(WellKnownUsers.SixthExplorer);
+        CartOfBuyerWhoUsedGeneralCoupon.AddItem(ProductSeed.CityWalk);
     }
 
     public static Cart[] All =>
-        [ExplorerCart, OtherExplorerCart, FundedCheckoutCart, FreeCheckoutCart, AlreadyPurchasedCart, ArchivedCheckoutCart];
+    [
+        ExplorerCart, OtherExplorerCart, FundedCheckoutCart, FreeCheckoutCart, AlreadyPurchasedCart, ArchivedCheckoutCart,
+        CartWithWinningAndLosingCoupon, CartOfBuyerWhoUsedGeneralCoupon
+    ];
 }

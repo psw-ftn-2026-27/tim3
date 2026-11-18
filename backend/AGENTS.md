@@ -182,7 +182,11 @@ Deciding how to answer a request, in order:
    Never load aggregates to display them.
 3. Is it a derived value one aggregate can answer from its own state? Query: load the
    aggregate through `I<Aggregate>Repository` inside the queries class, call its query
-   method, wrap the value in a DTO, and do not save.
+   method, wrap the value in a DTO, and do not save. When the derivation is a rule that
+   spans several aggregates and therefore lives in a domain service, the queries class
+   loads each of those aggregates through its `I<Aggregate>Repository` and calls the
+   domain service instead (Payment's `ShoppingCartQueries.GetMyCartAsync` with
+   `CouponAllocation`). The rule is not repeated as a projection in SQL.
 
 The hard rule behind all three: queries never mutate and never call `SaveChangesAsync`.
 Do not write a `CanX()` next to every command speculatively; the command throwing is the
@@ -337,6 +341,10 @@ is added.
   exposing a `Configure<Aggregates>(this ModelBuilder)` extension and holding one private
   method per mapped type. `OnModelCreating` calls one extension per aggregate; inner
   entities never get a configuration class of their own.
+- A list of another aggregate's IDs held by an aggregate (a cart's entered coupons) is
+  mapped as a PostgreSQL primitive collection (`uuid[]`), with `HasDefaultValueSql("'{}'::uuid[]")` so the migration succeeds on existing rows;
+  see `ShoppingCartConfiguration` in Payment and `ChatConfiguration` in Chats. Anything
+  that has its own properties is an owned entity, not a primitive collection.
 - Aggregates generate their ID in the constructor (`base(Guid.NewGuid())`), never via EF
   value generation; seed data and tests depend on IDs existing before save.
 - Local development configuration (connection string with `postgres`/`admin`, dev JWT
