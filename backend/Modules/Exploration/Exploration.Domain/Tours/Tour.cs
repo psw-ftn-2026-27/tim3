@@ -6,8 +6,11 @@ namespace Exploration.Domain.Tours;
 public sealed class Tour : AggregateRoot
 {
     private const int MinimumDescriptionLengthForPublishing = 100;
+    private const int MinimumKeyPointsForPublishing = 2;
+    private const int MinimumKeyPointsForLength = 2;
 
     private readonly List<TransportTime> _transportTimes = [];
+    private readonly List<KeyPoint> _keyPoints = [];
 
     public Guid AuthorId { get; private set; }
     public string Name { get; private set; }
@@ -19,12 +22,15 @@ public sealed class Tour : AggregateRoot
     public DateTime? ArchivedAt { get; private set; }
     public GroupSize? RecommendedGroupSize { get; private set; }
     public IReadOnlyList<TransportTime> TransportTimes => _transportTimes;
+    public IReadOnlyList<KeyPoint> KeyPoints => _keyPoints;
+    public TourLength Length { get; private set; }
 
     private Tour()
     {
         Name = null!;
         Description = null!;
         Tags = null!;
+        Length = null!;
     }
 
     public Tour(Guid authorId, string name, string description, TourDifficulty difficulty, List<string> tags, GroupSize? groupSize)
@@ -54,6 +60,7 @@ public sealed class Tour : AggregateRoot
         Tags = tags;
         RecommendedGroupSize = groupSize;
         Status = TourStatus.Draft;
+        Length = new TourLength(0, false);
     }
 
     public void AddTransportTime(TransportMode transport, int minutes)
@@ -68,6 +75,26 @@ public sealed class Tour : AggregateRoot
         }
 
         _transportTimes.Add(new TransportTime(transport, minutes));
+    }
+
+    public void DefineKeyPoints(List<KeyPoint> keyPoints, TourLength length)
+    {
+        if (Status != TourStatus.Draft)
+        {
+            throw new DomainException("Key points can be changed only while the tour is a draft.");
+        }
+        if (keyPoints.Count < MinimumKeyPointsForLength && length.Kilometres != 0)
+        {
+            throw new DomainException($"A tour with fewer than {MinimumKeyPointsForLength} key points has a length of zero.");
+        }
+
+        _keyPoints.Clear();
+        _keyPoints.AddRange(keyPoints);
+        for (var index = 0; index < _keyPoints.Count; index++)
+        {
+            _keyPoints[index].Order = index + 1;
+        }
+        Length = length;
     }
 
     public void Publish(TourPrice? price)
@@ -87,6 +114,10 @@ public sealed class Tour : AggregateRoot
         if (_transportTimes.Count == 0)
         {
             throw new DomainException("A tour can be published only with at least one transport time.");
+        }
+        if (_keyPoints.Count < MinimumKeyPointsForPublishing)
+        {
+            throw new DomainException($"A tour can be published only with at least {MinimumKeyPointsForPublishing} key points.");
         }
 
         Status = TourStatus.Published;

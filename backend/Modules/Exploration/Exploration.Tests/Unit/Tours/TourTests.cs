@@ -13,10 +13,17 @@ public class TourTests
     private static Tour CreateTour(string description) =>
         new(WellKnownUsers.Explorer, "Šetnja tvrđavom", description, TourDifficulty.Easy, ["istorija"], new GroupSize(2, 6));
 
+    private static KeyPoint CreateKeyPoint(string name) =>
+        new(name, "Opis ključne tačke.", "/api/media/images/tacka.png", new GeoLocation(45.25, 19.86), "Tajna tačke.", false);
+
+    private static void DefineTwoKeyPoints(Tour tour) =>
+        tour.DefineKeyPoints([CreateKeyPoint("Sahat kula"), CreateKeyPoint("Gornji plato")], new TourLength(1.2, false));
+
     private static Tour CreatePublishedTour()
     {
         var tour = CreateTour(LongDescription);
         tour.AddTransportTime(TransportMode.Walking, 120);
+        DefineTwoKeyPoints(tour);
         tour.Publish(TourPrice.Free());
         return tour;
     }
@@ -102,6 +109,7 @@ public class TourTests
     {
         var tour = CreateTour(LongDescription);
         tour.AddTransportTime(TransportMode.Bicycle, 45);
+        DefineTwoKeyPoints(tour);
 
         tour.Publish(TourPrice.Free());
 
@@ -114,6 +122,7 @@ public class TourTests
     {
         var tour = CreateTour(LongDescription);
         tour.AddTransportTime(TransportMode.Bicycle, 45);
+        DefineTwoKeyPoints(tour);
 
         tour.Publish(TourPrice.Paid(1500));
 
@@ -126,6 +135,7 @@ public class TourTests
     {
         var tour = CreateTour(LongDescription);
         tour.AddTransportTime(TransportMode.Walking, 120);
+        DefineTwoKeyPoints(tour);
 
         var publishing = () => tour.Publish(null);
 
@@ -137,6 +147,7 @@ public class TourTests
     {
         var tour = CreateTour("Kratak opis.");
         tour.AddTransportTime(TransportMode.Walking, 120);
+        DefineTwoKeyPoints(tour);
 
         var publishing = () => tour.Publish(TourPrice.Free());
 
@@ -147,6 +158,7 @@ public class TourTests
     public void Tour_without_a_transport_time_cannot_be_published()
     {
         var tour = CreateTour(LongDescription);
+        DefineTwoKeyPoints(tour);
 
         var publishing = () => tour.Publish(TourPrice.Free());
 
@@ -156,9 +168,7 @@ public class TourTests
     [Fact]
     public void Published_tour_cannot_be_published_again()
     {
-        var tour = CreateTour(LongDescription);
-        tour.AddTransportTime(TransportMode.Car, 30);
-        tour.Publish(TourPrice.Free());
+        var tour = CreatePublishedTour();
 
         var publishing = () => tour.Publish(TourPrice.Free());
 
@@ -247,5 +257,81 @@ public class TourTests
         var addition = () => tour.AddTransportTime(TransportMode.Bicycle, 45);
 
         addition.Should().Throw<DomainException>();
+    }
+
+    [Fact]
+    public void Defined_key_points_replace_the_existing_ones_in_the_given_order_with_the_given_length()
+    {
+        var tour = CreateTour(LongDescription);
+        DefineTwoKeyPoints(tour);
+        List<KeyPoint> keyPoints = [CreateKeyPoint("Ulaz"), CreateKeyPoint("Galerije"), CreateKeyPoint("Vidikovac")];
+
+        tour.DefineKeyPoints(keyPoints, new TourLength(2.5, false));
+
+        tour.KeyPoints.Should().Equal(keyPoints);
+        tour.KeyPoints.Select(keyPoint => keyPoint.Order).Should().Equal(1, 2, 3);
+        tour.Length.Should().Be(new TourLength(2.5, false));
+    }
+
+    [Theory]
+    [InlineData(TourStatus.Published)]
+    [InlineData(TourStatus.Archived)]
+    public void Tour_that_is_not_a_draft_does_not_accept_key_points(TourStatus status)
+    {
+        var tour = status == TourStatus.Published ? CreatePublishedTour() : CreateArchivedTour();
+        var keyPointsBefore = tour.KeyPoints.ToList();
+
+        var definition = () => tour.DefineKeyPoints([CreateKeyPoint("Ulaz"), CreateKeyPoint("Vidikovac")], new TourLength(1.5, false));
+
+        definition.Should().Throw<DomainException>();
+        tour.KeyPoints.Should().Equal(keyPointsBefore);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void Draft_tour_accepts_fewer_than_two_key_points(int count)
+    {
+        var tour = CreateTour(LongDescription);
+        DefineTwoKeyPoints(tour);
+        var keyPoints = Enumerable.Range(1, count).Select(number => CreateKeyPoint($"Tačka {number}")).ToList();
+
+        tour.DefineKeyPoints(keyPoints, new TourLength(0, false));
+
+        tour.KeyPoints.Should().Equal(keyPoints);
+    }
+
+    [Fact]
+    public void Tour_with_fewer_than_two_key_points_cannot_have_a_length_above_zero()
+    {
+        var tour = CreateTour(LongDescription);
+
+        var definition = () => tour.DefineKeyPoints([CreateKeyPoint("Sahat kula")], new TourLength(0.8, false));
+
+        definition.Should().Throw<DomainException>();
+    }
+
+    [Fact]
+    public void Tour_with_fewer_than_two_key_points_cannot_be_published()
+    {
+        var tour = CreateTour(LongDescription);
+        tour.AddTransportTime(TransportMode.Walking, 120);
+        tour.DefineKeyPoints([CreateKeyPoint("Sahat kula")], new TourLength(0, false));
+
+        var publishing = () => tour.Publish(TourPrice.Free());
+
+        publishing.Should().Throw<DomainException>();
+    }
+
+    [Fact]
+    public void Tour_with_a_straight_line_length_is_published()
+    {
+        var tour = CreateTour(LongDescription);
+        tour.AddTransportTime(TransportMode.Walking, 120);
+        tour.DefineKeyPoints([CreateKeyPoint("Sahat kula"), CreateKeyPoint("Gornji plato")], new TourLength(0.9, true));
+
+        tour.Publish(TourPrice.Free());
+
+        tour.Status.Should().Be(TourStatus.Published);
     }
 }

@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.RegularExpressions;
 using Exploration.Application.Tours;
 using Exploration.Domain.Tours;
 using Exploration.Tests.Integration.Seeds;
@@ -45,5 +46,25 @@ public class TourBrowsingQueryTests : BaseIntegrationTest
 
         tours!.Items.Should().ContainSingle();
         tours.TotalCount.Should().Be(TourSeed.All.Count(tour => tour.Status == TourStatus.Published));
+    }
+
+    [Fact]
+    public async Task Published_tours_reveal_no_key_point_secret()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+        var secrets = TourSeed.All
+            .Where(tour => tour.Status == TourStatus.Published)
+            .SelectMany(tour => tour.KeyPoints)
+            .Select(keyPoint => keyPoint.Secret)
+            .OfType<string>();
+
+        var body = await client.GetStringAsync("/api/exploration/tours/published?pageSize=100");
+
+        var text = Regex.Unescape(body);
+        text.Should().Contain(TourSeed.PublishedVineyards.Id.ToString());
+        foreach (var secret in secrets)
+        {
+            text.Should().NotContain(secret);
+        }
     }
 }
