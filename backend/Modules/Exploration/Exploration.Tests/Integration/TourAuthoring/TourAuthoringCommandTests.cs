@@ -6,6 +6,8 @@ using Exploration.Domain.Tours;
 using Exploration.Infrastructure.Persistence;
 using Exploration.Tests.Integration.Seeds;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Payment.Domain.Products;
 using Shared.Tests;
 using Xunit;
 
@@ -125,6 +127,52 @@ public class TourAuthoringCommandTests : BaseIntegrationTest
         var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.PublishableRiverside.Id);
         stored.Status.Should().Be(TourStatus.Published);
         stored.PublishedAt.Should().NotBeNull();
+        using var paymentContext = Factory.CreateContext<DbContext>();
+        var product = paymentContext.Set<Product>().Single(product => product.TourId == stored.Id);
+        product.Name.Should().Be(stored.Name);
+        product.AuthorId.Should().Be(stored.AuthorId);
+        product.PriceInEc.Should().Be(amount ?? 0);
+    }
+
+    [Fact]
+    public async Task Publication_retry_with_original_offer_finishes_with_the_same_product()
+    {
+        var tour = TourSeed.PublicationWithSavedOffer;
+        var product = ProductSeed.SavedDuringPublication;
+        var client = Factory.CreateClientFor(tour.AuthorId, "explorer");
+        var request = new PublishTourDto(false, product.PriceInEc);
+
+        var response = await client.PostAsJsonAsync($"/api/exploration/tours/{tour.Id}/publish", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var explorationContext = Factory.CreateContext<ExplorationDbContext>();
+        var stored = explorationContext.Tours.Single(stored => stored.Id == tour.Id);
+        stored.Status.Should().Be(TourStatus.Published);
+        using var paymentContext = Factory.CreateContext<DbContext>();
+        var savedProduct = paymentContext.Set<Product>().Single(saved => saved.TourId == tour.Id);
+        savedProduct.Id.Should().Be(product.Id);
+        savedProduct.PriceInEc.Should().Be(product.PriceInEc);
+    }
+
+    [Fact]
+    public async Task Publication_with_a_conflicting_product_leaves_the_tour_in_draft_and_preserves_the_offer()
+    {
+        var tour = TourSeed.PublicationWithSavedOffer;
+        var product = ProductSeed.SavedDuringPublication;
+        var client = Factory.CreateClientFor(tour.AuthorId, "explorer");
+        var request = new PublishTourDto(false, product.PriceInEc + 1);
+
+        var response = await client.PostAsJsonAsync($"/api/exploration/tours/{tour.Id}/publish", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var explorationContext = Factory.CreateContext<ExplorationDbContext>();
+        var stored = explorationContext.Tours.Single(stored => stored.Id == tour.Id);
+        stored.Status.Should().Be(TourStatus.Draft);
+        stored.PublishedAt.Should().BeNull();
+        using var paymentContext = Factory.CreateContext<DbContext>();
+        var savedProduct = paymentContext.Set<Product>().Single(saved => saved.TourId == tour.Id);
+        savedProduct.Id.Should().Be(product.Id);
+        savedProduct.PriceInEc.Should().Be(product.PriceInEc);
     }
 
     [Theory]
@@ -191,6 +239,10 @@ public class TourAuthoringCommandTests : BaseIntegrationTest
         var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.PublishedVineyards.Id);
         stored.Status.Should().Be(TourStatus.Archived);
         stored.ArchivedAt.Should().NotBeNull();
+        using var paymentContext = Factory.CreateContext<DbContext>();
+        var product = paymentContext.Set<Product>().Single(product => product.TourId == stored.Id);
+        product.Id.Should().Be(ProductSeed.PublishedVineyards.Id);
+        product.PriceInEc.Should().Be(ProductSeed.PublishedVineyards.PriceInEc);
     }
 
     [Fact]
@@ -251,6 +303,10 @@ public class TourAuthoringCommandTests : BaseIntegrationTest
         var stored = assertContext.Tours.Single(tour => tour.Id == TourSeed.ArchivedHomesteads.Id);
         stored.Status.Should().Be(TourStatus.Published);
         stored.ArchivedAt.Should().BeNull();
+        using var paymentContext = Factory.CreateContext<DbContext>();
+        var product = paymentContext.Set<Product>().Single(product => product.TourId == stored.Id);
+        product.Id.Should().Be(ProductSeed.ArchivedHomesteads.Id);
+        product.PriceInEc.Should().Be(ProductSeed.ArchivedHomesteads.PriceInEc);
     }
 
     [Fact]

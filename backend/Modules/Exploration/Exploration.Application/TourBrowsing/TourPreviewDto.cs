@@ -13,4 +13,5 @@ public sealed record TourPreviewDto(
     TourLengthDto Length,
     TourStatus Status,
     bool IsOwnTour,
-    List<PreviewKeyPointDto> KeyPoints);
+    List<PreviewKeyPointDto> KeyPoints,
+    int? PriceInEc = null);

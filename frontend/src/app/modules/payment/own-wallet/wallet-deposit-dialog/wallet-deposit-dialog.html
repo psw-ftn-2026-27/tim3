@@ -1,0 +1,63 @@
+<dialog
+  aria-labelledby="deposit-dialog-title"
+  aria-describedby="deposit-dialog-description"
+  (cancel)="cancel($event)"
+>
+  <div class="card stack">
+    <div class="page-head">
+      <h2 id="deposit-dialog-title">Uplata EC</h2>
+      <button class="button" type="button" [disabled]="pending()" (click)="dismissed.emit()">
+        Zatvori
+      </button>
+    </div>
+    <p id="deposit-dialog-description">Proveri primaoca i iznos pre potvrde uplate.</p>
+    <div class="recipient stack">
+      <p>
+        Primalac: <strong>{{ recipient() }}</strong>
+      </p>
+      <p>
+        Trenutno stanje: <strong>{{ balance() }} EC</strong>
+      </p>
+    </div>
+    <form class="stack" novalidate (submit)="submitted.emit($event)">
+      <div class="field">
+        <label for="deposit-amount">Iznos u EC</label>
+        <input
+          id="deposit-amount"
+          type="number"
+          step="1"
+          autofocus
+          [formField]="amountField()"
+          [readOnly]="pending()"
+          aria-describedby="deposit-amount-help"
+        />
+        <p class="meta" id="deposit-amount-help">Unesi pozitivan ceo broj EC.</p>
+        @if (amountField()().dirty() && amountField()().invalid()) {
+          @for (error of amountField()().errors(); track error.kind) {
+            <p class="error">{{ error.message }}</p>
+          }
+        }
+      </div>
+      @if (error(); as message) {
+        <p class="error" role="alert">{{ message }}</p>
+      }
+      @if (pending()) {
+        <p class="loading" role="status">Uplata je u toku…</p>
+      }
+      <div class="page-actions">
+        <button class="button button--primary" type="submit" [disabled]="blocked() || !valid()">
+          @if (pending()) {
+            Uplata…
+          } @else if (valid()) {
+            Uplati {{ amountField()().value() }} EC
+          } @else {
+            Uplati EC
+          }
+        </button>
+        <button class="button" type="button" [disabled]="pending()" (click)="dismissed.emit()">
+          Odustani
+        </button>
+      </div>
+    </form>
+  </div>
+</dialog>

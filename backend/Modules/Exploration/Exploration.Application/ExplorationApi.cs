@@ -16,4 +16,9 @@ public sealed class ExplorationApi : IExplorationApi
     {
         return _tourReadRepository.GetAuthorIdAsync(tourId);
     }
+
+    public Task<bool> GetTourAvailabilityAsync(Guid tourId)
+    {
+        return _tourReadRepository.IsPublishedAsync(tourId);
+    }
 }

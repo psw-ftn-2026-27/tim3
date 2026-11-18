@@ -4,7 +4,7 @@ import { FormField, form } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { Auth } from '../../../../core/auth/auth';
 import { PageResult } from '../../../../shared/api/page-result';
-import { TourDto } from '../../api/exploration-api-types';
+import { PublishedTourDto } from '../../api/exploration-api-types';
 import { TourCard } from '../tour-card/tour-card';
 
 @Component({
@@ -22,7 +22,7 @@ export class TourList {
     () => this.auth.user()?.roles.includes('explorer') ?? false,
   );
 
-  protected readonly tours = httpResource<PageResult<TourDto>>(
+  protected readonly tours = httpResource<PageResult<PublishedTourDto>>(
     () => '/api/exploration/tours/published?page=1&pageSize=20',
   );
 
@@ -39,7 +39,7 @@ export class TourList {
     () => this.model().name !== '' || this.model().difficulty !== '',
   );
 
-  protected readonly visibleTours = computed<TourDto[]>(() => {
+  protected readonly visibleTours = computed<PublishedTourDto[]>(() => {
     const all = this.tours.value()?.items ?? [];
     const name = this.model().name.toLowerCase();
     const difficulty = this.model().difficulty;

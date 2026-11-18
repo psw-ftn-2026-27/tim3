@@ -1,6 +1,7 @@
 import { HttpErrorResponse, httpResource } from '@angular/common/http';
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Auth } from '../../../../core/auth/auth';
 import { LocationMap, MapLocation } from '../../../../shared/map/location-map/location-map';
 import { TourPreviewDto } from '../../api/exploration-api-types';
 
@@ -11,6 +12,11 @@ import { TourPreviewDto } from '../../api/exploration-api-types';
   templateUrl: './tour-preview.html',
 })
 export class TourPreview {
+  private readonly auth = inject(Auth);
+  protected readonly isExplorer = computed(
+    () => this.auth.user()?.roles.includes('explorer') ?? false,
+  );
+
   readonly id = input.required<string>();
 
   protected readonly tour = httpResource<TourPreviewDto>(

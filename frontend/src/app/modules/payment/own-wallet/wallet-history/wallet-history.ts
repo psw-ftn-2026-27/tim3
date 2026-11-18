@@ -25,6 +25,8 @@ export class WalletHistory {
         return 'Uplata';
       case 'Reversal':
         return 'Storno uplate';
+      case 'Purchase':
+        return 'Kupovina ture';
       case 'GiftCardPurchase':
         return 'Kupovina poklon kartice';
     }

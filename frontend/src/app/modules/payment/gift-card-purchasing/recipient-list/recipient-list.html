@@ -1,5 +1,5 @@
 @if (recipients().length === 0) {
-  <p>Nema korisnika koji odgovaraju pretrazi.</p>
+  <p class="empty">Nema korisnika koji odgovaraju pretrazi.</p>
 } @else {
   <ul class="recipients" aria-label="Korisnici koji odgovaraju pretrazi">
     @for (recipient of recipients(); track recipient.userId) {
@@ -13,7 +13,7 @@
           [disabled]="disabled()"
           (click)="choose.emit(recipient)"
         >
-          Izaberi
+          {{ selectedId() === recipient.userId ? 'Izabran' : 'Izaberi' }}
         </button>
       </li>
     }

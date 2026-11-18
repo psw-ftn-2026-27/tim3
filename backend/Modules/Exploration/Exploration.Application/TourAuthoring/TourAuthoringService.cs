@@ -1,6 +1,7 @@
 using AutoMapper;
 using Exploration.Application.Tours;
 using Exploration.Domain.Tours;
+using Payment.Contracts;
 using Shared.Domain.Exceptions;
 
 namespace Exploration.Application.TourAuthoring;
@@ -10,12 +11,14 @@ public sealed class TourAuthoringService
     private readonly ITourRepository _tourRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IPaymentApi _paymentApi;
 
-    public TourAuthoringService(ITourRepository tourRepository, IUnitOfWork unitOfWork, IMapper mapper)
+    public TourAuthoringService(ITourRepository tourRepository, IUnitOfWork unitOfWork, IMapper mapper, IPaymentApi paymentApi)
     {
         _tourRepository = tourRepository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _paymentApi = paymentApi;
     }
 
     public async Task<TourDto> CreateAsync(Guid authorId, CreateTourDto dto)
@@ -52,7 +55,9 @@ public sealed class TourAuthoringService
     {
         var tour = await GetOwnedTourAsync(tourId, authorId);
 
-        tour.Publish(ToTourPrice(dto));
+        var price = ToTourPrice(dto);
+        tour.Publish(price);
+        await _paymentApi.CreateProductAsync(tour.Id, tour.Name, tour.AuthorId, price?.Amount ?? 0);
         await _unitOfWork.SaveChangesAsync();
     }
 

@@ -4,5 +4,6 @@ public enum WalletTransactionKind
 {
     Deposit,
     Reversal,
+    Purchase,
     GiftCardPurchase
 }

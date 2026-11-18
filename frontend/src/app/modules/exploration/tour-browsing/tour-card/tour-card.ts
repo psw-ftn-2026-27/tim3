@@ -10,6 +10,10 @@ import { TourDto } from '../../api/exploration-api-types';
 })
 export class TourCard {
   readonly tour = input.required<TourDto>();
+  readonly priceInEc = input<number | null>();
+  readonly showBrowsingActions = input(true);
+  readonly showPurchasedDetails = input(false);
+  readonly canAddToCart = input(false);
 
   // How many of the three difficulty bars are filled.
   protected readonly level = computed(() => {

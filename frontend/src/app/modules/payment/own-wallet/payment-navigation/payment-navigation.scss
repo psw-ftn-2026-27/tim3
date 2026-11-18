@@ -1,0 +1,9 @@
+:host {
+  display: block;
+}
+
+[aria-current='page'] {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+}

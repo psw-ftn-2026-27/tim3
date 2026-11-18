@@ -9,6 +9,7 @@ internal static class TourSeed
     public static readonly Tour CityStroll = new(WellKnownUsers.Explorer, "Šetnja centrom", "Kratak opis gradske šetnje.", TourDifficulty.Moderate, ["grad"], new GroupSize(4, 4));
     public static readonly Tour SecondExplorersTrail = new(WellKnownUsers.SecondExplorer, "Tuđa staza", "Kratak opis staze drugog autora.", TourDifficulty.Easy, ["grad"], new GroupSize(1, 3));
     public static readonly Tour PublishableRiverside;
+    public static readonly Tour PublicationWithSavedOffer;
     public static readonly Tour PublishedVineyards;
     public static readonly Tour PublishedMonasteries;
     public static readonly Tour ArchivedHomesteads;
@@ -23,6 +24,14 @@ internal static class TourSeed
             new KeyPoint("Ribarsko ostrvo", "Polazak sa šetališta na Ribarskom ostrvu.", "/api/media/images/ribarsko-ostrvo.png", new GeoLocation(45.2380, 19.8780), "Na kraju mola ribari ostavljaju mamac za goste.", true),
             new KeyPoint("Most slobode", "Kraj staze, ispod Mosta slobode.", "/api/media/images/most-slobode.png", new GeoLocation(45.2410, 19.8560), "Ispod drugog stuba mosta je stari natpis graditelja.", false)
         ], new TourLength(2.4, false));
+
+        PublicationWithSavedOffer = new(WellKnownUsers.Explorer, "Staza kroz Kamenicu", "Obilazak počinje u centru Sremske Kamenice, prolazi kraj Zmaj Jovine kuće i vodi do Kameničkog parka, gde se završava pogledom na obalu Dunava.", TourDifficulty.Easy, ["priroda"], new GroupSize(2, 8));
+        PublicationWithSavedOffer.AddTransportTime(TransportMode.Walking, 70);
+        PublicationWithSavedOffer.DefineKeyPoints(
+        [
+            new KeyPoint("Centar Kamenice", "Početak obilaska.", "/api/media/images/kamenica.png", new GeoLocation(45.2230, 19.8420), null, true),
+            new KeyPoint("Kamenički park", "Kraj obilaska.", "/api/media/images/kamenicki-park.png", new GeoLocation(45.2300, 19.8530), null, false)
+        ], new TourLength(1.8, false));
 
         PublishedVineyards = new(WellKnownUsers.Explorer, "Vinogradi Sremskih Karlovaca", "Tura vodi kroz vinograde na obroncima Fruške gore, uz obilazak dva porodična podruma i degustaciju bermeta u Sremskim Karlovcima.", TourDifficulty.Moderate, ["vino", "priroda"], new GroupSize(2, 8));
         PublishedVineyards.AddTransportTime(TransportMode.Bicycle, 60);
@@ -63,5 +72,5 @@ internal static class TourSeed
         PublishedOldTownWithHiddenMiddleKeyPoint.Publish(TourPrice.Free());
     }
 
-    public static Tour[] All => [FortressWalk, CityStroll, SecondExplorersTrail, PublishableRiverside, PublishedVineyards, PublishedMonasteries, ArchivedHomesteads, PublishedOldTownWithHiddenMiddleKeyPoint];
+    public static Tour[] All => [FortressWalk, CityStroll, SecondExplorersTrail, PublishableRiverside, PublicationWithSavedOffer, PublishedVineyards, PublishedMonasteries, ArchivedHomesteads, PublishedOldTownWithHiddenMiddleKeyPoint];
 }

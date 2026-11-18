@@ -5,4 +5,7 @@ public interface IExplorationApi
 {
     // The author of the tour, or null when no tour has that ID.
     Task<Guid?> GetTourAuthorIdAsync(Guid tourId);
+
+    // Only published tours are available. Missing tours are unavailable.
+    Task<bool> GetTourAvailabilityAsync(Guid tourId);
 }

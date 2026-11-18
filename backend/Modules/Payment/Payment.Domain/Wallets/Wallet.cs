@@ -1,3 +1,4 @@
+using Payment.Domain.ShoppingCarts;
 using Shared.Domain;
 using Shared.Domain.Exceptions;
 
@@ -65,6 +66,22 @@ public sealed class Wallet : AggregateRoot
         _transactions.Add(new WalletTransaction(
             WalletTransactionKind.Reversal, -deposit.Amount, administratorId, occurredAt, deposit.Id));
         Balance -= deposit.Amount;
+    }
+
+    internal void ChargeForTours(IReadOnlyCollection<OrderItem> items, DateTime occurredAt)
+    {
+        var total = items.Sum(item => (long)item.PriceInEc);
+        if (Balance < total)
+        {
+            throw new DomainException("The wallet has insufficient EC for this purchase.");
+        }
+
+        foreach (var item in items)
+        {
+            _transactions.Add(new WalletTransaction(item, occurredAt));
+        }
+
+        Balance -= (int)total;
     }
 
     public void PayForGiftCard(int amount, DateTime occurredAt)

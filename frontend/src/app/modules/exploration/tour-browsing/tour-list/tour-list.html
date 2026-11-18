@@ -1,51 +1,53 @@
 <div class="stack">
   <div class="page-head">
-    <h1>Tours</h1>
+    <h1>Ponuda tura</h1>
 
-    @if (auth.isLoggedIn()) {
+    @if (isExplorer()) {
       <div class="page-actions">
-        <a class="button" routerLink="/exploration/mine">My tours</a>
-        <a class="button button--primary" routerLink="/exploration/create">Create tour</a>
+        <a class="button" routerLink="/payment/cart">Korpa</a>
+        <a class="button" routerLink="/exploration/purchased">Moje kupljene ture</a>
+        <a class="button" routerLink="/exploration/mine">Moje autorske ture</a>
+        <a class="button button--primary" routerLink="/exploration/create">Napravi turu</a>
       </div>
     }
   </div>
 
   <div class="filters">
     <div class="field">
-      <label for="name-filter">Search by name</label>
+      <label for="name-filter">Pretraži po nazivu</label>
       <input id="name-filter" type="search" [formField]="form.name" />
     </div>
 
     <div class="field">
-      <label for="difficulty-filter">Difficulty</label>
+      <label for="difficulty-filter">Težina</label>
       <select id="difficulty-filter" [formField]="form.difficulty">
-        <option value="">All</option>
-        <option value="Easy">Easy</option>
-        <option value="Moderate">Moderate</option>
-        <option value="Hard">Hard</option>
+        <option value="">Sve</option>
+        <option value="Easy">Laka</option>
+        <option value="Moderate">Umerena</option>
+        <option value="Hard">Teška</option>
       </select>
     </div>
   </div>
 
   @if (tours.isLoading()) {
-    <p class="loading">Loading tours...</p>
+    <p class="loading">Učitavanje tura…</p>
   } @else if (tours.error()) {
     @switch (toursErrorStatus()) {
       @case (401) {
         <div class="empty-state" role="alert">
-          <h2>Log in to see tours</h2>
-          <p>Tours are shown to logged-in users, and your session may have expired.</p>
+          <h2>Prijavi se da vidiš ture</h2>
+          <p>Ture su dostupne prijavljenim korisnicima. Moguće je da je sesija istekla.</p>
           <div class="empty-state-actions">
-            <a class="button button--primary" routerLink="/login">Log in</a>
+            <a class="button button--primary" routerLink="/login">Prijavi se</a>
           </div>
         </div>
       }
       @default {
         <div class="empty-state" role="alert">
-          <h2>Could not load tours</h2>
-          <p>Something went wrong on our side. Try again in a moment.</p>
+          <h2>Ture nisu mogle da se učitaju</h2>
+          <p>Došlo je do greške. Pokušaj ponovo za koji trenutak.</p>
           <div class="empty-state-actions">
-            <button class="button" type="button" (click)="tours.reload()">Try again</button>
+            <button class="button" type="button" (click)="tours.reload()">Pokušaj ponovo</button>
           </div>
         </div>
       }
@@ -53,33 +55,33 @@
   } @else if (visibleTours().length === 0) {
     @if (hasFilters()) {
       <div class="empty-state">
-        <h2>No tours match your filters</h2>
+        <h2>Nema tura za izabrane filtere</h2>
         <p>
-          Try a different name or set Difficulty to All.
+          Pokušaj sa drugim nazivom ili izaberi sve težine.
           @if (isExplorer()) {
-            You can also create a tour of your own.
+            Možeš i da napraviš svoju turu.
           }
         </p>
         <div class="empty-state-actions">
-          <button class="button" type="button" (click)="clearFilters()">Clear filters</button>
+          <button class="button" type="button" (click)="clearFilters()">Poništi filtere</button>
           @if (isExplorer()) {
-            <a class="button button--primary" routerLink="/exploration/create">Create tour</a>
+            <a class="button button--primary" routerLink="/exploration/create">Napravi turu</a>
           }
         </div>
       </div>
     } @else {
       <div class="empty-state">
-        <h2>No tours published yet</h2>
+        <h2>Još nema objavljenih tura</h2>
         <p>
           @if (isExplorer()) {
-            Create the first tour and publish it for explorers.
+            Napravi prvu turu i objavi je za turiste.
           } @else {
-            Tours appear here when their authors publish them.
+            Ture se ovde pojavljuju kada ih autori objave.
           }
         </p>
         @if (isExplorer()) {
           <div class="empty-state-actions">
-            <a class="button button--primary" routerLink="/exploration/create">Create tour</a>
+            <a class="button button--primary" routerLink="/exploration/create">Napravi turu</a>
           </div>
         }
       </div>
@@ -87,7 +89,7 @@
   } @else {
     <div class="grid">
       @for (tour of visibleTours(); track tour.id) {
-        <app-tour-card [tour]="tour" />
+        <app-tour-card [tour]="tour" [priceInEc]="tour.priceInEc" [canAddToCart]="isExplorer()" />
       }
     </div>
   }

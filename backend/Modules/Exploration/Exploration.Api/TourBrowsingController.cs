@@ -20,9 +20,24 @@ public sealed class TourBrowsingController : ControllerBase
     }
 
     [HttpGet("published")]
-    public async Task<ActionResult<PageResult<TourDto>>> GetPublished([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<ActionResult<PageResult<PublishedTourDto>>> GetPublished([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         return await _browsingQueries.GetPublishedAsync(page, pageSize);
+    }
+
+    [HttpGet("purchased")]
+    [Authorize(Roles = "explorer")]
+    public async Task<ActionResult<PageResult<TourDto>>> GetMyPurchasedTours(
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        return await _browsingQueries.GetMyPurchasedToursAsync(User.GetUserId(), page, pageSize);
+    }
+
+    [HttpGet("purchased/{id:guid}")]
+    [Authorize(Roles = "explorer")]
+    public async Task<ActionResult<PurchasedTourDetailsDto>> GetPurchasedTourDetails(Guid id)
+    {
+        return await _browsingQueries.GetPurchasedTourDetailsAsync(User.GetUserId(), id);
     }
 
     [HttpGet("{id:guid}")]
