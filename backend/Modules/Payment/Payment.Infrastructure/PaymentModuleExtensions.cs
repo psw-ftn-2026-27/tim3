@@ -9,6 +9,7 @@ using Payment.Application.GiftCardReceiving;
 using Payment.Application.GiftCards;
 using Payment.Application.OwnWallet;
 using Payment.Application.Products;
+using Payment.Application.CartGiftCard;
 using Payment.Application.ShoppingCart;
 using Payment.Application.TourOffering;
 using Payment.Application.Wallets;
@@ -50,6 +51,8 @@ public static class PaymentModuleExtensions
         services.AddScoped<ShoppingCartQueries>();
         services.AddScoped<ITourAvailability, TourAvailability>();
         services.AddScoped<ShoppingCartCheckoutService>();
+        services.AddScoped<CartGiftCardService>();
+        services.AddScoped<CartGiftCardQueries>();
         services.AddScoped<IPaymentApi, PaymentApi>();
         services.AddScoped<OwnWalletQueries>();
         services.AddScoped<AdminWalletService>();

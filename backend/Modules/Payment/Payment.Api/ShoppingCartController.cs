@@ -28,12 +28,6 @@ public sealed class ShoppingCartController : ControllerBase
         return await _queries.GetMyCartAsync(User.GetUserId());
     }
 
-    [HttpGet("gift-cards")]
-    public async Task<ActionResult<List<GiftCardForCartDto>>> GetMyGiftCardsForCart()
-    {
-        return await _queries.GetMyGiftCardsForCartAsync(User.GetUserId());
-    }
-
     [HttpGet("products/{tourId:guid}")]
     public async Task<ActionResult<ProductForCartDto>> GetProductForCart(Guid tourId)
     {
@@ -65,20 +59,6 @@ public sealed class ShoppingCartController : ControllerBase
     public async Task<ActionResult<object>> RemoveCoupon(Guid couponId)
     {
         await _service.RemoveCouponAsync(User.GetUserId(), couponId);
-        return NoContent();
-    }
-
-    [HttpPost("gift-card/{giftCardId:guid}")]
-    public async Task<ActionResult<object>> EnterGiftCard(Guid giftCardId)
-    {
-        await _service.EnterGiftCardAsync(User.GetUserId(), giftCardId);
-        return NoContent();
-    }
-
-    [HttpDelete("gift-card")]
-    public async Task<ActionResult<object>> RemoveGiftCard()
-    {
-        await _service.RemoveGiftCardAsync(User.GetUserId());
         return NoContent();
     }
 

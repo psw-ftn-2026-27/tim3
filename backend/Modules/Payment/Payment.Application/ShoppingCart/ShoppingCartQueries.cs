@@ -13,7 +13,6 @@ public sealed class ShoppingCartQueries
     private readonly IShoppingCartRepository _carts;
     private readonly ICouponRepository _coupons;
     private readonly IGiftCardRepository _giftCards;
-    private readonly IGiftCardReadRepository _giftCardReads;
     private readonly ITourPurchaseTokenRepository _purchases;
     private readonly IProductReadRepository _products;
     private readonly CartPricing _pricing;
@@ -22,7 +21,6 @@ public sealed class ShoppingCartQueries
         IShoppingCartRepository carts,
         ICouponRepository coupons,
         IGiftCardRepository giftCards,
-        IGiftCardReadRepository giftCardReads,
         ITourPurchaseTokenRepository purchases,
         IProductReadRepository products,
         CartPricing pricing)
@@ -30,7 +28,6 @@ public sealed class ShoppingCartQueries
         _carts = carts;
         _coupons = coupons;
         _giftCards = giftCards;
-        _giftCardReads = giftCardReads;
         _purchases = purchases;
         _products = products;
         _pricing = pricing;
@@ -51,11 +48,6 @@ public sealed class ShoppingCartQueries
         var usedCouponIds = (await _purchases.GetUsedCouponIdsAsync(userId)).ToHashSet();
         var price = _pricing.Price(cart, coupons, usedCouponIds, giftCard, DateTime.UtcNow);
         return ToDto(cart, coupons, price);
-    }
-
-    public async Task<List<GiftCardForCartDto>> GetMyGiftCardsForCartAsync(Guid userId)
-    {
-        return await _giftCardReads.GetUsableByRecipientAsync(userId, DateTime.UtcNow);
     }
 
     public async Task<ProductForCartDto> GetProductForCartAsync(Guid tourId)

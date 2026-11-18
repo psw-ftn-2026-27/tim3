@@ -1,6 +1,6 @@
 using Payment.Application.GiftCardPurchasing;
 using Payment.Application.GiftCardReceiving;
-using Payment.Application.ShoppingCart;
+using Payment.Application.CartGiftCard;
 using Shared.Domain;
 
 namespace Payment.Application.GiftCards;

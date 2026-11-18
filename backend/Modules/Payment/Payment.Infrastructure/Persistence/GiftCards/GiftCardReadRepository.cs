@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Payment.Application.CartGiftCard;
 using Payment.Application.GiftCardPurchasing;
 using Payment.Application.GiftCardReceiving;
 using Payment.Application.GiftCards;
-using Payment.Application.ShoppingCart;
 using Payment.Domain.GiftCards;
 using Shared.Domain;
 

@@ -1,5 +1,4 @@
 using Payment.Application.Coupons;
-using Payment.Application.GiftCards;
 using Payment.Application.Products;
 using Payment.Domain.Coupons;
 using Payment.Domain.ShoppingCarts;
@@ -13,7 +12,6 @@ public sealed class ShoppingCartService
     private readonly IShoppingCartRepository _carts;
     private readonly IProductRepository _products;
     private readonly ICouponRepository _coupons;
-    private readonly IGiftCardRepository _giftCards;
     private readonly ITourPurchaseTokenRepository _purchases;
     private readonly CartPurchasing _cartPurchasing;
     private readonly IUnitOfWork _unitOfWork;
@@ -22,7 +20,6 @@ public sealed class ShoppingCartService
         IShoppingCartRepository carts,
         IProductRepository products,
         ICouponRepository coupons,
-        IGiftCardRepository giftCards,
         ITourPurchaseTokenRepository purchases,
         CartPurchasing cartPurchasing,
         IUnitOfWork unitOfWork)
@@ -30,7 +27,6 @@ public sealed class ShoppingCartService
         _carts = carts;
         _products = products;
         _coupons = coupons;
-        _giftCards = giftCards;
         _purchases = purchases;
         _cartPurchasing = cartPurchasing;
         _unitOfWork = unitOfWork;
@@ -82,27 +78,4 @@ public sealed class ShoppingCartService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task EnterGiftCardAsync(Guid userId, Guid giftCardId)
-    {
-        var giftCard = await _giftCards.GetByIdAsync(giftCardId)
-            ?? throw new NotFoundException("The gift card does not exist.");
-        var existingCart = await _carts.GetByUserIdAsync(userId);
-        var cart = existingCart ?? new Cart(userId);
-
-        _cartPurchasing.EnterGiftCard(cart, giftCard, DateTime.UtcNow);
-        if (existingCart is null)
-        {
-            _carts.Add(cart);
-        }
-
-        await _unitOfWork.SaveChangesAsync();
-    }
-
-    public async Task RemoveGiftCardAsync(Guid userId)
-    {
-        var cart = await _carts.GetByUserIdAsync(userId)
-            ?? throw new NotFoundException("The cart has no gift card.");
-        cart.RemoveGiftCard();
-        await _unitOfWork.SaveChangesAsync();
-    }
 }

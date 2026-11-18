@@ -68,21 +68,6 @@ public class ShoppingCartQueryTests : BaseIntegrationTest
     }
 
     [Fact]
-    public async Task The_gift_cards_offered_for_the_cart_are_only_the_buyers_valid_unredeemed_ones()
-    {
-        var buyerId = ShoppingCartSeed.CartWithGiftCard.UserId;
-        var now = DateTime.UtcNow;
-        var expected = GiftCardSeed.All
-            .Where(card => card.RecipientId == buyerId && card.StatusAt(now) == GiftCardStatus.Valid)
-            .Select(card => new GiftCardForCartDto(card.Id, card.Amount, card.ExpiresAt));
-        using var client = Factory.CreateClientFor(buyerId, "explorer");
-
-        var cards = await client.GetFromJsonAsync<List<GiftCardForCartDto>>("/api/payment/cart/gift-cards", JsonOptions);
-
-        cards.Should().BeEquivalentTo(expected);
-    }
-
-    [Fact]
     public async Task An_explorer_without_a_cart_sees_an_empty_cart()
     {
         using var client = Factory.CreateClientFor(ShoppingCartSeed.ExplorerWithoutCartId, "explorer");
