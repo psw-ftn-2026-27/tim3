@@ -1,4 +1,5 @@
 using Payment.Application.Coupons;
+using Payment.Application.GiftCards;
 using Payment.Application.Products;
 using Payment.Application.Wallets;
 using Payment.Domain.ShoppingCarts;
@@ -12,6 +13,7 @@ public sealed class ShoppingCartCheckoutService
     private readonly IShoppingCartRepository _carts;
     private readonly IWalletRepository _wallets;
     private readonly ICouponRepository _coupons;
+    private readonly IGiftCardRepository _giftCards;
     private readonly ITourPurchaseTokenRepository _purchases;
     private readonly ITourAvailability _availability;
     private readonly CartPurchasing _purchasing;
@@ -21,6 +23,7 @@ public sealed class ShoppingCartCheckoutService
         IShoppingCartRepository carts,
         IWalletRepository wallets,
         ICouponRepository coupons,
+        IGiftCardRepository giftCards,
         ITourPurchaseTokenRepository purchases,
         ITourAvailability availability,
         CartPurchasing purchasing,
@@ -29,6 +32,7 @@ public sealed class ShoppingCartCheckoutService
         _carts = carts;
         _wallets = wallets;
         _coupons = coupons;
+        _giftCards = giftCards;
         _purchases = purchases;
         _availability = availability;
         _purchasing = purchasing;
@@ -44,10 +48,11 @@ public sealed class ShoppingCartCheckoutService
             (await _purchases.GetPurchasedTourIdsAsync(userId)).ToHashSet(),
             (await _purchases.GetUsedCouponIdsAsync(userId)).ToHashSet());
         var coupons = await _coupons.GetByIdsAsync(cart.CouponIds);
+        var giftCard = cart.GiftCardId is null ? null : await _giftCards.GetByIdAsync(cart.GiftCardId.Value);
         var existingWallet = await _wallets.GetByUserIdAsync(userId);
         var wallet = existingWallet ?? new Wallet(userId);
         var tokens = _purchasing.Checkout(
-            cart, wallet, coupons, history, availableTourIds, dto.SeenTotalInEc, DateTime.UtcNow);
+            cart, wallet, coupons, giftCard, history, availableTourIds, dto.SeenTotalInEc, DateTime.UtcNow);
         if (existingWallet is null)
         {
             _wallets.Add(wallet);

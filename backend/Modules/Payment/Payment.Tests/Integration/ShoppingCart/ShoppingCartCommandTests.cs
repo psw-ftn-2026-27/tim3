@@ -218,4 +218,5 @@ public class ShoppingCartCommandTests : BaseIntegrationTest
     private static string ItemUrl(Guid tourId) => $"/api/payment/cart/items/{tourId}";
 
     private static string CouponUrl(Guid couponId) => $"{CouponsUrl}/{couponId}";
+
 }

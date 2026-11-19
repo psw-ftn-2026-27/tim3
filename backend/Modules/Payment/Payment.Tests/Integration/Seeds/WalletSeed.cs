@@ -10,6 +10,9 @@ internal static class WalletSeed
     public static readonly Wallet ExplorerWalletWithDeposit;
     public static readonly Wallet DemoExplorerWalletWithDeposit;
     public static readonly Wallet CouponBuyerWalletWithDeposit;
+    public static readonly Wallet GiftCardBuyerWalletWithDeposit;
+    public static readonly Wallet ExpiredGiftCardBuyerWalletWithDeposit;
+    public static readonly Wallet UnfundedGiftCardBuyerWalletWithDeposit;
 
     public static readonly Wallet[] All;
 
@@ -32,10 +35,18 @@ internal static class WalletSeed
         CouponBuyerWalletWithDeposit = new Wallet(WellKnownUsers.FifthExplorer);
         CouponBuyerWalletWithDeposit.Deposit(40, WellKnownUsers.Administrator, historyStart);
 
+        GiftCardBuyerWalletWithDeposit = new Wallet(WellKnownUsers.SeventhExplorer);
+        GiftCardBuyerWalletWithDeposit.Deposit(20, WellKnownUsers.Administrator, historyStart);
+        ExpiredGiftCardBuyerWalletWithDeposit = new Wallet(WellKnownUsers.EighthExplorer);
+        ExpiredGiftCardBuyerWalletWithDeposit.Deposit(40, WellKnownUsers.Administrator, historyStart);
+        UnfundedGiftCardBuyerWalletWithDeposit = new Wallet(WellKnownUsers.NinthExplorer);
+        UnfundedGiftCardBuyerWalletWithDeposit.Deposit(10, WellKnownUsers.Administrator, historyStart);
+
         All =
         [
             EmptyExplorerWallet, ExplorerWalletWithReversal, ExplorerWalletWithDeposit, DemoExplorerWalletWithDeposit,
-            CouponBuyerWalletWithDeposit
+            CouponBuyerWalletWithDeposit, GiftCardBuyerWalletWithDeposit, ExpiredGiftCardBuyerWalletWithDeposit,
+            UnfundedGiftCardBuyerWalletWithDeposit
         ];
     }
 }

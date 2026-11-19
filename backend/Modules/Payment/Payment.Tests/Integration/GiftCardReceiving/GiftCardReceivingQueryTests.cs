@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Payment.Application.GiftCardReceiving;
+using Payment.Domain.GiftCards;
 using Payment.Tests.Integration.Seeds;
 using Shared.Domain;
 using Shared.Tests;
@@ -45,6 +46,19 @@ public class GiftCardReceivingQueryTests : BaseIntegrationTest
 
         cards!.Items.Should().ContainSingle().Which.Id.Should().Be(secondNewest.Id);
         cards.TotalCount.Should().Be(received.Count);
+    }
+
+    [Fact]
+    public async Task Recipient_sees_a_redeemed_gift_card_as_redeemed()
+    {
+        var redeemed = GiftCardSeed.RedeemedCardOfGiftCardBuyer;
+        using var client = Factory.CreateClientFor(redeemed.RecipientId, "explorer");
+
+        var cards = await client.GetFromJsonAsync<PageResult<ReceivedGiftCardDto>>(
+            "/api/payment/gift-cards/received?page=1&pageSize=100", JsonOptions);
+
+        cards!.Items.Should().ContainSingle(card => card.Id == redeemed.Id)
+            .Which.Status.Should().Be(GiftCardStatus.Redeemed);
     }
 
     [Theory]

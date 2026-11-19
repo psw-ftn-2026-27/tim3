@@ -186,7 +186,7 @@ Deciding how to answer a request, in order:
    spans several aggregates and therefore lives in a domain service, the queries class
    loads each of those aggregates through its `I<Aggregate>Repository` and calls the
    domain service instead (Payment's `ShoppingCartQueries.GetMyCartAsync` with
-   `CouponAllocation`). The rule is not repeated as a projection in SQL.
+   `CartPricing`). The rule is not repeated as a projection in SQL.
 
 The hard rule behind all three: queries never mutate and never call `SaveChangesAsync`.
 Do not write a `CanX()` next to every command speculatively; the command throwing is the

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Payment.Application.CartGiftCard;
 using Payment.Application.GiftCardPurchasing;
 using Payment.Application.GiftCardReceiving;
 using Payment.Application.GiftCards;
@@ -35,7 +36,9 @@ internal sealed class GiftCardReadRepository : IGiftCardReadRepository
                 giftCard.Amount,
                 giftCard.Message,
                 giftCard.ExpiresAt,
-                now < giftCard.ExpiresAt ? GiftCardStatus.Valid : GiftCardStatus.Expired))
+                giftCard.RedeemedAt != null
+                    ? GiftCardStatus.Redeemed
+                    : now < giftCard.ExpiresAt ? GiftCardStatus.Valid : GiftCardStatus.Expired))
             .ToListAsync();
         return new PageResult<PurchasedGiftCardRowDto>(items, totalCount);
     }
@@ -59,8 +62,23 @@ internal sealed class GiftCardReadRepository : IGiftCardReadRepository
                 giftCard.Amount,
                 giftCard.Message,
                 giftCard.ExpiresAt,
-                now < giftCard.ExpiresAt ? GiftCardStatus.Valid : GiftCardStatus.Expired))
+                giftCard.RedeemedAt != null
+                    ? GiftCardStatus.Redeemed
+                    : now < giftCard.ExpiresAt ? GiftCardStatus.Valid : GiftCardStatus.Expired))
             .ToListAsync();
         return new PageResult<ReceivedGiftCardRowDto>(items, totalCount);
+    }
+
+    // Mirrors GiftCard.StatusAt: only cards that are neither redeemed nor expired can be chosen in the cart.
+    public Task<List<GiftCardForCartDto>> GetUsableByRecipientAsync(Guid recipientId, DateTime now)
+    {
+        return _dbContext.GiftCards
+            .Where(giftCard => giftCard.RecipientId == recipientId
+                && giftCard.RedeemedAt == null
+                && now < giftCard.ExpiresAt)
+            .OrderBy(giftCard => giftCard.ExpiresAt)
+            .ThenBy(giftCard => giftCard.Id)
+            .Select(giftCard => new GiftCardForCartDto(giftCard.Id, giftCard.Amount, giftCard.ExpiresAt))
+            .ToListAsync();
     }
 }

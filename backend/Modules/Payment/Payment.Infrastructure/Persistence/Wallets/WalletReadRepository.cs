@@ -41,7 +41,8 @@ internal sealed class WalletReadRepository : IWalletReadRepository
                             transaction.OccurredAt,
                             transaction.Kind,
                             transaction.TourId,
-                            transaction.DiscountInEc))
+                            transaction.DiscountInEc,
+                            transaction.GiftCardInEc))
                         .ToList(),
                     wallet.Transactions.Count)))
             .SingleOrDefaultAsync();

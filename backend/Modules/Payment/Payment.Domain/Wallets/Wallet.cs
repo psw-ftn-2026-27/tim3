@@ -67,9 +67,10 @@ public sealed class Wallet : AggregateRoot
         Balance -= deposit.Amount;
     }
 
+    // P6: only the part not paid by a gift card is taken from the wallet, so a fully covered purchase needs no EC.
     internal void ChargeForTours(IReadOnlyCollection<TourCharge> charges, DateTime occurredAt)
     {
-        var total = charges.Sum(charge => (long)charge.PriceInEc - charge.DiscountInEc);
+        var total = charges.Sum(charge => (long)charge.FromWalletInEc);
         if (Balance < total)
         {
             throw new DomainException("The wallet has insufficient EC for this purchase.");

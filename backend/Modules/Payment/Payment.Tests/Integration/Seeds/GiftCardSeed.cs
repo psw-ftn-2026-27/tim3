@@ -1,4 +1,5 @@
 using Payment.Domain.GiftCards;
+using Shared.Tests;
 
 namespace Payment.Tests.Integration.Seeds;
 
@@ -14,6 +15,11 @@ internal static class GiftCardSeed
     public static readonly GiftCard DemoExplorerCardForThirdDemoExplorer;
     public static readonly GiftCard SecondDemoExplorerCardForDemoExplorer;
     public static readonly GiftCard ThirdDemoExplorerCardForDemoExplorer;
+    public static readonly GiftCard CardInGiftCardBuyerCart;
+    public static readonly GiftCard RedeemedCardOfGiftCardBuyer;
+    public static readonly GiftCard ExpiredCardOfGiftCardBuyer;
+    public static readonly GiftCard CardExpiredAfterEnteringIntoCart;
+    public static readonly GiftCard CardInUnfundedGiftCardBuyerCart;
 
     public static readonly GiftCard[] All;
 
@@ -25,12 +31,25 @@ internal static class GiftCardSeed
         SecondDemoExplorerCardForDemoExplorer = new GiftCard(SecondDemoExplorerId, DemoExplorerId, 30, null, purchasedAt);
         ThirdDemoExplorerCardForDemoExplorer = new GiftCard(ThirdDemoExplorerId, DemoExplorerId, 50, "Enjoy the tours", purchasedAt.AddDays(2));
 
+        var longAgo = new DateTime(2020, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+        CardInGiftCardBuyerCart = new GiftCard(WellKnownUsers.SecondExplorer, WellKnownUsers.SeventhExplorer, 30, null, purchasedAt);
+        RedeemedCardOfGiftCardBuyer = new GiftCard(WellKnownUsers.SecondExplorer, WellKnownUsers.SeventhExplorer, 20, null, purchasedAt);
+        RedeemedCardOfGiftCardBuyer.Redeem(WellKnownUsers.SeventhExplorer, purchasedAt.AddMonths(1));
+        ExpiredCardOfGiftCardBuyer = new GiftCard(WellKnownUsers.SecondExplorer, WellKnownUsers.SeventhExplorer, 15, null, longAgo);
+        CardExpiredAfterEnteringIntoCart = new GiftCard(WellKnownUsers.SecondExplorer, WellKnownUsers.EighthExplorer, 10, null, longAgo);
+        CardInUnfundedGiftCardBuyerCart = new GiftCard(WellKnownUsers.SecondExplorer, WellKnownUsers.NinthExplorer, 10, null, purchasedAt);
+
         All =
         [
             DemoExplorerCardForSecondDemoExplorer,
             DemoExplorerCardForThirdDemoExplorer,
             SecondDemoExplorerCardForDemoExplorer,
-            ThirdDemoExplorerCardForDemoExplorer
+            ThirdDemoExplorerCardForDemoExplorer,
+            CardInGiftCardBuyerCart,
+            RedeemedCardOfGiftCardBuyer,
+            ExpiredCardOfGiftCardBuyer,
+            CardExpiredAfterEnteringIntoCart,
+            CardInUnfundedGiftCardBuyerCart
         ];
     }
 }

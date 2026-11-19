@@ -59,7 +59,7 @@ public class ShoppingCartTests
     public void A_tour_the_buyer_already_owns_cannot_be_added()
     {
         var cart = new ShoppingCart(Guid.NewGuid());
-        var purchasing = new CartPurchasing(new CouponAllocation());
+        var purchasing = new CartPurchasing(new CartPricing(new CouponAllocation()));
         var product = CreateProduct(25);
 
         var add = () => purchasing.AddToCart(cart, product, alreadyPurchased: true);

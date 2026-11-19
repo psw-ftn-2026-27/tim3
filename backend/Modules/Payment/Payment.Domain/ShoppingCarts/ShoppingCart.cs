@@ -8,12 +8,13 @@ public sealed class ShoppingCart : AggregateRoot
 {
     private readonly List<OrderItem> _items = [];
     private readonly List<Guid> _couponIds = [];
-    // Checkout must detect edits to the cart even when only its items or coupons changed.
+    // Checkout must detect edits to the cart even when only its items, coupons or gift card changed.
     private long _revision;
 
     public Guid UserId { get; private set; }
     public IReadOnlyCollection<OrderItem> Items => _items.AsReadOnly();
     public IReadOnlyList<Guid> CouponIds => _couponIds.AsReadOnly();
+    public Guid? GiftCardId { get; private set; }
     public long TotalInEc => _items.Sum(item => (long)item.PriceInEc);
 
     private ShoppingCart() { }
@@ -69,10 +70,34 @@ public sealed class ShoppingCart : AggregateRoot
         _revision++;
     }
 
+    // At most one gift card per purchase; another one is chosen only after the first is removed.
+    internal void EnterGiftCard(Guid giftCardId)
+    {
+        if (GiftCardId is not null)
+        {
+            throw new DomainException("A gift card is already in the cart. Remove it first.");
+        }
+
+        GiftCardId = giftCardId;
+        _revision++;
+    }
+
+    public void RemoveGiftCard()
+    {
+        if (GiftCardId is null)
+        {
+            throw new NotFoundException("The cart has no gift card.");
+        }
+
+        GiftCardId = null;
+        _revision++;
+    }
+
     internal void ClearAfterPurchase()
     {
         _items.Clear();
         _couponIds.Clear();
+        GiftCardId = null;
         _revision++;
     }
 }

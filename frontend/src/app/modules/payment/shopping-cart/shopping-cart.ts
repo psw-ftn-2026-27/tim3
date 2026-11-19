@@ -25,6 +25,14 @@ export class ShoppingCart {
     await firstValueFrom(this.http.delete<void>(`${CART_URL}/coupons/${couponId}`));
   }
 
+  async enterGiftCard(giftCardId: string): Promise<void> {
+    await firstValueFrom(this.http.post<void>(`${CART_URL}/gift-card/${giftCardId}`, {}));
+  }
+
+  async removeGiftCard(): Promise<void> {
+    await firstValueFrom(this.http.delete<void>(`${CART_URL}/gift-card`));
+  }
+
   async checkout(dto: CheckoutDto): Promise<void> {
     await firstValueFrom(this.http.post<void>(`${CART_URL}/checkout`, dto));
   }

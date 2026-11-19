@@ -65,7 +65,7 @@ public class CouponEntryTests
 
     private static CartPurchasing CreatePurchasing()
     {
-        return new CartPurchasing(new CouponAllocation());
+        return new CartPurchasing(new CartPricing(new CouponAllocation()));
     }
 
     private static Product CreateProduct(Guid authorId, int priceInEc)

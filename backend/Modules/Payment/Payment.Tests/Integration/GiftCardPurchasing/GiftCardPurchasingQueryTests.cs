@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Payment.Application.GiftCardPurchasing;
+using Payment.Domain.GiftCards;
 using Payment.Tests.Integration.Seeds;
 using Shared.Domain;
 using Xunit;
@@ -29,6 +30,19 @@ public class GiftCardPurchasingQueryTests : BaseIntegrationTest
             .Which.Should().Be(new PurchasedGiftCardDto(
                 expected.Id, expected.RecipientId, "explorer2", expected.Amount, expected.Message,
                 expected.ExpiresAt, expected.StatusAt(DateTime.UtcNow)));
+    }
+
+    [Fact]
+    public async Task Buyer_sees_a_gift_card_the_recipient_redeemed_as_redeemed()
+    {
+        var redeemed = GiftCardSeed.RedeemedCardOfGiftCardBuyer;
+        using var client = Factory.CreateClientFor(redeemed.BuyerId, "explorer");
+
+        var cards = await client.GetFromJsonAsync<PageResult<PurchasedGiftCardDto>>(
+            "/api/payment/gift-cards/purchased?page=1&pageSize=100", JsonOptions);
+
+        cards!.Items.Should().ContainSingle(card => card.Id == redeemed.Id)
+            .Which.Status.Should().Be(GiftCardStatus.Redeemed);
     }
 
     [Fact]

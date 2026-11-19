@@ -14,5 +14,20 @@ public sealed record CartCouponDto(
     int DiscountInEc,
     CouponNotAppliedReason? NotAppliedReason);
 
+// The chosen gift card: applied for AppliedInEc with UnusedInEc of it lost, or not applied for NotAppliedReason.
+public sealed record CartGiftCardDto(
+    Guid GiftCardId,
+    int AmountInEc,
+    bool IsApplied,
+    int AppliedInEc,
+    int UnusedInEc,
+    GiftCardNotAppliedReason? NotAppliedReason);
+
+// DiscountedTotalInEc is the total after coupons; TotalFromWalletInEc is what is left to pay after the gift card.
 public sealed record ShoppingCartDto(
-    List<OrderItemDto> Items, List<CartCouponDto> Coupons, long TotalInEc, long DiscountedTotalInEc);
+    List<OrderItemDto> Items,
+    List<CartCouponDto> Coupons,
+    CartGiftCardDto? GiftCard,
+    long TotalInEc,
+    long DiscountedTotalInEc,
+    long TotalFromWalletInEc);

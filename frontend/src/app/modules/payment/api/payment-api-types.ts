@@ -9,6 +9,7 @@ export interface WalletTransactionDto {
   kind: WalletTransactionKind;
   tourId: string | null;
   discountInEc: number;
+  giftCardInEc: number;
 }
 
 export interface WalletDto {
@@ -47,11 +48,24 @@ export interface CartCouponDto {
   notAppliedReason: CouponNotAppliedReason | null;
 }
 
+export type GiftCardNotAppliedReason = 'Expired' | 'Redeemed' | 'NotRecipient' | 'TotalIsZero';
+
+export interface CartGiftCardDto {
+  giftCardId: string;
+  amountInEc: number;
+  isApplied: boolean;
+  appliedInEc: number;
+  unusedInEc: number;
+  notAppliedReason: GiftCardNotAppliedReason | null;
+}
+
 export interface ShoppingCartDto {
   items: OrderItemDto[];
   coupons: CartCouponDto[];
+  giftCard: CartGiftCardDto | null;
   totalInEc: number;
   discountedTotalInEc: number;
+  totalFromWalletInEc: number;
 }
 
 export interface EnterCouponDto {
@@ -60,6 +74,12 @@ export interface EnterCouponDto {
 
 export interface CheckoutDto {
   seenTotalInEc: number;
+}
+
+export interface GiftCardForCartDto {
+  id: string;
+  amount: number;
+  expiresAt: string;
 }
 
 export interface ProductForCartDto {
