@@ -17,4 +17,8 @@ export class GamesHome {
   protected readonly isAdministrator = computed(
     () => this.auth.user()?.roles.includes('administrator') ?? false,
   );
+
+  protected readonly isExplorer = computed(
+    () => this.auth.user()?.roles.includes('explorer') ?? false,
+  );
 }

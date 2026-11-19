@@ -1,0 +1,12 @@
+// The map and the list of challenges sit side by side, and one under the other on a narrow screen.
+.map-and-list {
+  align-items: start;
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+.paging {
+  display: flex;
+  gap: var(--space-3);
+}

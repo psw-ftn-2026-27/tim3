@@ -1,13 +1,17 @@
 using Games.Application;
 using Games.Application.LocationChallengeAuthoring;
+using Games.Application.LocationChallengeParticipations;
 using Games.Application.LocationChallenges;
+using Games.Application.LocationChallengeSolving;
 using Games.Application.QuizAuthoring;
 using Games.Application.QuizLifecycle;
 using Games.Application.Quizzes;
 using Games.Application.SocialChallengeAuthoring;
 using Games.Application.SocialChallengeLifecycle;
 using Games.Application.SocialChallenges;
+using Games.Domain.LocationChallenges;
 using Games.Infrastructure.Persistence;
+using Games.Infrastructure.Persistence.LocationChallengeParticipations;
 using Games.Infrastructure.Persistence.LocationChallenges;
 using Games.Infrastructure.Persistence.Quizzes;
 using Games.Infrastructure.Persistence.SocialChallenges;
@@ -28,10 +32,12 @@ public static class GamesModuleExtensions
         services.AddScoped<IQuizRepository, QuizRepository>();
         services.AddScoped<ISocialChallengeRepository, SocialChallengeRepository>();
         services.AddScoped<ILocationChallengeRepository, LocationChallengeRepository>();
+        services.AddScoped<ILocationChallengeParticipationRepository, LocationChallengeParticipationRepository>();
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<GamesDbContext>());
         services.AddScoped<IQuizReadRepository, QuizReadRepository>();
         services.AddScoped<ISocialChallengeReadRepository, SocialChallengeReadRepository>();
         services.AddScoped<ILocationChallengeReadRepository, LocationChallengeReadRepository>();
+        services.AddScoped<ILocationChallengeParticipationReadRepository, LocationChallengeParticipationReadRepository>();
 
         services.AddScoped<QuizAuthoringService>();
         services.AddScoped<QuizAuthoringQueries>();
@@ -41,6 +47,9 @@ public static class GamesModuleExtensions
         services.AddScoped<SocialChallengeLifecycleService>();
         services.AddScoped<LocationChallengeAuthoringService>();
         services.AddScoped<LocationChallengeAuthoringQueries>();
+        services.AddScoped<LocationChallengeHunt>();
+        services.AddScoped<LocationChallengeSolvingService>();
+        services.AddScoped<LocationChallengeSolvingQueries>();
 
         return services;
     }

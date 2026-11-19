@@ -73,6 +73,13 @@
             <p class="meta">A challenge where players look for the places the photos were taken from.</p>
           </a>
         </div>
+      } @else if (isExplorer()) {
+        <div class="grid">
+          <a class="card tile" routerLink="/games/location-challenges/play">
+            <h2>Solve location challenges</h2>
+            <p class="meta">Find the places the photos were taken from and earn XP.</p>
+          </a>
+        </div>
       } @else {
         <div class="empty-state empty-card">
           <span class="rings" aria-hidden="true"></span>
