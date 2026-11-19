@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Maps.Tests" />
+    <InternalsVisibleTo Include="Games.Tests" />
   </ItemGroup>
 
 </Project>
