@@ -122,3 +122,46 @@ export interface UpdateLocationChallengeDto {
   experienceGained: number;
   hiddenPoints: CreateHiddenPointDto[];
 }
+
+export interface PublishedQuizDto {
+  id: string;
+  title: string;
+  description: string;
+  experiencePoints: number;
+  location: LocationDto;
+  questionCount: number;
+  isSolved: boolean;
+  correctAnswerCount: number;
+}
+
+export interface PlayQuestionDto {
+  id: string;
+  position: number;
+  text: string;
+  answers: string[];
+}
+
+export interface LockedQuestionDto {
+  id: string;
+  position: number;
+  text: string;
+  answers: string[];
+  chosenAnswerIndex: number;
+}
+
+export interface QuizPlayDto {
+  quizId: string;
+  title: string;
+  pass: number;
+  questionCount: number;
+  currentQuestion: PlayQuestionDto | null;
+  lastAnswerCorrect: boolean | null;
+  lockedQuestions: LockedQuestionDto[];
+  correctAnswerCount: number;
+  experienceGained: number | null;
+}
+
+export interface SubmitAnswerDto {
+  questionId: string;
+  answerIndex: number;
+}

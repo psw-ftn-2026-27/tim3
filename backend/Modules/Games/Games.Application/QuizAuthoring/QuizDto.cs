@@ -1,3 +1,4 @@
+using Games.Application.Quizzes;
 using Games.Domain.Quizzes;
 
 namespace Games.Application.QuizAuthoring;

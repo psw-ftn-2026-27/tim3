@@ -78,3 +78,30 @@ h1 {
   margin-bottom: var(--space-5);
   width: 0.875rem;
 }
+
+// Quiz cards are a little wider than the shared grid's columns, so a title and its status fit on one line.
+.quiz-grid {
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+}
+
+// The card fills its grid row, and Start with any start error sits at the bottom of every card.
+.quiz-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.quiz-card-head {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: space-between;
+}
+
+.quiz-card-head h2 {
+  margin: 0;
+}
+
+.quiz-card-actions {
+  margin-top: auto;
+}

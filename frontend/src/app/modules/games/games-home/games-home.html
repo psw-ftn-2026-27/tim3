@@ -30,16 +30,98 @@
 
   @switch (tab()) {
     @case ('quizzes') {
-      <div class="grid">
-        <a class="card tile" routerLink="/games/quizzes">
-          <h2>All quizzes</h2>
-          <p class="meta">Every quiz with its status, experience points and questions.</p>
-        </a>
-        <a class="card tile" routerLink="/games/quizzes/create">
-          <h2>New quiz</h2>
-          <p class="meta">Compose a quiz at a landmark and publish it when it is ready.</p>
-        </a>
-      </div>
+      @if (isAdministrator() || !isExplorer()) {
+        <div class="grid">
+          <a class="card tile" routerLink="/games/quizzes">
+            <h2>All quizzes</h2>
+            <p class="meta">Every quiz with its status, experience points and questions.</p>
+          </a>
+          <a class="card tile" routerLink="/games/quizzes/create">
+            <h2>New quiz</h2>
+            <p class="meta">Compose a quiz at a landmark and publish it when it is ready.</p>
+          </a>
+        </div>
+      }
+      @if (isExplorer()) {
+        <p class="meta">Zoom in and click on the map to set your position. A quiz starts when you are within 20 metres of its pin.</p>
+        <app-location-map
+          [locations]="quizLocations()"
+          [positionSettable]="true"
+          [settingPosition]="true"
+          [position]="position()"
+          [positionMissing]="positionMissing()"
+          (positionSet)="setPosition($event)"
+        />
+        @if (positionError()) {
+          <p class="error" role="alert">{{ positionError() }}</p>
+        }
+
+        @if (quizzes.isLoading()) {
+          <p class="loading">Loading quizzes...</p>
+        } @else if (quizzes.error()) {
+          @switch (quizzesErrorStatus()) {
+            @case (401) {
+              <div class="empty-state" role="alert">
+                <h2>Log in to play quizzes</h2>
+                <p>Quizzes are played by logged-in explorers, and your session may have expired.</p>
+                <div class="empty-state-actions">
+                  <a class="button button--primary" routerLink="/login">Log in</a>
+                </div>
+              </div>
+            }
+            @case (403) {
+              <div class="empty-state" role="alert">
+                <h2>Only explorers can play quizzes</h2>
+                <p>Explorers play published quizzes on location.</p>
+              </div>
+            }
+            @default {
+              <div class="empty-state" role="alert">
+                <h2>Could not load the quizzes</h2>
+                <p>Something went wrong on our side. Try again in a moment.</p>
+                <div class="empty-state-actions">
+                  <button class="button" type="button" (click)="quizzes.reload()">Try again</button>
+                </div>
+              </div>
+            }
+          }
+        } @else if (quizList().length === 0) {
+          <div class="empty-state">
+            <h2>No quizzes published yet</h2>
+            <p>Quizzes appear here when administrators publish them.</p>
+          </div>
+        } @else {
+          <div class="grid quiz-grid">
+            @for (quiz of quizList(); track quiz.id) {
+              <article class="card stack quiz-card">
+                <div class="quiz-card-head">
+                  <h2>{{ quiz.title }}</h2>
+                  @if (quiz.isSolved) {
+                    <span class="badge">Solved · {{ quiz.correctAnswerCount }}/{{ quiz.questionCount }} correct</span>
+                  } @else {
+                    <span class="badge">Not solved</span>
+                  }
+                </div>
+                <p>{{ quiz.description }}</p>
+                <p class="meta">{{ quiz.experiencePoints }} XP · {{ quiz.questionCount }} questions</p>
+                <div class="quiz-card-actions stack">
+                  @if (startError()?.quizId === quiz.id) {
+                    <p class="error" role="alert">{{ startError()?.message }}</p>
+                  }
+                  <button
+                    class="button button--primary"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="start(quiz.id)"
+                  >
+                    Start
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      }
     }
     @case ('social') {
       @if (isAdministrator()) {
