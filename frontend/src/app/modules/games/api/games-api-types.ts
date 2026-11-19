@@ -122,3 +122,37 @@ export interface UpdateLocationChallengeDto {
   experienceGained: number;
   hiddenPoints: CreateHiddenPointDto[];
 }
+
+export type LocationChallengeState = 'NotStarted' | 'Active' | 'Solved';
+
+export interface LocationChallengeToSolveDto {
+  id: string;
+  name: string;
+  startLatitude: number;
+  startLongitude: number;
+  experienceGained: number;
+  state: LocationChallengeState;
+}
+
+export interface SearchCircleDto {
+  centerLatitude: number;
+  centerLongitude: number;
+  radius: number;
+}
+
+export interface HiddenPointClueDto {
+  id: string;
+  photo: string;
+  discovered: boolean;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+export interface LocationChallengeHuntDto {
+  id: string;
+  name: string;
+  experienceGained: number;
+  state: LocationChallengeState;
+  searchCircle: SearchCircleDto | null;
+  hiddenPoints: HiddenPointClueDto[];
+}

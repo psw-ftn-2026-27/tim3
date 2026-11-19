@@ -29,4 +29,19 @@ public class LocationTests
         location.Latitude.Should().Be(latitude);
         location.Longitude.Should().Be(longitude);
     }
+
+    [Theory]
+    [InlineData(45.0, 19.0, 46.0, 19.0, 111195)]
+    [InlineData(0.0, 19.0, 0.0, 20.0, 111195)]
+    [InlineData(45.2517, 19.8634, 45.2522, 19.8634, 56)]
+    public void Distance_between_two_known_locations_is_accurate_to_a_few_metres(
+        double fromLatitude, double fromLongitude, double toLatitude, double toLongitude, double expectedMetres)
+    {
+        var from = new Location(fromLatitude, fromLongitude);
+        var to = new Location(toLatitude, toLongitude);
+
+        var distance = from.DistanceTo(to);
+
+        distance.Should().BeApproximately(expectedMetres, 3);
+    }
 }

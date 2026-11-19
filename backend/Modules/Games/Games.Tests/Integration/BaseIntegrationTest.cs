@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Games.Infrastructure.Persistence;
 using Games.Tests.Integration.Seeds;
+using Maps.Infrastructure.Persistence;
 using Shared.Tests;
 using Xunit;
 
@@ -26,5 +27,6 @@ public abstract class BaseIntegrationTest
     {
         Factory = factory;
         Factory.Reseed<GamesDbContext>(GamesSeed.All);
+        Factory.Reseed<MapsDbContext>(UserPositionSeed.All);
     }
 }

@@ -4,6 +4,8 @@ namespace Games.Domain.Locations;
 
 public sealed record Location
 {
+    private const double EarthRadiusInMetres = 6371000;
+
     public double Latitude { get; private init; }
     public double Longitude { get; private init; }
 
@@ -22,5 +24,22 @@ public sealed record Location
 
         Latitude = latitude;
         Longitude = longitude;
+    }
+
+    public double DistanceTo(Location other)
+    {
+        var latitudeDifference = ToRadians(other.Latitude - Latitude);
+        var longitudeDifference = ToRadians(other.Longitude - Longitude);
+
+        var haversine = Math.Sin(latitudeDifference / 2) * Math.Sin(latitudeDifference / 2)
+            + Math.Cos(ToRadians(Latitude)) * Math.Cos(ToRadians(other.Latitude))
+            * Math.Sin(longitudeDifference / 2) * Math.Sin(longitudeDifference / 2);
+
+        return 2 * EarthRadiusInMetres * Math.Asin(Math.Sqrt(haversine));
+    }
+
+    private static double ToRadians(double degrees)
+    {
+        return degrees * Math.PI / 180;
     }
 }

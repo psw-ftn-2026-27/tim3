@@ -1,0 +1,145 @@
+<div class="stack">
+  <div class="page-head">
+    <h1>Location challenges</h1>
+
+    <div class="page-actions">
+      <a class="button" routerLink="/games">Games</a>
+    </div>
+  </div>
+
+  @if (challenges.isLoading()) {
+    <p class="loading">Loading challenges...</p>
+  } @else if (challenges.error()) {
+    @switch (challengesErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to see challenges</h2>
+          <p>Location challenges are solved by explorers, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only explorers can solve challenges</h2>
+          <p>Explorers activate location challenges and look for their hidden points.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games">Games</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the challenges</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="challenges.reload()">
+              Try again
+            </button>
+          </div>
+        </div>
+      }
+    }
+  } @else if ((challenges.value()?.totalCount ?? 0) === 0) {
+    <div class="empty-state">
+      <h2>No location challenges yet</h2>
+      <p>Challenges appear here when administrators create them.</p>
+    </div>
+  } @else {
+    <div class="map-and-list">
+      <div class="stack">
+        <app-location-map
+          [locations]="startLocations()"
+          [positionSettable]="true"
+          [settingPosition]="true"
+          [position]="position()"
+          [positionMissing]="positionMissing()"
+          (positionSet)="setPosition($event)"
+        />
+
+        <p class="meta">Click the map to set your position.</p>
+
+        @if (positionError()) {
+          <p class="error" role="alert">{{ positionError() }}</p>
+        }
+      </div>
+
+      <div class="stack">
+        @if (error()) {
+          <p class="error" role="alert">{{ error() }}</p>
+        }
+
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">XP</th>
+                <th scope="col">State</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (challenge of challenges.value()?.items ?? []; track challenge.id) {
+                <tr>
+                  <td>{{ challenge.name }}</td>
+                  <td>{{ challenge.experienceGained }}</td>
+                  <td>
+                    @switch (challenge.state) {
+                      @case ('NotStarted') {
+                        <span class="badge">Not started</span>
+                      }
+                      @case ('Active') {
+                        <span class="badge">Active</span>
+                      }
+                      @case ('Solved') {
+                        <span class="badge">Solved</span>
+                      }
+                    }
+                  </td>
+                  <td>
+                    @switch (challenge.state) {
+                      @case ('NotStarted') {
+                        <button
+                          class="button button--primary"
+                          type="button"
+                          [disabled]="pending()"
+                          (click)="activate(challenge.id)"
+                        >
+                          Activate
+                        </button>
+                      }
+                      @case ('Active') {
+                        <a
+                          class="button"
+                          [routerLink]="['/games/location-challenges', challenge.id, 'play']"
+                        >
+                          Continue
+                        </a>
+                      }
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="paging">
+          <button class="button" type="button" [disabled]="page() === 1" (click)="previousPage()">
+            Previous
+          </button>
+          <button
+            class="button"
+            type="button"
+            [disabled]="!hasNextPage(challenges.value()?.totalCount)"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
