@@ -8,18 +8,18 @@ public sealed class Chat : AggregateRoot
 {
     public Subject Subject { get; private set; }
     // P4: every chat keeps its own muted users, until a privileged user unmutes them.
-    public List<Guid> MutedUserIds { get; private set; }
+    // The list changes only through Mute and Unmute, so outside code gets a read-only view.
+    private readonly List<Guid> _mutedUserIds = [];
+    public IReadOnlyList<Guid> MutedUserIds => _mutedUserIds.AsReadOnly();
 
     private Chat()
     {
         Subject = null!;
-        MutedUserIds = null!;
     }
 
     public Chat(Subject subject) : base(Guid.NewGuid())
     {
         Subject = subject;
-        MutedUserIds = [];
     }
 
     public Message Write(Guid senderId, string text)
@@ -40,9 +40,9 @@ public sealed class Chat : AggregateRoot
     {
         privileges.EnsureCanModerate(moderatorId, userId);
 
-        if (!MutedUserIds.Contains(userId))
+        if (!_mutedUserIds.Contains(userId))
         {
-            MutedUserIds.Add(userId);
+            _mutedUserIds.Add(userId);
         }
     }
 
@@ -53,6 +53,6 @@ public sealed class Chat : AggregateRoot
             throw new DomainException("Only a privileged user can moderate this chat.");
         }
 
-        MutedUserIds.Remove(userId);
+        _mutedUserIds.Remove(userId);
     }
 }
