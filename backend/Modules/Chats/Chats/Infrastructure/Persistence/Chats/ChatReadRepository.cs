@@ -18,7 +18,7 @@ internal sealed class ChatReadRepository : IChatReadRepository
             .Where(chat => chat.Subject.Kind == subject.Kind
                 && chat.Subject.FirstId == subject.FirstId
                 && chat.Subject.SecondId == subject.SecondId)
-            .Select(chat => chat.MutedUserIds)
+            .Select(chat => EF.Property<List<Guid>>(chat, "_mutedUserIds"))
             .SingleOrDefaultAsync();
 
         return mutedUserIds ?? [];

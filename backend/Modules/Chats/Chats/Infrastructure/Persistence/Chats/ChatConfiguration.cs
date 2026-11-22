@@ -14,8 +14,12 @@ internal static class ChatConfiguration
     private static void ConfigureChat(EntityTypeBuilder<Chat> builder)
     {
         builder.Property(chat => chat.Id).ValueGeneratedNever();
+        // The chat exposes only a read-only view, so EF reads and writes the private list.
         // Chats stored before muting existed start with nobody muted.
-        builder.Property(chat => chat.MutedUserIds).HasDefaultValueSql("'{}'::uuid[]");
+        builder.Ignore(chat => chat.MutedUserIds);
+        builder.PrimitiveCollection<List<Guid>>("_mutedUserIds")
+            .HasColumnName("MutedUserIds")
+            .HasDefaultValueSql("'{}'::uuid[]");
 
         builder.OwnsOne(chat => chat.Subject, subject =>
         {
