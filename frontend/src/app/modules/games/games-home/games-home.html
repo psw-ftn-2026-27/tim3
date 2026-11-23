@@ -43,15 +43,34 @@
         </div>
       }
       @if (isExplorer()) {
-        <p class="meta">Zoom in and click on the map to set your position. A quiz starts when you are within 20 metres of its pin.</p>
-        <app-location-map
-          [locations]="quizLocations()"
-          [positionSettable]="true"
-          [settingPosition]="true"
-          [position]="position()"
-          [positionMissing]="positionMissing()"
-          (positionSet)="setPosition($event)"
-        />
+        <div class="map-bar">
+          <p class="meta">
+            @if (positionMissing()) {
+              Set your position on the map. A quiz starts when you are within 20 metres of its pin.
+            } @else {
+              A quiz starts when you are within 20 metres of its pin.
+            }
+          </p>
+          <button
+            class="button"
+            type="button"
+            [attr.aria-expanded]="mapOpen()"
+            (click)="mapOpen.set(!mapOpen())"
+          >
+            {{ mapOpen() ? 'Hide map' : 'Show map' }}
+          </button>
+        </div>
+        @if (mapOpen()) {
+          <p class="meta">Zoom in and click on the map to set your position.</p>
+          <app-location-map
+            [locations]="quizLocations()"
+            [positionSettable]="true"
+            [settingPosition]="true"
+            [position]="position()"
+            [positionMissing]="positionMissing()"
+            (positionSet)="setPosition($event)"
+          />
+        }
         @if (positionError()) {
           <p class="error" role="alert">{{ positionError() }}</p>
         }

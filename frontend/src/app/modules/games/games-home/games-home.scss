@@ -79,6 +79,19 @@ h1 {
   width: 0.875rem;
 }
 
+// The hint and the map toggle share one line; on a narrow screen the button wraps below the hint.
+.map-bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: space-between;
+}
+
+.map-bar p {
+  margin: 0;
+}
+
 // Quiz cards are a little wider than the shared grid's columns, so a title and its status fit on one line.
 .quiz-grid {
   grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));

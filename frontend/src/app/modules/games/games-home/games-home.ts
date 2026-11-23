@@ -70,6 +70,9 @@ export class GamesHome {
 
   protected readonly positionError = signal<string | null>(null);
 
+  // The map is folded away on every visit, so the quizzes are the first thing the explorer sees.
+  protected readonly mapOpen = signal(false);
+
   protected readonly pending = signal(false);
   // The failed activation, shown on the card of the quiz the explorer tried to start.
   protected readonly startError = signal<{ quizId: string; message: string } | null>(null);
