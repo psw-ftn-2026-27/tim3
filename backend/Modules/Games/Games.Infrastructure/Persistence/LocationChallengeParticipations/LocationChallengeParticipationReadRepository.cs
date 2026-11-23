@@ -17,33 +17,27 @@ internal sealed class LocationChallengeParticipationReadRepository : ILocationCh
 
     public async Task<PageResult<LocationChallengeToSolveDto>> GetPageAsync(Guid explorerId, int page, int pageSize)
     {
-        var explorerParticipations = _dbContext.LocationChallengeParticipations
-            .Where(participation => participation.ExplorerId == explorerId);
-        var locationChallenges = _dbContext.LocationChallenges
+        var totalCount = await _dbContext.LocationChallenges.CountAsync();
+        var locationChallenges = await _dbContext.LocationChallenges
             .OrderBy(locationChallenge => locationChallenge.Name)
-            .ThenBy(locationChallenge => locationChallenge.Id);
-
-        var totalCount = await locationChallenges.CountAsync();
-        var rows = await locationChallenges
+            .ThenBy(locationChallenge => locationChallenge.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(locationChallenge => new
             {
                 locationChallenge.Id,
                 locationChallenge.Name,
                 locationChallenge.StartLocation.Latitude,
                 locationChallenge.StartLocation.Longitude,
-                locationChallenge.ExperienceGained,
-                Status = explorerParticipations
-                    .Where(participation => participation.LocationChallengeId == locationChallenge.Id)
-                    .Select(participation => (LocationChallengeParticipationStatus?)participation.Status)
-                    .FirstOrDefault()
+                locationChallenge.ExperienceGained
             })
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
             .ToListAsync();
+        var statuses = await GetStatusesAsync(explorerId, locationChallenges.Select(locationChallenge => locationChallenge.Id).ToList());
 
-        var items = rows
-            .Select(row => new LocationChallengeToSolveDto(row.Id, row.Name, row.Latitude, row.Longitude,
-                row.ExperienceGained, ToState(row.Status)))
+        var items = locationChallenges
+            .Select(locationChallenge => new LocationChallengeToSolveDto(locationChallenge.Id, locationChallenge.Name,
+                locationChallenge.Latitude, locationChallenge.Longitude, locationChallenge.ExperienceGained,
+                statuses.TryGetValue(locationChallenge.Id, out var status) ? ToState(status) : LocationChallengeState.NotStarted))
             .ToList();
 
         return new PageResult<LocationChallengeToSolveDto>(items, totalCount);
@@ -57,10 +51,8 @@ internal sealed class LocationChallengeParticipationReadRepository : ILocationCh
             .Select(participation => new
             {
                 participation.Status,
-                SearchCircle = new SearchCircleDto(
-                    participation.SearchCircle.Center.Latitude,
-                    participation.SearchCircle.Center.Longitude,
-                    participation.SearchCircle.Radius),
+                SearchCircle = new SearchCircleDto(participation.SearchCircle.Center.Latitude,
+                    participation.SearchCircle.Center.Longitude, participation.SearchCircle.Radius),
                 participation.DiscoveredPointIds
             })
             .FirstOrDefaultAsync();
@@ -68,29 +60,42 @@ internal sealed class LocationChallengeParticipationReadRepository : ILocationCh
 
         var locationChallenge = await _dbContext.LocationChallenges
             .Where(locationChallenge => locationChallenge.Id == locationChallengeId)
-            .Select(locationChallenge => new
-            {
-                locationChallenge.Id,
-                locationChallenge.Name,
-                locationChallenge.ExperienceGained,
-                HiddenPoints = locationChallenge.HiddenPoints
-                    .Select(hiddenPoint => new HiddenPointClueDto(
-                        hiddenPoint.Id,
-                        hiddenPoint.Photo,
-                        discoveredPointIds.Contains(hiddenPoint.Id),
-                        discoveredPointIds.Contains(hiddenPoint.Id) ? hiddenPoint.Location.Latitude : null,
-                        discoveredPointIds.Contains(hiddenPoint.Id) ? hiddenPoint.Location.Longitude : null))
-                    .ToList()
-            })
+            .Select(locationChallenge => new { locationChallenge.Id, locationChallenge.Name, locationChallenge.ExperienceGained })
             .FirstOrDefaultAsync();
         if (locationChallenge is null)
         {
             return null;
         }
+        var hiddenPoints = await GetHiddenPointCluesAsync(locationChallengeId, discoveredPointIds);
 
         return new LocationChallengeHuntDto(locationChallenge.Id, locationChallenge.Name,
             locationChallenge.ExperienceGained, ToState(participation?.Status),
-            participation?.SearchCircle, locationChallenge.HiddenPoints);
+            participation?.SearchCircle, hiddenPoints);
+    }
+
+    // The status of each listed challenge for this explorer; a challenge without a participation is missing.
+    private async Task<Dictionary<Guid, LocationChallengeParticipationStatus>> GetStatusesAsync(Guid explorerId,
+        List<Guid> locationChallengeIds)
+    {
+        return await _dbContext.LocationChallengeParticipations
+            .Where(participation => participation.ExplorerId == explorerId
+                && locationChallengeIds.Contains(participation.LocationChallengeId))
+            .ToDictionaryAsync(participation => participation.LocationChallengeId, participation => participation.Status);
+    }
+
+    // P6: the query selects coordinates only for discovered points, so undiscovered locations never leave the database.
+    private async Task<List<HiddenPointClueDto>> GetHiddenPointCluesAsync(Guid locationChallengeId, List<Guid> discoveredPointIds)
+    {
+        return await _dbContext.LocationChallenges
+            .Where(locationChallenge => locationChallenge.Id == locationChallengeId)
+            .SelectMany(locationChallenge => locationChallenge.HiddenPoints)
+            .Select(hiddenPoint => new HiddenPointClueDto(
+                hiddenPoint.Id,
+                hiddenPoint.Photo,
+                discoveredPointIds.Contains(hiddenPoint.Id),
+                discoveredPointIds.Contains(hiddenPoint.Id) ? hiddenPoint.Location.Latitude : null,
+                discoveredPointIds.Contains(hiddenPoint.Id) ? hiddenPoint.Location.Longitude : null))
+            .ToListAsync();
     }
 
     private static LocationChallengeState ToState(LocationChallengeParticipationStatus? status)

@@ -7,7 +7,7 @@ public sealed class LocationChallengeHunt
 {
     private const double MaximumActivationDistance = 50;
     private const double MaximumDiscoveryDistance = 5;
-    private const double MaximumExtraMetres = 100;
+    public const double MaximumExtraMetres = 100;
 
     public LocationChallengeParticipation Activate(Guid explorerId, LocationChallenge challenge,
         IReadOnlyList<LocationChallengeParticipation> explorerParticipations, Location position, double extraMetres)
@@ -43,6 +43,10 @@ public sealed class LocationChallengeHunt
         if (participation.LocationChallengeId != challenge.Id)
         {
             throw new DomainException("The participation does not belong to this location challenge.");
+        }
+        if (participation.Status == LocationChallengeParticipationStatus.Solved)
+        {
+            throw new DomainException("A solved location challenge cannot be continued.");
         }
 
         var discoveredPoint = challenge.HiddenPoints.FirstOrDefault(hiddenPoint =>

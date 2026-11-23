@@ -8,6 +8,7 @@ internal static class UserPositionSeed
     public static readonly UserPosition ExplorerAtTheUndiscoveredGateOfTheFortress;
     public static readonly UserPosition SecondExplorerNearTheStartOfTheOldTown;
     public static readonly UserPosition ThirdExplorerAtTheRailwayStation;
+    public static readonly UserPosition FourthExplorerAtTheRailwayStation;
 
     public static readonly UserPosition[] All;
 
@@ -22,6 +23,9 @@ internal static class UserPositionSeed
         ThirdExplorerAtTheRailwayStation = new UserPosition(WellKnownUsers.ThirdExplorer,
             new Coordinates(45.2671, 19.8335), new DateTime(2026, 11, 15, 11, 30, 0, DateTimeKind.Utc));
 
-        All = [ExplorerAtTheUndiscoveredGateOfTheFortress, SecondExplorerNearTheStartOfTheOldTown, ThirdExplorerAtTheRailwayStation];
+        FourthExplorerAtTheRailwayStation = new UserPosition(WellKnownUsers.FourthExplorer,
+            new Coordinates(45.2671, 19.8335), new DateTime(2026, 11, 15, 12, 0, 0, DateTimeKind.Utc));
+
+        All = [ExplorerAtTheUndiscoveredGateOfTheFortress, SecondExplorerNearTheStartOfTheOldTown, ThirdExplorerAtTheRailwayStation, FourthExplorerAtTheRailwayStation];
     }
 }

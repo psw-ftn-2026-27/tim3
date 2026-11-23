@@ -73,6 +73,18 @@ public class LocationChallengeHuntTests
         participation.SearchCircle.Radius.Should().BeApproximately(120 + 37.5, 1);
     }
 
+    [Theory]
+    [InlineData(-0.5)]
+    [InlineData(100.5)]
+    public void Search_circle_cannot_be_enlarged_by_less_than_zero_or_more_than_a_hundred_metres(double extraMetres)
+    {
+        var challenge = CreateChallenge();
+
+        var activation = () => new LocationChallengeHunt().Activate(ExplorerId, challenge, [], Start, extraMetres);
+
+        activation.Should().Throw<DomainException>();
+    }
+
     [Fact]
     public void Check_within_five_metres_of_an_undiscovered_point_discovers_it()
     {

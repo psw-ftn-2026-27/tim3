@@ -68,6 +68,62 @@ public class LocationChallengeSolvingCommandTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Check_away_from_every_hidden_point_is_rejected_and_nothing_is_discovered()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.FourthExplorer, "explorer");
+        var participation = LocationChallengeParticipationSeed.FourthExplorerStartedTheFortress;
+
+        var response = await client.PostAsync($"/api/games/location-challenges/solving/{LocationChallengeSeed.SecretsOfTheFortress.Id}/location-check", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var assertContext = Factory.CreateContext<GamesDbContext>();
+        var stored = assertContext.LocationChallengeParticipations.Single(row => row.Id == participation.Id);
+        stored.DiscoveredPointIds.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Check_without_a_set_position_is_rejected()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.FifthExplorer, "explorer");
+        using var arrangeContext = Factory.CreateContext<GamesDbContext>();
+        var participationCountBefore = arrangeContext.LocationChallengeParticipations.Count();
+
+        var response = await client.PostAsync($"/api/games/location-challenges/solving/{LocationChallengeSeed.SecretsOfTheFortress.Id}/location-check", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var assertContext = Factory.CreateContext<GamesDbContext>();
+        assertContext.LocationChallengeParticipations.Count().Should().Be(participationCountBefore);
+    }
+
+    [Fact]
+    public async Task Check_in_a_challenge_the_explorer_has_not_activated_is_rejected()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.SecondExplorer, "explorer");
+        using var arrangeContext = Factory.CreateContext<GamesDbContext>();
+        var participationCountBefore = arrangeContext.LocationChallengeParticipations.Count();
+
+        var response = await client.PostAsync($"/api/games/location-challenges/solving/{LocationChallengeSeed.CornersOfTheOldTown.Id}/location-check", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        using var assertContext = Factory.CreateContext<GamesDbContext>();
+        assertContext.LocationChallengeParticipations.Count().Should().Be(participationCountBefore);
+    }
+
+    [Fact]
+    public async Task Check_in_a_missing_challenge_is_rejected()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
+        var participation = LocationChallengeParticipationSeed.ExplorerHalfwayThroughTheFortress;
+
+        var response = await client.PostAsync($"/api/games/location-challenges/solving/{Guid.NewGuid()}/location-check", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        using var assertContext = Factory.CreateContext<GamesDbContext>();
+        var stored = assertContext.LocationChallengeParticipations.Single(row => row.Id == participation.Id);
+        stored.DiscoveredPointIds.Should().Equal(participation.DiscoveredPointIds);
+    }
+
+    [Fact]
     public async Task Anonymous_user_cannot_activate_a_location_challenge()
     {
         var client = Factory.CreateClient();

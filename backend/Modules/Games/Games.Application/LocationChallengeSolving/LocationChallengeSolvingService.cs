@@ -9,8 +9,6 @@ namespace Games.Application.LocationChallengeSolving;
 
 public sealed class LocationChallengeSolvingService
 {
-    private const double MaximumExtraMetres = 100;
-
     private readonly ILocationChallengeRepository _locationChallengeRepository;
     private readonly ILocationChallengeParticipationRepository _participationRepository;
     private readonly LocationChallengeHunt _hunt;
@@ -36,7 +34,7 @@ public sealed class LocationChallengeSolvingService
         var position = await GetPositionAsync(explorerId);
         var locationChallenge = await GetLocationChallengeAsync(locationChallengeId);
         var explorerParticipations = await _participationRepository.GetByExplorerAsync(explorerId);
-        var extraMetres = Random.Shared.NextDouble() * MaximumExtraMetres;
+        var extraMetres = Random.Shared.NextDouble() * LocationChallengeHunt.MaximumExtraMetres;
 
         var participation = _hunt.Activate(explorerId, locationChallenge, explorerParticipations,
             position, extraMetres);
