@@ -1,0 +1,20 @@
+// Answers sit one below another, each as wide as the card.
+.answers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+// Once the server has judged the answer, the chosen option shows the result in its border:
+// green when correct (also a correct answer locked from an earlier pass), red when not.
+// The other options stay neutral.
+.answers .answer--correct {
+  border: 2px solid var(--color-success);
+}
+
+.answers .answer--incorrect {
+  border: 2px solid var(--color-danger);
+}

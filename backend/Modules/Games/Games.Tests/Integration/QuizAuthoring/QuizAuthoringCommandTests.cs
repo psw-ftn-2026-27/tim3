@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Games.Application.QuizAuthoring;
+using Games.Application.Quizzes;
 using Games.Domain.Locations;
 using Games.Domain.Quizzes;
 using Games.Infrastructure.Persistence;
