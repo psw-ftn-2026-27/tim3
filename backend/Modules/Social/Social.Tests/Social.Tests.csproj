@@ -16,6 +16,7 @@
     <ProjectReference Include="..\..\..\Host.Api\Host.Api.csproj" />
     <ProjectReference Include="..\..\..\Shared\Shared.Tests\Shared.Tests.csproj" />
     <ProjectReference Include="..\Social.Infrastructure\Social.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Identity\Identity.Tests\Identity.Tests.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,55 @@
+<div class="card stack">
+  <h1>Edit challenge</h1>
+
+  @if (challenge.isLoading()) {
+    <p class="loading">Loading challenge...</p>
+  } @else if (challenge.error()) {
+    @switch (challengeErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to edit this challenge</h2>
+          <p>Challenges are managed by administrators, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only administrators can edit challenges</h2>
+          <p>Administrators create, edit and publish social challenges.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games">Games</a>
+          </div>
+        </div>
+      }
+      @case (404) {
+        <div class="empty-state" role="alert">
+          <h2>This challenge does not exist</h2>
+          <p>It may have been removed. Pick another challenge from the list.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games/challenges">All challenges</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the challenge</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="challenge.reload()">
+              Try again
+            </button>
+          </div>
+        </div>
+      }
+    }
+  } @else if (challenge.value(); as value) {
+    <app-social-challenge-form
+      [initial]="toFormValue(value)"
+      [pending]="pending()"
+      [error]="error()"
+      (save)="update($event)"
+    />
+  }
+</div>

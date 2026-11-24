@@ -1,25 +1,113 @@
-<article class="card stack">
-  <h3>{{ tour().name }}</h3>
+<article
+  class="card"
+  [class.easy]="tour().difficulty === 'Easy'"
+  [class.moderate]="tour().difficulty === 'Moderate'"
+  [class.hard]="tour().difficulty === 'Hard'"
+>
+  <!-- A tinted pill with a signal meter: one, two or three bars filled by difficulty. -->
+  <span class="difficulty">
+    <span class="bars" aria-hidden="true">
+      @for (bar of [1, 2, 3]; track bar) {
+        <span class="bar" [class.filled]="bar <= level()"></span>
+      }
+    </span>
+    Težina:
+    @switch (tour().difficulty) {
+      @case ('Easy') {
+        Laka
+      }
+      @case ('Moderate') {
+        Umerena
+      }
+      @case ('Hard') {
+        Teška
+      }
+    }
+  </span>
 
-  <p>{{ tour().description }}</p>
+  <h2>{{ tour().name }}</h2>
 
-  <p class="meta">Difficulty: {{ tour().difficulty }}</p>
+  @if (tour().status === 'Archived') {
+    <span class="badge">Arhivirana</span>
+  }
+
+  <p class="description">{{ tour().description }}</p>
+
+  @if (tour().recommendedGroupSize; as size) {
+    @if (size.from === size.to) {
+      <p class="meta">Veličina grupe: {{ size.from }}</p>
+    } @else {
+      <p class="meta">Veličina grupe: {{ size.from }}–{{ size.to }}</p>
+    }
+  } @else {
+    <p class="meta">Veličina grupe nije navedena</p>
+  }
 
   @if (tour().tags.length > 0) {
     <ul class="tags">
       @for (tag of tour().tags; track tag) {
-        <li>{{ tag }}</li>
+        <li class="badge">{{ tag }}</li>
       }
     </ul>
   }
 
-  @if (tour().transportTimes.length > 0) {
-    <ul class="times">
-      @for (time of tour().transportTimes; track time.transport) {
-        <li class="meta">{{ time.transport }}: {{ time.minutes }} min</li>
+  <ul class="times">
+    @for (time of tour().transportTimes; track time.transport) {
+      <li>
+        @switch (time.transport) {
+          @case ('Walking') {
+            Peške
+          }
+          @case ('Bicycle') {
+            Biciklom
+          }
+          @case ('Car') {
+            Automobilom
+          }
+        }
+        : {{ time.minutes }} min
+      </li>
+    } @empty {
+      <li class="empty">Vremena prevoza još nisu navedena. Proveri kasnije.</li>
+    }
+  </ul>
+
+  @let price = priceInEc();
+  @if (price !== undefined) {
+    <p>
+      <strong>
+        @switch (price) {
+          @case (null) {
+            Cena nije dostupna
+          }
+          @case (0) {
+            Besplatno (0 EC)
+          }
+          @default {
+            Cena: {{ price }} EC
+          }
+        }
+      </strong>
+    </p>
+  }
+
+  @if (showPurchasedDetails()) {
+    <div class="page-actions">
+      <a class="button button--primary" [routerLink]="['/exploration/purchased', tour().id]">
+        Otvori kupljenu turu
+      </a>
+    </div>
+  } @else if (showBrowsingActions()) {
+    <div class="page-actions">
+      <a class="button button--primary" [routerLink]="['/exploration/tours', tour().id]"
+        >Pogledaj turu</a
+      >
+      @if (canAddToCart() && price !== null && price !== undefined) {
+        <a class="button" routerLink="/payment/cart" [queryParams]="{ tourId: tour().id }">
+          Izaberi za korpu
+        </a>
       }
-    </ul>
-  } @else {
-    <p class="meta">No transport times yet.</p>
+      <a class="button" [routerLink]="['/chat/tours', tour().id]">Razgovor</a>
+    </div>
   }
 </article>

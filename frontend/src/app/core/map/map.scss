@@ -1,0 +1,10 @@
+.card {
+  margin-inline: auto;
+  max-width: 48rem;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

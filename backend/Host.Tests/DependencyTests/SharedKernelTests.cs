@@ -12,6 +12,9 @@ public class SharedKernelTests : BaseArchitectureTests
         var moduleAssemblies = Modules
             .SelectMany(module => Layers.Select(layer => $"{module}.{layer}"))
             .Append("Identity")
+            .Append("Media")
+            .Append("Maps")
+            .Append("Chats")
             .ToArray();
         AssertNoDependency(sharedProject, moduleAssemblies);
     }

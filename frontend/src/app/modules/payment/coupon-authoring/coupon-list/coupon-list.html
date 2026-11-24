@@ -1,0 +1,30 @@
+<div class="table-wrapper">
+  <table class="table" aria-label="Moji kuponi">
+    <thead>
+      <tr>
+        <th scope="col">Kod</th>
+        <th scope="col">Popust</th>
+        <th scope="col">Važi do</th>
+        <th scope="col">Proizvod</th>
+        <th scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (coupon of coupons(); track coupon.id) {
+        <tr>
+          <th scope="row" class="code">{{ coupon.code }}</th>
+          <td>{{ coupon.discountPercent }}%</td>
+          <td>
+            <time [attr.datetime]="coupon.validUntil">{{ date(coupon.validUntil) }}</time>
+          </td>
+          <td>{{ coupon.productName ?? 'Svi moji proizvodi' }}</td>
+          <td>
+            @if (coupon.isExpired) {
+              <span class="badge">Istekao</span>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

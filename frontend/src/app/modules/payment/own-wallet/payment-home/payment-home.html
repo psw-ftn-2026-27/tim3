@@ -1,0 +1,213 @@
+<div class="stack">
+  <div class="page-head">
+    <div>
+      <h1>{{ isAdministrator() ? 'Upravljanje novčanicima' : 'Moj novčanik' }}</h1>
+    </div>
+  </div>
+  @if (isExplorer()) {
+    <app-payment-navigation current="wallet" />
+  }
+  @if (!auth.isLoggedIn()) {
+    <div class="empty-state">
+      <h2>Prijavi se da vidiš novčanik</h2>
+      <p>Novčanik, stanje i istorija transakcija vidljivi su samo prijavljenim korisnicima.</p>
+      <div class="empty-state-actions">
+        <a class="button button--primary" routerLink="/login">Prijavi se</a>
+      </div>
+    </div>
+  } @else {
+    @if (isAdministrator()) {
+      <p class="meta">
+        Izaberi korisnika za pregled stanja, uplatu EC ili storno konkretne uplate.
+      </p>
+      <div class="wallet-workspace">
+        <app-wallet-user-list
+          [searchField]="searchForm.text"
+          [users]="users.hasValue() ? users.value() : undefined"
+          [loading]="users.isLoading()"
+          [failed]="!!users.error()"
+          [errorStatus]="usersErrorStatus()"
+          [selectedId]="selectedUser()?.userId ?? null"
+          [disabled]="pending()"
+          [page]="usersPage()"
+          [pageSize]="pageSize"
+          (searchRequested)="search($event)"
+          (userSelected)="selectUser($event)"
+          (pageChange)="usersPage.set($event)"
+          (retry)="users.reload()"
+        />
+        <section
+          class="card stack wallet-detail"
+          id="wallet-detail"
+          aria-labelledby="wallet-detail-title"
+        >
+          <div class="page-head">
+            <div>
+              <p class="meta">Izabrani novčanik</p>
+              <h2 id="wallet-detail-title" tabindex="-1">Detalji novčanika</h2>
+            </div>
+            <button
+              class="button back-to-users"
+              type="button"
+              [disabled]="pending()"
+              (click)="backToUsers()"
+            >
+              Nazad na korisnike
+            </button>
+          </div>
+          @if (selectedUser(); as user) {
+            <h3 class="recipient-name">{{ user.displayName }}</h3>
+            @if (confirmation(); as message) {
+              <p class="success" role="status">{{ message }}</p>
+            }
+            @if (selectedWallet.isLoading()) {
+              <p class="loading" role="status">Učitavanje novčanika korisnika…</p>
+            } @else if (selectedWallet.error()) {
+              @switch (selectedWalletErrorStatus()) {
+                @case (401) {
+                  <div class="empty-state" role="alert">
+                    <h2>Prijavi se da vidiš novčanik korisnika</h2>
+                    <p>Sesija je istekla, pa server više ne zna ko si.</p>
+                    <div class="empty-state-actions">
+                      <a class="button button--primary" routerLink="/login">Prijavi se</a>
+                    </div>
+                  </div>
+                }
+                @case (403) {
+                  <div class="empty-state" role="alert">
+                    <h2>Samo administrator vidi novčanike korisnika</h2>
+                    <p>Novčanike korisnika pregleda i uplate unosi administrator.</p>
+                  </div>
+                }
+                @default {
+                  <div class="empty-state" role="alert">
+                    <h2>Novčanik korisnika nije moguće učitati</h2>
+                    <p>Nešto nije u redu na našoj strani. Pokušaj ponovo za trenutak.</p>
+                    <div class="empty-state-actions">
+                      <button
+                        class="button"
+                        type="button"
+                        [disabled]="pending()"
+                        (click)="selectedWallet.reload()"
+                      >
+                        Pokušaj ponovo
+                      </button>
+                    </div>
+                  </div>
+                }
+              }
+            } @else if (selectedWallet.value(); as wallet) {
+              <div class="wallet-balance-panel">
+                <div>
+                  <p class="meta">Trenutno stanje</p>
+                  <p class="balance" aria-live="polite">
+                    <strong>{{ wallet.balance }}</strong> <span>EC</span>
+                  </p>
+                </div>
+                <button
+                  class="button button--primary"
+                  type="button"
+                  [disabled]="writeBlocked()"
+                  (click)="openDeposit($event)"
+                >
+                  Uplati EC
+                </button>
+              </div>
+              @if (pending() && reversalId()) {
+                <p class="loading" role="status">Storno je u toku…</p>
+              }
+              <app-wallet-history
+                [transactions]="wallet.transactions.items"
+                [recipient]="user.displayName"
+                [reversalId]="reversalId()"
+                [reversalError]="reversalError()"
+                [disabled]="writeBlocked()"
+                (requestReversal)="startReversal($event)"
+                (confirmReversal)="reverse()"
+                (dismissReversal)="cancelReversal()"
+              />
+              <app-wallet-pagination
+                label="Stranice transakcija izabranog korisnika"
+                [page]="historyPage()"
+                [pageSize]="pageSize"
+                [totalCount]="wallet.transactions.totalCount"
+                [disabled]="pending()"
+                (pageChange)="selectHistoryPage($event)"
+              />
+              <app-wallet-deposit-dialog
+                [recipient]="user.displayName"
+                [balance]="wallet.balance"
+                [amountField]="depositForm.amount"
+                [valid]="depositForm().valid()"
+                [blocked]="writeBlocked()"
+                [pending]="pending()"
+                [error]="depositError()"
+                (submitted)="deposit($event)"
+                (dismissed)="closeDeposit()"
+              />
+            }
+          } @else {
+            <div class="empty-state">
+              <h2>Izaberi korisnika</h2>
+              <p>Njegovo stanje i istorija transakcija pojaviće se ovde.</p>
+            </div>
+          }
+        </section>
+      </div>
+    }
+    <section class="card stack own-wallet" aria-labelledby="own-wallet-title">
+      <h2 id="own-wallet-title">{{ isAdministrator() ? 'Moj novčanik' : 'Raspoloživo stanje' }}</h2>
+      @if (ownWallet.isLoading()) {
+        <p class="loading" role="status">Učitavanje novčanika…</p>
+      } @else if (ownWallet.error()) {
+        @switch (ownWalletErrorStatus()) {
+          @case (401) {
+            <div class="empty-state" role="alert">
+              <h2>Prijavi se da vidiš novčanik</h2>
+              <p>Sesija je istekla, pa server više ne zna ko si.</p>
+              <div class="empty-state-actions">
+                <a class="button button--primary" routerLink="/login">Prijavi se</a>
+              </div>
+            </div>
+          }
+          @default {
+            <div class="empty-state" role="alert">
+              <h2>Novčanik nije moguće učitati</h2>
+              <p>Nešto nije u redu na našoj strani. Pokušaj ponovo za trenutak.</p>
+              <div class="empty-state-actions">
+                <button
+                  class="button"
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="ownWallet.reload()"
+                >
+                  Pokušaj ponovo
+                </button>
+              </div>
+            </div>
+          }
+        }
+      } @else if (ownWallet.value(); as wallet) {
+        <div class="wallet-balance-panel">
+          <div>
+            @if (isAdministrator()) {
+              <p class="meta">Raspoloživo stanje</p>
+            }
+            <p class="balance" aria-live="polite">
+              <strong>{{ wallet.balance }}</strong> <span>EC</span>
+            </p>
+          </div>
+        </div>
+        <app-wallet-history [transactions]="wallet.transactions.items" />
+        <app-wallet-pagination
+          label="Stranice mojih transakcija"
+          [page]="ownPage()"
+          [pageSize]="pageSize"
+          [totalCount]="wallet.transactions.totalCount"
+          [disabled]="pending()"
+          (pageChange)="ownPage.set($event)"
+        />
+      }
+    </section>
+  }
+</div>

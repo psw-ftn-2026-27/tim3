@@ -1,4 +1,30 @@
 import { Routes } from '@angular/router';
 import { GamesHome } from './games-home/games-home';
+import { CreateLocationChallenge } from './location-challenge-authoring/create-location-challenge/create-location-challenge';
+import { EditLocationChallenge } from './location-challenge-authoring/edit-location-challenge/edit-location-challenge';
+import { LocationChallengeList } from './location-challenge-authoring/location-challenge-list/location-challenge-list';
+import { LocationChallengeHunt } from './location-challenge-solving/location-challenge-hunt/location-challenge-hunt';
+import { LocationChallengesToSolve } from './location-challenge-solving/location-challenges-to-solve/location-challenges-to-solve';
+import { AllQuizzes } from './quiz-authoring/all-quizzes/all-quizzes';
+import { CreateQuiz } from './quiz-authoring/create-quiz/create-quiz';
+import { EditQuiz } from './quiz-authoring/edit-quiz/edit-quiz';
+import { PlayQuiz } from './quiz-playing/play-quiz/play-quiz';
+import { CreateSocialChallenge } from './social-challenge-authoring/create-social-challenge/create-social-challenge';
+import { EditSocialChallenge } from './social-challenge-authoring/edit-social-challenge/edit-social-challenge';
+import { SocialChallengeList } from './social-challenge-authoring/social-challenge-list/social-challenge-list';
 
-export const gamesRoutes: Routes = [{ path: '', component: GamesHome }];
+export const gamesRoutes: Routes = [
+  { path: '', component: GamesHome },
+  { path: 'quizzes', component: AllQuizzes },
+  { path: 'quizzes/create', component: CreateQuiz },
+  { path: 'quizzes/:id', component: EditQuiz },
+  { path: 'quizzes/:id/play', component: PlayQuiz },
+  { path: 'challenges', component: SocialChallengeList },
+  { path: 'challenges/create', component: CreateSocialChallenge },
+  { path: 'challenges/:id/edit', component: EditSocialChallenge },
+  { path: 'location-challenges', component: LocationChallengeList },
+  { path: 'location-challenges/create', component: CreateLocationChallenge },
+  { path: 'location-challenges/:id/edit', component: EditLocationChallenge },
+  { path: 'location-challenges/play', component: LocationChallengesToSolve },
+  { path: 'location-challenges/:id/play', component: LocationChallengeHunt },
+];

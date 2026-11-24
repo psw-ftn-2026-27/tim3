@@ -1,0 +1,98 @@
+<div class="card stack">
+  <h1>Edit blog</h1>
+
+  @if (blog.isLoading()) {
+    <p class="loading">Loading blog...</p>
+  } @else if (blog.error()) {
+    @switch (blogErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to edit this blog</h2>
+          <p>Blogs are edited by logged-in explorers, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only explorers can edit blogs</h2>
+          <p>Explorers write and manage blogs. You can still read the published ones.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social">All blogs</a>
+          </div>
+        </div>
+      }
+      @case (404) {
+        <div class="empty-state" role="alert">
+          <h2>This blog does not exist</h2>
+          <p>It may have been removed. Pick another blog from your list.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/social/mine">My blogs</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the blog</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="blog.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else {
+    <form class="stack" (submit)="submit($event)">
+      <div class="field">
+        <label for="title">Title</label>
+        <input id="title" type="text" [formField]="form.title" />
+        @if (form.title().touched()) {
+          @for (message of form.title().errors(); track $index) {
+            <p class="error">{{ message.message }}</p>
+          }
+        }
+      </div>
+
+      <div class="field">
+        <label for="description">Description</label>
+        <textarea id="description" rows="6" [formField]="form.description"></textarea>
+        @if (form.description().touched()) {
+          @for (message of form.description().errors(); track $index) {
+            <p class="error">{{ message.message }}</p>
+          }
+        }
+      </div>
+
+      <div class="field">
+        <span class="field-label">Images</span>
+        @for (image of images(); track $index) {
+          <div class="image-row">
+            <span class="image-url">{{ image }}</span>
+            <button class="button" type="button" (click)="removeImage($index)">x</button>
+          </div>
+        } @empty {
+          <p class="empty">No images. Add one below.</p>
+        }
+      </div>
+
+      <div class="field">
+        <span class="field-label">Add image</span>
+        <app-image-picker
+          [file]="selected()"
+          [pending]="uploading()"
+          (fileChange)="pickImage($event)"
+          (send)="uploadImage()"
+        />
+      </div>
+
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+
+      <button class="button button--primary" type="submit" [disabled]="!form().valid() || pending()">
+        Save
+      </button>
+    </form>
+  }
+</div>

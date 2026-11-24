@@ -1,0 +1,32 @@
+<ul class="messages">
+  @for (message of messages(); track message.id) {
+    <li class="message">
+      <p class="meta">
+        <span class="sender">{{ message.senderName }}</span> · {{ when(message.sentAt) }}
+      </p>
+      <p class="text">{{ message.text }}</p>
+      @if (canModerateMessage(message)) {
+        <div class="actions">
+          <button
+            class="button"
+            type="button"
+            [disabled]="pending()"
+            (click)="deleteMessage.emit(message.id)"
+          >
+            Delete
+          </button>
+          <button
+            class="button"
+            type="button"
+            [disabled]="pending()"
+            (click)="muteSender.emit(message.senderId)"
+          >
+            Mute
+          </button>
+        </div>
+      }
+    </li>
+  } @empty {
+    <li class="meta">No messages yet.</li>
+  }
+</ul>

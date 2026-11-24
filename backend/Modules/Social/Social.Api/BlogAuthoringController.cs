@@ -28,10 +28,30 @@ public sealed class BlogAuthoringController : ControllerBase
         return await _authoringService.CreateAsync(User.GetUserId(), dto);
     }
 
+    [HttpGet("{id:guid}/edit")]
+    public async Task<ActionResult<BlogDto>> GetForEdit(Guid id)
+    {
+        return await _authoringQueries.GetOwnByIdAsync(id, User.GetUserId());
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult> Update(Guid id, UpdateBlogDto dto)
+    {
+        await _authoringService.UpdateAsync(id, User.GetUserId(), dto);
+        return NoContent();
+    }
+
     [HttpPost("{id:guid}/publish")]
     public async Task<ActionResult> Publish(Guid id)
     {
         await _authoringService.PublishAsync(id, User.GetUserId());
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/archive")]
+    public async Task<ActionResult> Archive(Guid id)
+    {
+        await _authoringService.ArchiveAsync(id, User.GetUserId());
         return NoContent();
     }
 

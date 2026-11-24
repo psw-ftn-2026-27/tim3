@@ -1,6 +1,6 @@
 # Modul Identity
 
-Modul Identity je platformski modul zadužen za registraciju korisnika, prijavu i izdavanje JWT-a (JSON Web Token). Sastoji se od dva projekta. Projekat `Identity` sadrži sam modul, a projekat `Identity.Tests` njegove integracione testove. Studenti ovaj modul koriste kroz njegove krajnje tačke, ali ga ne menjaju i ne referenciraju iz svojih modula.
+Modul Identity je platformski modul zadužen za registraciju korisnika, prijavu i izdavanje JWT-a (JSON Web Token). Sastoji se od tri projekta. Projekat `Identity` sadrži sam modul, projekat `Identity.Contracts` njegov kontrakt prema drugim modulima, a projekat `Identity.Tests` njegove integracione testove. Studenti ovaj modul koriste kroz njegove krajnje tačke i kroz kontrakt, ali ga ne menjaju i iz svojih modula referenciraju samo projekat `Identity.Contracts`.
 
 ## Problem koji rešava
 
@@ -24,6 +24,8 @@ Projekat je podeljen na tri direktorijuma koji odgovaraju slojevima funkcionalno
 
 Sadrži klasu `IdentityController` sa dve krajnje tačke. Krajnja tačka `POST /api/identity/register` pravi novi nalog, dodeljuje mu ulogu `explorer` i vraća token. Krajnja tačka `POST /api/identity/login` proverava adresu elektronske pošte i lozinku i vraća token. Obe krajnje tačke su javne, jer im pristupaju korisnici koji još nemaju token. Kontroler direktno koristi klasu `UserManager` iz biblioteke ASP.NET Core Identity, koja vrši ulogu aplikacionog servisa.
 
+Registracija ne obaveštava druge module o novom nalogu. Modul kome je potreban zapis o korisniku pravi ga sam kada mu prvi put zatreba; Payment, na primer, pravi novčanik pri prvoj uplati.
+
 Sadrži i klasu koja definiše metodu `AddIdentityControllers` kojom `Host.Api` uključuje kontrolere ovog projekta, po istom obrascu kao kod funkcionalnih modula.
 
 ### Core
@@ -37,6 +39,12 @@ Ovde su i DTO klase koje krajnje tačke primaju i vraćaju. Klase `RegisterDto` 
 Sadrži pristup bazi i uključivanje modula u aplikaciju. Klasa `IdentityModuleDbContext` nasleđuje gotov kontekst biblioteke ASP.NET Core Identity i smešta njegove tabele u šemu `identity`, po pravilu da svaki modul ima svoju šemu. Direktorijum `Migrations` sadrži migracije te šeme.
 
 Metoda `AddIdentityModule` registruje sve delove modula i jedino je mesto koje `Host.Api` poziva pored metode `AddIdentityControllers`. Klasa `IdentityModuleInitializer` se izvršava pri pokretanju aplikacije. Ona primenjuje migracije i upisuje uloge `administrator` i `explorer` ako već ne postoje, pa aplikacija posle pokretanja uvek ima spremnu šemu i uloge.
+
+## Projekat Identity.Contracts
+
+Drugim modulima ponekad treba nešto o korisniku osim identifikatora, na primer ime koje se prikazuje uz zahtev za praćenje ili pretraga korisnika. Taj podatak poseduje Identity, pa ga nudi kroz kontrakt u projektu `Identity.Contracts`. Interfejs `IIdentityApi` nudi pretragu istraživača uz izostavljanje jednog korisnika, paginiranu pretragu svih korisnika, imena za prikaz za listu identifikatora, proveru da li korisnik postoji i proveru da li je korisnik istraživač. Obe pretrage koriste ime za prikaz i vraćaju samo identifikatore, imena za prikaz i ukupan broj rezultata.
+
+Korisničko ime je adresa elektronske pošte, pa je ime za prikaz njen deo pre znaka `@` (pravilo je na jednom mestu, u klasi `DisplayName`). Ime za prikaz je jedinstveno, bez obzira na velika i mala slova, jer drugi moduli korisnika vide samo po njemu. Proveru radi `UniqueDisplayNameValidator`, validator korisnika koji `UserManager` poziva pri svakom pravljenju i izmeni naloga, kao i proveru jedinstvene adrese, pa registracija sa već zauzetim imenom vraća 400. Puna adresa, lozinka i spisak uloga nikada ne napuštaju modul; kontrakt otkriva samo da li je korisnik istraživač. Interfejs implementira interna klasa `IdentityApi` u direktorijumu `Infrastructure`, a registruje ga metoda `AddIdentityModule`. Arhitekturni testovi i dalje zabranjuju svakom modulu da referencira projekat `Identity`, a proveravaju i da `Identity.Contracts` ne zavisi ni od čega.
 
 ## Projekat Identity.Tests
 

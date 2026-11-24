@@ -1,23 +1,63 @@
 <div class="stack">
-  <h1>Blogs</h1>
+  <div class="page-head">
+    <h1>Blogs</h1>
 
-  @if (auth.isLoggedIn()) {
-    <p class="links">
-      <a routerLink="/social/mine">My blogs</a>
-      <a routerLink="/social/create">Create blog</a>
-    </p>
-  }
+    @if (auth.isLoggedIn()) {
+      <div class="page-actions">
+        <a class="button" routerLink="/social/mine">My blogs</a>
+        <a class="button" routerLink="/social/clubs">Clubs</a>
+        @if (isExplorer()) {
+          <a class="button" routerLink="/social/users">Find users</a>
+          <a class="button" routerLink="/social/profile">My profile</a>
+        }
+        <a class="button button--primary" routerLink="/social/create">Create blog</a>
+      </div>
+    }
+  </div>
 
   @if (blogs.isLoading()) {
-    <p>Loading blogs...</p>
+    <p class="loading">Loading blogs...</p>
   } @else if (blogs.error()) {
-    <p class="error">Could not load blogs. Log in and try again.</p>
+    @switch (blogsErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to read blogs</h2>
+          <p>Blogs are shown to logged-in users, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load blogs</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="blogs.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if ((blogs.value()?.items ?? []).length === 0) {
+    <div class="empty-state">
+      <h2>No blogs published yet</h2>
+      <p>
+        @if (auth.isLoggedIn()) {
+          Write the first one and share it with other explorers.
+        } @else {
+          Blogs appear here when their authors publish them.
+        }
+      </p>
+      @if (auth.isLoggedIn()) {
+        <div class="empty-state-actions">
+          <a class="button button--primary" routerLink="/social/create">Create blog</a>
+        </div>
+      }
+    </div>
   } @else {
     <div class="grid">
       @for (blog of blogs.value()?.items ?? []; track blog.id) {
         <app-blog-card [blog]="blog" />
-      } @empty {
-        <p>No blogs published yet.</p>
       }
     </div>
   }

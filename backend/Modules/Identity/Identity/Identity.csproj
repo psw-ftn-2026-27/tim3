@@ -11,10 +11,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Shared\Shared.Infrastructure\Shared.Infrastructure.csproj" />
+    <ProjectReference Include="..\Identity.Contracts\Identity.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="Identity.Tests" />
+    <InternalsVisibleTo Include="Social.Tests" />
+    <InternalsVisibleTo Include="Chats.Tests" />
   </ItemGroup>
 
 </Project>

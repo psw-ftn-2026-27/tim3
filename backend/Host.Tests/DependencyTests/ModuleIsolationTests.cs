@@ -2,7 +2,8 @@ using Xunit;
 
 namespace Host.Tests.DependencyTests;
 
-// Another module is reachable only through its Contracts project, and Identity is reachable by no module at all.
+// Another module is reachable only through its Contracts project. Identity is reachable only
+// through Identity.Contracts, Maps only through Maps.Contracts, and Media and Chats by no module at all.
 public class ModuleIsolationTests : BaseArchitectureTests
 {
     [Theory]
@@ -28,6 +29,50 @@ public class ModuleIsolationTests : BaseArchitectureTests
         foreach (var assembly in Layers.Select(layer => $"{module}.{layer}"))
         {
             AssertNoDependency(assembly, "Identity");
+        }
+    }
+
+    [Fact]
+    public void Identity_contracts_depend_on_nothing()
+    {
+        AssertNoDependency("Identity.Contracts",
+            "Identity", "Shared.Domain", "Shared.Api", "Shared.Infrastructure");
+    }
+
+    [Theory]
+    [MemberData(nameof(ModuleNames))]
+    public void Module_does_not_depend_on_media(string module)
+    {
+        foreach (var assembly in Layers.Select(layer => $"{module}.{layer}"))
+        {
+            AssertNoDependency(assembly, "Media");
+        }
+    }
+
+    [Fact]
+    public void Maps_contracts_depend_on_nothing()
+    {
+        AssertNoDependency("Maps.Contracts",
+            "Maps", "Shared.Domain", "Shared.Api", "Shared.Infrastructure");
+    }
+
+    [Theory]
+    [MemberData(nameof(ModuleNames))]
+    public void Module_does_not_depend_on_maps(string module)
+    {
+        foreach (var assembly in Layers.Select(layer => $"{module}.{layer}"))
+        {
+            AssertNoDependency(assembly, "Maps");
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ModuleNames))]
+    public void Module_does_not_depend_on_chats(string module)
+    {
+        foreach (var assembly in Layers.Select(layer => $"{module}.{layer}"))
+        {
+            AssertNoDependency(assembly, "Chats");
         }
     }
 }

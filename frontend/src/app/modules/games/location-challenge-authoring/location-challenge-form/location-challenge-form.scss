@@ -1,0 +1,45 @@
+// The component's own element is inline by default, which ignores the space a parent .stack
+// puts above it; as a block it keeps that space.
+:host {
+  display: block;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+// The map and the list of hidden points sit side by side, and one under the other on a narrow screen.
+.map-and-points {
+  align-items: start;
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+.map-and-points h2 {
+  margin: 0;
+}
+
+.points {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.points li {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--space-3);
+}
+
+.thumbnail {
+  border-radius: var(--radius);
+  height: 6rem;
+  object-fit: cover;
+  width: 6rem;
+}

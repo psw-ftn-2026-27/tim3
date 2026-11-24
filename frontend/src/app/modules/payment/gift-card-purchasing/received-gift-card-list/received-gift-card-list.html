@@ -1,0 +1,32 @@
+@if (giftCards().length === 0) {
+  <p class="empty">Još nema dobijenih kartica.</p>
+} @else {
+  <div class="table-wrapper">
+    <table class="table" aria-label="Dobijene poklon kartice">
+      <thead>
+        <tr>
+          <th scope="col">Pošiljalac</th>
+          <th scope="col">Iznos</th>
+          <th scope="col">Poruka</th>
+          <th scope="col">Važi do</th>
+          <th scope="col">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (giftCard of giftCards(); track giftCard.id) {
+          <tr>
+            <th scope="row">{{ giftCard.buyerDisplayName }}</th>
+            <td>{{ giftCard.amount }} EC</td>
+            <td>{{ giftCard.message ?? '' }}</td>
+            <td>
+              <time [attr.datetime]="giftCard.expiresAt">{{ date(giftCard.expiresAt) }}</time>
+            </td>
+            <td>
+              <span class="badge">{{ statusLabel(giftCard.status) }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

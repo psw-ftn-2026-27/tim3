@@ -1,0 +1,193 @@
+<div class="stack">
+  <h1>Games</h1>
+
+  <div class="tabs">
+    <button
+      class="tab"
+      type="button"
+      [class.tab--active]="tab() === 'quizzes'"
+      (click)="tab.set('quizzes')"
+    >
+      Quizzes
+    </button>
+    <button
+      class="tab"
+      type="button"
+      [class.tab--active]="tab() === 'social'"
+      (click)="tab.set('social')"
+    >
+      Social challenges
+    </button>
+    <button
+      class="tab"
+      type="button"
+      [class.tab--active]="tab() === 'location'"
+      (click)="tab.set('location')"
+    >
+      Location challenges
+    </button>
+  </div>
+
+  @switch (tab()) {
+    @case ('quizzes') {
+      @if (isAdministrator() || !isExplorer()) {
+        <div class="grid">
+          <a class="card tile" routerLink="/games/quizzes">
+            <h2>All quizzes</h2>
+            <p class="meta">Every quiz with its status, experience points and questions.</p>
+          </a>
+          <a class="card tile" routerLink="/games/quizzes/create">
+            <h2>New quiz</h2>
+            <p class="meta">Compose a quiz at a landmark and publish it when it is ready.</p>
+          </a>
+        </div>
+      }
+      @if (isExplorer()) {
+        <div class="map-bar">
+          <p class="meta">
+            @if (positionMissing()) {
+              Set your position on the map. A quiz starts when you are within 20 metres of its pin.
+            } @else {
+              A quiz starts when you are within 20 metres of its pin.
+            }
+          </p>
+          <button
+            class="button"
+            type="button"
+            [attr.aria-expanded]="mapOpen()"
+            (click)="mapOpen.set(!mapOpen())"
+          >
+            {{ mapOpen() ? 'Hide map' : 'Show map' }}
+          </button>
+        </div>
+        @if (mapOpen()) {
+          <p class="meta">Zoom in and click on the map to set your position.</p>
+          <app-location-map
+            [locations]="quizLocations()"
+            [positionSettable]="true"
+            [settingPosition]="true"
+            [position]="position()"
+            [positionMissing]="positionMissing()"
+            (positionSet)="setPosition($event)"
+          />
+        }
+        @if (positionError()) {
+          <p class="error" role="alert">{{ positionError() }}</p>
+        }
+
+        @if (quizzes.isLoading()) {
+          <p class="loading">Loading quizzes...</p>
+        } @else if (quizzes.error()) {
+          @switch (quizzesErrorStatus()) {
+            @case (401) {
+              <div class="empty-state" role="alert">
+                <h2>Log in to play quizzes</h2>
+                <p>Quizzes are played by logged-in explorers, and your session may have expired.</p>
+                <div class="empty-state-actions">
+                  <a class="button button--primary" routerLink="/login">Log in</a>
+                </div>
+              </div>
+            }
+            @case (403) {
+              <div class="empty-state" role="alert">
+                <h2>Only explorers can play quizzes</h2>
+                <p>Explorers play published quizzes on location.</p>
+              </div>
+            }
+            @default {
+              <div class="empty-state" role="alert">
+                <h2>Could not load the quizzes</h2>
+                <p>Something went wrong on our side. Try again in a moment.</p>
+                <div class="empty-state-actions">
+                  <button class="button" type="button" (click)="quizzes.reload()">Try again</button>
+                </div>
+              </div>
+            }
+          }
+        } @else if (quizList().length === 0) {
+          <div class="empty-state">
+            <h2>No quizzes published yet</h2>
+            <p>Quizzes appear here when administrators publish them.</p>
+          </div>
+        } @else {
+          <div class="grid quiz-grid">
+            @for (quiz of quizList(); track quiz.id) {
+              <article class="card stack quiz-card">
+                <div class="quiz-card-head">
+                  <h2>{{ quiz.title }}</h2>
+                  @if (quiz.isSolved) {
+                    <span class="badge">Solved · {{ quiz.correctAnswerCount }}/{{ quiz.questionCount }} correct</span>
+                  } @else {
+                    <span class="badge">Not solved</span>
+                  }
+                </div>
+                <p>{{ quiz.description }}</p>
+                <p class="meta">{{ quiz.experiencePoints }} XP · {{ quiz.questionCount }} questions</p>
+                <div class="quiz-card-actions stack">
+                  @if (startError()?.quizId === quiz.id) {
+                    <p class="error" role="alert">{{ startError()?.message }}</p>
+                  }
+                  <button
+                    class="button button--primary"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="start(quiz.id)"
+                  >
+                    Start
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      }
+    }
+    @case ('social') {
+      @if (isAdministrator()) {
+        <div class="grid">
+          <a class="card tile" routerLink="/games/challenges">
+            <h2>All social challenges</h2>
+            <p class="meta">Review, publish, retire and archive challenges.</p>
+          </a>
+          <a class="card tile" routerLink="/games/challenges/create">
+            <h2>New social challenge</h2>
+            <p class="meta">A challenge where players gather at the same place at the same time of day.</p>
+          </a>
+        </div>
+      } @else {
+        <div class="empty-state empty-card">
+          <span class="rings" aria-hidden="true"></span>
+          <h2>No challenges to show</h2>
+          <p>Social challenges are managed by administrators.</p>
+        </div>
+      }
+    }
+    @case ('location') {
+      @if (isAdministrator()) {
+        <div class="grid">
+          <a class="card tile" routerLink="/games/location-challenges">
+            <h2>All location challenges</h2>
+            <p class="meta">Review, edit and delete challenges with hidden points.</p>
+          </a>
+          <a class="card tile" routerLink="/games/location-challenges/create">
+            <h2>New location challenge</h2>
+            <p class="meta">A challenge where players look for the places the photos were taken from.</p>
+          </a>
+        </div>
+      } @else if (isExplorer()) {
+        <div class="grid">
+          <a class="card tile" routerLink="/games/location-challenges/play">
+            <h2>Solve location challenges</h2>
+            <p class="meta">Find the places the photos were taken from and earn XP.</p>
+          </a>
+        </div>
+      } @else {
+        <div class="empty-state empty-card">
+          <span class="rings" aria-hidden="true"></span>
+          <h2>No challenges to show</h2>
+          <p>Location challenges are managed by administrators.</p>
+        </div>
+      }
+    }
+  }
+</div>

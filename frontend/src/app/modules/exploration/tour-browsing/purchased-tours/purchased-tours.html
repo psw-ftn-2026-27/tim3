@@ -1,0 +1,89 @@
+<div class="stack">
+  <div class="page-head">
+    <h1>Moje kupljene ture</h1>
+    <div class="page-actions">
+      <a class="button" routerLink="/exploration">Ponuda tura</a>
+      @if (isExplorer()) {
+        <a class="button" routerLink="/payment/cart">Korpa</a>
+      }
+    </div>
+  </div>
+
+  @if (tours.isLoading()) {
+    <p class="loading">Učitavanje kupljenih tura…</p>
+  } @else if (tours.error()) {
+    @switch (toursErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Prijavi se da vidiš kupljene ture</h2>
+          <p>Za pregled kupljenih tura potrebna je aktivna prijava.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Prijavi se</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Kupljene ture su dostupne turistima</h2>
+          <p>Možeš da se vratiš na ponudu tura.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/exploration">Ponuda tura</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Kupljene ture nisu mogle da se učitaju</h2>
+          <p>Pokušaj ponovo za koji trenutak.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="tours.reload()">Pokušaj ponovo</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if (tours.hasValue()) {
+    @let results = tours.value();
+    @if (results.totalCount === 0) {
+      <div class="empty-state">
+        <h2>Još nemaš kupljenih tura</h2>
+        <p>Ture se ovde pojavljuju nakon kupovine.</p>
+        <div class="empty-state-actions">
+          <a class="button button--primary" routerLink="/exploration">Ponuda tura</a>
+        </div>
+      </div>
+    } @else {
+      <div class="grid">
+        @for (tour of results.items; track tour.id) {
+          <app-tour-card
+            [tour]="tour"
+            [showBrowsingActions]="false"
+            [showPurchasedDetails]="true"
+          />
+        }
+      </div>
+      @if (lastPage() > 1 || page() > 1) {
+        <nav class="stack" aria-label="Stranice kupljenih tura">
+          <p class="meta" role="status">Strana {{ page() }} od {{ lastPage() }}</p>
+          <div class="page-actions">
+            <button
+              class="button"
+              type="button"
+              [disabled]="page() === 1"
+              (click)="page.set(page() - 1)"
+            >
+              Prethodna
+            </button>
+            <button
+              class="button"
+              type="button"
+              [disabled]="page() >= lastPage()"
+              (click)="page.set(page() + 1)"
+            >
+              Sledeća
+            </button>
+          </div>
+        </nav>
+      }
+    }
+  }
+</div>

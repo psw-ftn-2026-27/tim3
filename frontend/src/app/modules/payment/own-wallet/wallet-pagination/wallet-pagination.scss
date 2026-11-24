@@ -1,0 +1,12 @@
+// The component's own element is inline by default, which ignores the space a parent .stack
+// puts above it; as a block it keeps that space.
+:host {
+  display: block;
+}
+
+.pagination {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

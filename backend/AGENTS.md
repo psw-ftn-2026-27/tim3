@@ -29,6 +29,8 @@ backend/
   Modules/
     Identity/
       Identity/                    single project, platform-owned, see below [platform]
+      Identity.Contracts/          IIdentityApi, the only part other modules
+                                   may reference                             [platform]
       Identity.Tests/                                                        [platform]
     <Name>/
       <Name>.Api/                  API controllers, speaking Application DTOs
@@ -59,7 +61,9 @@ The compiler enforces the layering instead of a reviewer having to spot it.
   `<FrameworkReference Include="Microsoft.AspNetCore.App" />`.
 - `Infrastructure` references `Application`, `Domain`, and `Shared.Infrastructure`.
 - A module may reference another module's `Contracts` project and nothing else from it.
-- No module references `Identity`. Other modules carry a `UserId` as a plain ID.
+- No module references the `Identity` project. Other modules carry a `UserId` as a plain ID,
+  and a module that needs to show or find users references `Identity.Contracts` from its
+  `Application` project, like any other module's `Contracts`.
 - `Host.Api` references every module's `Infrastructure` (for DI) and `Api` (for controller
   discovery), plus the `Identity` project.
 
@@ -78,7 +82,10 @@ reference types and treats warnings as errors, solution-wide. Both files are
 platform-owned.
 
 AutoMapper is pinned to 16.1.1 and runs without a license key; this is a settled
-platform decision. Do not change the version or add a license key.
+platform decision. Do not change the version or add a license key. Two known advisories
+against 16.1.1 are suppressed in `Directory.Packages.props`, with the reason next to them;
+a new advisory still fails the build and is a platform decision, not something to suppress
+in passing.
 
 ## Identity
 
@@ -86,6 +93,13 @@ Identity is a deliberate exception to the module structure: one platform-owned p
 that students use but never modify or reference. It holds ASP.NET Core Identity on the
 `identity` schema, register/login endpoints issuing JWTs, and role seeding at startup
 (`administrator`, `explorer`); the details live in the project itself.
+
+Its only surface toward other modules is `Identity.Contracts`: `IIdentityApi` searches
+explorers by display name, returns display names by ID, and tells whether a user exists
+and whether a user is an explorer. It is implemented inside `Identity` and registered by
+`AddIdentityModule`. The user name is the e-mail address, so a display name is the part
+before the `@`, unique regardless of case; the full address, password and list of roles
+never leave Identity.
 
 What matters outside it: token validation is configured in `Host.Api`; role checks are
 `[Authorize(Roles = ...)]` attributes on controllers or actions. Controllers read the
@@ -168,7 +182,11 @@ Deciding how to answer a request, in order:
    Never load aggregates to display them.
 3. Is it a derived value one aggregate can answer from its own state? Query: load the
    aggregate through `I<Aggregate>Repository` inside the queries class, call its query
-   method, wrap the value in a DTO, and do not save.
+   method, wrap the value in a DTO, and do not save. When the derivation is a rule that
+   spans several aggregates and therefore lives in a domain service, the queries class
+   loads each of those aggregates through its `I<Aggregate>Repository` and calls the
+   domain service instead (Payment's `ShoppingCartQueries.GetMyCartAsync` with
+   `CartPricing`). The rule is not repeated as a projection in SQL.
 
 The hard rule behind all three: queries never mutate and never call `SaveChangesAsync`.
 Do not write a `CanX()` next to every command speculatively; the command throwing is the
@@ -301,7 +319,13 @@ mirror the application layer's use-case groups, with `<Group>CommandTests` and
 uses the real register and login endpoints.
 
 **Test doubles.** Only for an out-of-process dependency whose effects other systems see
-and that has no test instance. Never for the database or the module's own classes.
+and that has no test instance. Never for the database or the module's own classes. Load
+counts as an effect: a shared public service with a usage limit (Maps' OSRM server, one
+request per second) is replaced too, because every test run would spend other users'
+capacity. The double is a hand-written fake class in the module's test project,
+implementing the module's own port interface, and the module's factory subclass swaps it
+in from `ConfigureWebHost` with `ConfigureTestServices` (`RemoveAll`, then register the
+fake). `Maps.Tests` (`FakeRoutingService`, `MapsApiFactory`) is the reference.
 
 Architecture tests in `Host.Tests` use ArchUnitNET and encode the reference rules above.
 The module list in `BaseArchitectureTests` is the only place they change when a module
@@ -317,6 +341,10 @@ is added.
   exposing a `Configure<Aggregates>(this ModelBuilder)` extension and holding one private
   method per mapped type. `OnModelCreating` calls one extension per aggregate; inner
   entities never get a configuration class of their own.
+- A list of another aggregate's IDs held by an aggregate (a cart's entered coupons) is
+  mapped as a PostgreSQL primitive collection (`uuid[]`), with `HasDefaultValueSql("'{}'::uuid[]")` so the migration succeeds on existing rows;
+  see `ShoppingCartConfiguration` in Payment and `ChatConfiguration` in Chats. Anything
+  that has its own properties is an owned entity, not a primitive collection.
 - Aggregates generate their ID in the constructor (`base(Guid.NewGuid())`), never via EF
   value generation; seed data and tests depend on IDs existing before save.
 - Local development configuration (connection string with `postgres`/`admin`, dev JWT
@@ -350,5 +378,6 @@ already on the target branch.
 
 ## Still open, ask before choosing
 
-- **Mocking library.** Chosen when the first dependency that warrants a test double
-  (see Testing) appears.
+- **Mocking library.** The first test double (Maps) is a hand-written fake, which covers
+  a port with one method and two outcomes. A library is chosen only when a port appears
+  that a hand-written fake cannot cover simply.

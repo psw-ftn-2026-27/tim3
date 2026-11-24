@@ -1,61 +1,213 @@
 <div class="stack">
-  <h1>My tours</h1>
+  <div class="page-head">
+    <h1>My tours</h1>
 
-  <p><a routerLink="/exploration/create">Create tour</a></p>
-
-  @if (error()) {
-    <p class="error">{{ error() }}</p>
-  }
+    <div class="page-actions">
+      <a class="button" routerLink="/exploration">All tours</a>
+      <a class="button button--primary" routerLink="/exploration/create">Create tour</a>
+    </div>
+  </div>
 
   @if (tours.isLoading()) {
-    <p>Loading your tours...</p>
+    <p class="loading">Loading your tours...</p>
   } @else if (tours.error()) {
-    <p class="error">Could not load your tours. Log in and try again.</p>
+    @switch (toursErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to see your tours</h2>
+          <p>Your tours are shown to logged-in explorers, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only explorers can author tours</h2>
+          <p>Explorers create and manage tours. You can still browse the published ones.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/exploration">All tours</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load your tours</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="tours.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if ((tours.value() ?? []).length === 0) {
+    <div class="empty-state">
+      <h2>You have no tours yet</h2>
+      <p>Create your first tour from key points, then publish it for explorers.</p>
+      <div class="empty-state-actions">
+        <a class="button button--primary" routerLink="/exploration/create">Create tour</a>
+      </div>
+    </div>
   } @else {
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Difficulty</th>
-          <th scope="col">Status</th>
-          <th scope="col">Transport times</th>
-          <th scope="col">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (tour of tours.value() ?? []; track tour.id) {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
           <tr>
-            <td>{{ tour.name }}</td>
-            <td>{{ tour.difficulty }}</td>
-            <td>{{ tour.status }}</td>
-            <td>
-              @for (time of tour.transportTimes; track time.transport) {
-                <span class="time">{{ time.transport }} {{ time.minutes }} min</span>
-              } @empty {
-                <span class="meta">none</span>
-              }
-            </td>
-            <td class="actions">
-              <button class="button" type="button" (click)="select(tour.id)">Add time</button>
-              @if (tour.status === 'Draft') {
-                <button
-                  class="button button--primary"
-                  type="button"
-                  [disabled]="pending()"
-                  (click)="publish(tour.id)"
-                >
-                  Publish
-                </button>
-              }
-            </td>
+            <th scope="col">Name</th>
+            <th scope="col">Difficulty</th>
+            <th scope="col">Group size</th>
+            <th scope="col">Status</th>
+            <th scope="col">Transport times</th>
+            <th scope="col">Actions</th>
           </tr>
-        } @empty {
-          <tr>
-            <td colspan="5">You have no tours yet.</td>
-          </tr>
-        }
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          @for (tour of tours.value() ?? []; track tour.id) {
+            <tr>
+              <td>{{ tour.name }}</td>
+              <td>{{ tour.difficulty }}</td>
+              <td>
+                @if (tour.recommendedGroupSize; as size) {
+                  @if (size.from === size.to) {
+                    {{ size.from }}
+                  } @else {
+                    {{ size.from }}–{{ size.to }}
+                  }
+                } @else {
+                  <span class="meta">not specified</span>
+                }
+              </td>
+              <td>
+                <span class="badge">{{ tour.status }}</span>
+                @if (tour.archivedAt) {
+                  <br />
+                  <span class="meta">{{ archivedAt(tour.archivedAt) }}</span>
+                }
+              </td>
+              <td>
+                @for (time of tour.transportTimes; track time.transport) {
+                  <span class="time">{{ time.transport }} {{ time.minutes }} min</span>
+                } @empty {
+                  <span class="empty">
+                    none
+                    @if (tour.status !== 'Archived') {
+                      (use Add time)
+                    }
+                  </span>
+                }
+              </td>
+              <td class="actions">
+                <a class="button" [routerLink]="['/exploration/mine', tour.id, 'key-points']">
+                  Key points
+                </a>
+                <a class="button" [routerLink]="['/exploration/tours', tour.id]">Preview</a>
+                @if (tour.status !== 'Archived') {
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="select(tour.id)"
+                  >
+                    Add time
+                  </button>
+                }
+                @if (tour.status === 'Draft') {
+                  <button
+                    class="button button--primary"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="selectForPublish(tour.id)"
+                  >
+                    Publish
+                  </button>
+                }
+                @if (tour.status === 'Published') {
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="archive(tour.id)"
+                  >
+                    Archive
+                  </button>
+                }
+                @if (tour.status === 'Archived') {
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="reactivate(tour.id)"
+                  >
+                    Reactivate
+                  </button>
+                }
+              </td>
+            </tr>
+            @if (rowError()?.rowId === tour.id) {
+              <tr>
+                <td colspan="6">
+                  <p class="error" role="alert">{{ rowError()?.message }}</p>
+                </td>
+              </tr>
+            }
+            @if (publishTourId() === tour.id) {
+              <tr>
+                <td colspan="6">
+                  <form class="stack publish-form" (submit)="publish($event)">
+                    <h2>Publish {{ tour.name }}</h2>
+
+                    <fieldset class="price" [disabled]="pending()">
+                      <legend>Price</legend>
+                      <label>
+                        <input type="radio" value="Free" [formField]="publishForm.price" />
+                        Free (0 EC)
+                      </label>
+                      <label>
+                        <input type="radio" value="Paid" [formField]="publishForm.price" />
+                        Paid
+                      </label>
+                    </fieldset>
+
+                    @if (publishForm.price().value() === 'Paid') {
+                      <div class="field">
+                        <label for="amount">Price in EC</label>
+                        <input
+                          id="amount"
+                          type="number"
+                          step="1"
+                          [formField]="publishForm.amount"
+                        />
+                        @if (publishForm.amount().touched()) {
+                          @for (message of publishForm.amount().errors(); track $index) {
+                            <p class="error">{{ message.message }}</p>
+                          }
+                        }
+                      </div>
+                    }
+
+                    @if (formError()) {
+                      <p class="error" role="alert">{{ formError() }}</p>
+                    }
+
+                    <button
+                      class="button button--primary"
+                      type="submit"
+                      [disabled]="!publishForm().valid() || pending()"
+                    >
+                      Publish
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (success()) {
+    <p class="success" role="status">{{ success() }}</p>
   }
 
   @if (selectedTourId()) {
@@ -80,6 +232,10 @@
           }
         }
       </div>
+
+      @if (formError()) {
+        <p class="error" role="alert">{{ formError() }}</p>
+      }
 
       <button
         class="button button--primary"

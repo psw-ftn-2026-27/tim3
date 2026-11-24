@@ -1,11 +1,16 @@
-<article class="card stack">
-  <h3>{{ blog().title }}</h3>
+<article class="card">
+  @if (blog().images.length > 0) {
+    <img class="cover" [src]="blog().images[0]" alt="" />
+  }
 
-  <p>{{ blog().description }}</p>
+  <p class="meta">{{ published() }} · {{ commentCount() }} · {{ score() }}</p>
 
-  <p class="meta">Status: {{ blog().status }}</p>
+  <h2>{{ blog().title }}</h2>
 
-  <p class="meta">Comments: {{ blog().comments.length }}</p>
+  <p class="description">{{ blog().description }}</p>
 
-  <a [routerLink]="['/social', blog().id]">Read more</a>
+  <div class="footer">
+    <span class="badge">{{ blog().status }}</span>
+    <a class="button button--primary" [routerLink]="['/social', blog().id]">Read more</a>
+  </div>
 </article>

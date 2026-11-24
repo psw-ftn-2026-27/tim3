@@ -1,0 +1,100 @@
+<div class="stack">
+  <h3>Istorija transakcija</h3>
+
+  @if (transactions().length === 0) {
+    <p class="empty">
+      Još nema transakcija.
+      @if (recipient() !== null) {
+        Za prvu uplatu izaberi „Uplati EC”.
+      } @else {
+        Ovde će biti prikazane promene stanja novčanika.
+      }
+    </p>
+  } @else {
+    <div class="table-wrapper">
+      <table class="table" aria-label="Istorija transakcija">
+        <thead>
+          <tr>
+            <th scope="col">Vrsta</th>
+            <th scope="col" class="amount">Iznos</th>
+            <th scope="col">Datum</th>
+            @if (recipient() !== null) {
+              <th scope="col">Radnja</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (transaction of transactions(); track transaction.id) {
+            <tr>
+              <td>{{ kindLabel(transaction.kind) }}</td>
+              <td class="amount" [class.incoming]="transaction.amount > 0">
+                {{ transaction.amount > 0 ? '+' : '' }}{{ transaction.amount }} EC
+                @if (transaction.kind === 'Purchase' && transaction.discountInEc > 0) {
+                  <p class="meta">popust {{ transaction.discountInEc }} EC</p>
+                }
+                @if (transaction.kind === 'Purchase' && transaction.giftCardInEc > 0) {
+                  <p class="meta">poklon kartica {{ transaction.giftCardInEc }} EC</p>
+                }
+              </td>
+              <td>
+                <time [attr.datetime]="transaction.occurredAt">{{
+                  date(transaction.occurredAt)
+                }}</time>
+              </td>
+              @if (recipient() !== null) {
+                <td>
+                  @if (transaction.kind === 'Deposit') {
+                    <button
+                      class="button"
+                      type="button"
+                      [attr.aria-label]="'Storniraj uplatu od ' + transaction.amount + ' EC'"
+                      [attr.aria-expanded]="reversalId() === transaction.id"
+                      [disabled]="disabled()"
+                      (click)="openReversal($event, transaction.id)"
+                    >
+                      Storniraj
+                    </button>
+                  }
+                </td>
+              }
+            </tr>
+            @if (recipient() !== null && reversalId() === transaction.id) {
+              <tr>
+                <td colspan="4">
+                  <div class="stack">
+                    <p>
+                      Storniraj uplatu od <strong>{{ transaction.amount }} EC</strong> za korisnika
+                      <strong>{{ recipient() }}</strong
+                      >.
+                    </p>
+                    @if (reversalError(); as message) {
+                      <p class="error" role="alert">{{ message }}</p>
+                    }
+                    <div class="page-actions">
+                      <button
+                        class="button button--primary"
+                        type="button"
+                        [disabled]="disabled()"
+                        (click)="confirmReversal.emit()"
+                      >
+                        Potvrdi storno
+                      </button>
+                      <button
+                        class="button"
+                        type="button"
+                        [disabled]="disabled()"
+                        (click)="closeReversal()"
+                      >
+                        Odustani
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

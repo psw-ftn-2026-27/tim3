@@ -21,16 +21,24 @@ opt out of either).
 
 ```
 frontend/src/
+  environments/              build-time settings, see Conventions             [platform]
   styles.scss                @use of the four partials below, nothing else   [platform]
   styles/
     _tokens.scss             colours, spacing, radius, type as CSS custom properties
     _base.scss               reset, body, headings, links
-    _layout.scss             page container, stack, grid helpers
-    _components.scss         global classes: button, card, form field, table
+    _layout.scss             page container, stack, grid, page head helpers
+    _components.scss         global classes: button, badge, card, form field, table,
+                             page states (loading, empty-state, empty, error,
+                             success), meta
   app/
     core/                    auth (state, interceptor, login, register), home,
-                             app.routes.ts                                    [platform]
+                             theme (light/dark toggle), consent (analytics
+                             cookie choice), app.routes.ts                    [platform]
     shared/
+      analytics/             sends to Google Analytics with consent: page views and
+                             events from modules; analytics-events.ts is the one
+                             file under shared/ a module team may edit, in its own
+                             PR, with platform review (see its README)        [platform]
       util/
       api/                   shared types (PageResult, ProblemDetails),
                              mirror the server, no client-only fields          [platform]
@@ -72,7 +80,8 @@ folders plus at most one service file. That is the whole layout, and it follows 
 
 The smart/dumb split is visible in the code rather than in folder names: the routes
 file lists every page, a page may inject services, a presentational component injects
-nothing.
+nothing. A page may also inject the platform `Analytics` service to record an event
+right after a successful command (`shared/analytics/README.md`, in Serbian).
 
 ## Rules
 
@@ -111,15 +120,27 @@ construct means adding a lesson, so treat it as a platform decision.
 - State: `signal()` and `computed()`. `effect()` only when a signal must
   drive something outside the component tree, and it needs a reason. Page-scoped state, including its read resources, lives in the page.
   State that outlives a page lives in a service holding signals, `providedIn: 'root'`.
+  The platform analytics service in `shared/analytics/` alone holds an `effect()` that reads
+  `Router.lastSuccessfulNavigation` and the consent, and reads the user with `untracked()`.
+- Types: the typed event map in `shared/analytics/` (`keyof` with a generic parameter) is a
+  platform-only construct; students only call `record()` and add names to the map.
+- Timers: a page that must repeat something on its own (the chat reloading its messages,
+  a position check every 10 seconds) starts one `setInterval` in its constructor and clears
+  it with `inject(DestroyRef).onDestroy(...)`, so the timer stops when the user leaves the
+  page. Only pages hold timers; presentational components and services never do.
 - HTTP: `httpResource()` in the page for reads (it carries loading and error state as
   signals, and a fresh one is created on every visit); `HttpClient` with
   `firstValueFrom` in the group's service for writes. Functional interceptors
   (`HttpInterceptorFn`, `withInterceptors`) in `core/`.
+- `httpResource()` outside a page is allowed only in platform components under `shared/`
+  (currently `LocationMap`, for the street route), because the fallback logic then lives
+  in one place. Feature modules keep their resources in pages.
 - Forms: Signal Forms (`form()`, `FormField`, validators from
   `@angular/forms/signals`). No Reactive Forms, no template-driven forms.
-- Routing: `router-outlet`, `routerLink`, `loadChildren`, route parameters bound as
+- Routing: `router-outlet`, `routerLink`, `routerLinkActive` (with `ariaCurrentWhenActive`,
+  only in the main nav), `loadChildren`, route parameters bound as
   signal inputs via `withComponentInputBinding`; `inject(Router)` only for navigation
-  after a command.
+  after a command, and in the analytics service in `shared/analytics/` to track page views.
 - No RxJS in student code. `Observable` appears only as the return type of `HttpClient`
   writes, immediately awaited. No NgRx, no facades.
 
@@ -129,7 +150,8 @@ No component library. Styling is plain SCSS, deliberately minimal: elegant defau
 lean files that students extend, not a design system. The four global partials in
 `src/styles/` are platform-owned and short. Theming means editing `_tokens.scss` and
 nothing else; every colour, spacing and font value elsewhere refers to a custom property
-defined there.
+defined there. The dark theme is the same tokens redefined under
+`:root[data-theme='dark']`, so a colour that refers to a token works in both themes.
 
 Where a style goes, in order:
 
@@ -138,6 +160,18 @@ Where a style goes, in order:
    global class is shared code and follows the same promotion rule as `shared/`.
 3. Everything else: the component's own `.scss`, under default (emulated) encapsulation.
    Never `::ng-deep`.
+
+Every page shows its states with the shared classes `.loading`, `.empty-state` (a
+page-level list with no items, or a resource that could not load with `role="alert"`: a
+centred card with a heading, one line and the action that fits the cause, so 401 offers
+"Log in", 403 a page the user may open, any other failure "Try again", and an empty list
+the action that fills it), `.empty` (a small list inside a card or form), `.error` (a
+field's own error inside `.field` without a role, a failed command with `role="alert"`)
+and `.success` (`role="status"`), and uses `.button`, `.badge`, `.card`, `.field`,
+`.table` and `.page-head` for what they cover. The guide to follow is
+`src/styles/README.md` (in Serbian): when to use each class, with an example to copy.
+Pages are reviewed against it, and a page never writes its own style for something a
+shared class already covers.
 
 Do not hand-roll a design system, do not add utility-class frameworks, do not introduce
 `shared/ui` wrappers unprompted. Visual consistency across modules is an open problem
@@ -156,7 +190,14 @@ assigned to the platform team, and misalignment is an accepted learning experien
   nullable to `| null`, nested DTO to a nested interface, collection to an array.
   A field the client does not use is still mirrored.
 - A page component owns the interaction: it declares its read resource, injects its
-  group's service for commands, and passes plain values down to presentational
-  components, which take `input()`s and raise `output()`s and inject nothing.
+  group's service for commands (and `Analytics` to record an event after one succeeds),
+  and passes plain values down to presentational components, which take `input()`s and
+  raise `output()`s and inject nothing.
+- Build-time settings live in `src/environments/`: `environment.ts` for production and
+  `environment.development.ts`, which `fileReplacements` in `angular.json` swaps in for
+  the development build (`npm start`). Code imports only `environment`. Today it holds
+  `analyticsMeasurementId`, the Google Analytics 4 measurement ID; an empty string means
+  analytics is off. A developer may put a test property's ID in the development file
+  locally, but never commits it. Adding a setting is a platform decision.
 - Do not produce Vitest tests unless specifically instructed. Frontend testing is not
   taught; it is a platform-team assignment.

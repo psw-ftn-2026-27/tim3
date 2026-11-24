@@ -8,6 +8,9 @@ public sealed record BlogDto(
     string Title,
     string Description,
     DateTime CreatedAt,
+    DateTime LastModifiedAt,
     List<string> Images,
     BlogStatus Status,
-    List<CommentDto> Comments);
+    List<CommentDto> Comments,
+    VoteType? CurrentUserVote,
+    int Score);

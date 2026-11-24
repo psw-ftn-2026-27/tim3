@@ -1,0 +1,12 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.incoming {
+  color: var(--color-success);
+}

@@ -14,24 +14,24 @@ internal sealed class BlogReadRepository : IBlogReadRepository
         _dbContext = dbContext;
     }
 
-    public Task<BlogDto?> GetByIdAsync(Guid id)
+    public Task<BlogDto?> GetByIdAsync(Guid id, Guid currentUserId)
     {
-        return ProjectToDtos(_dbContext.Blogs.Where(blog => blog.Id == id)).FirstOrDefaultAsync();
+        return ProjectToDtos(_dbContext.Blogs.Where(blog => blog.Id == id), currentUserId).FirstOrDefaultAsync();
     }
 
     public Task<List<BlogDto>> GetByAuthorAsync(Guid authorId)
     {
-        return ProjectToDtos(_dbContext.Blogs.Where(blog => blog.AuthorId == authorId)).ToListAsync();
+        return ProjectToDtos(_dbContext.Blogs.Where(blog => blog.AuthorId == authorId), Guid.Empty).ToListAsync();
     }
 
     public async Task<PageResult<BlogDto>> GetPublishedAsync(int page, int pageSize)
     {
         var published = _dbContext.Blogs
-            .Where(blog => blog.Status == BlogStatus.Published)
+            .Where(blog => blog.Status == BlogStatus.Published || blog.Status == BlogStatus.Closed)
             .OrderByDescending(blog => blog.CreatedAt);
 
         var totalCount = await published.CountAsync();
-        var items = await ProjectToDtos(published)
+        var items = await ProjectToDtos(published, Guid.Empty)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -39,7 +39,7 @@ internal sealed class BlogReadRepository : IBlogReadRepository
         return new PageResult<BlogDto>(items, totalCount);
     }
 
-    private static IQueryable<BlogDto> ProjectToDtos(IQueryable<Blog> blogs)
+    private static IQueryable<BlogDto> ProjectToDtos(IQueryable<Blog> blogs, Guid currentUserId)
     {
         return blogs
             .Select(blog => new BlogDto(
@@ -48,10 +48,16 @@ internal sealed class BlogReadRepository : IBlogReadRepository
                 blog.Title,
                 blog.Description,
                 blog.CreatedAt,
+                blog.LastModifiedAt,
                 blog.Images,
                 blog.Status,
                 blog.Comments
-                    .Select(comment => new CommentDto(comment.Id, comment.UserId, comment.Text, comment.CreatedAt))
-                    .ToList()));
+                    .Select(comment => new CommentDto(comment.Id, comment.UserId, comment.Text, comment.CreatedAt, "", comment.LastModifiedAt, comment.CreatedAt.AddMinutes(Comment.EditWindow.TotalMinutes)))
+                    .ToList(),
+                blog.Votes
+                    .Where(vote => vote.UserId == currentUserId)
+                    .Select(vote => (VoteType?)vote.VoteType)
+                    .FirstOrDefault(),
+                blog.Votes.Count(vote => vote.VoteType == VoteType.Up) - blog.Votes.Count(vote => vote.VoteType == VoteType.Down)));
     }
 }

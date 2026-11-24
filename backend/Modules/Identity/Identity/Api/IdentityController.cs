@@ -31,7 +31,11 @@ public sealed class IdentityController : ControllerBase
             return Problem(statusCode: StatusCodes.Status400BadRequest, title: reasons);
         }
 
-        await _userManager.AddToRoleAsync(user, "explorer");
+        var roleResult = await _userManager.AddToRoleAsync(user, "explorer");
+        if (!roleResult.Succeeded)
+        {
+            throw new InvalidOperationException("Could not assign the explorer role to a registered user.");
+        }
 
         return new AccessTokenDto(_tokenFactory.CreateToken(user, await _userManager.GetRolesAsync(user)));
     }

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Exploration.Tests" />
+    <InternalsVisibleTo Include="Chats.Tests" />
   </ItemGroup>
 
 </Project>

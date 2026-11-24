@@ -1,0 +1,172 @@
+<div class="card stack">
+  <h1>Mapa</h1>
+
+  <app-location-map
+    [locations]="locations()"
+    [route]="route()"
+    [selectable]="!pickingPin()"
+    [maxPins]="maxPins()"
+    [positionSettable]="true"
+    [settingPosition]="settingPosition()"
+    [position]="position()"
+    [positionMissing]="positionMissing()"
+    [circle]="circle()"
+    [pickingCircle]="pickingCircle()"
+    [pickingPin]="pickingPin()"
+    (locationsChange)="changeLocations($event)"
+    (routeLength)="routeLength.set($event)"
+    (positionSet)="setPosition($event)"
+    (circleCenterSet)="circleCenter.set($event)"
+    (pinPicked)="pickedIndex.set($event)"
+  />
+
+  @if (route() !== 'none' && routeLength() !== null) {
+    <p>Dužina putanje: {{ routeLength()?.toFixed(2) }} km</p>
+  }
+
+  <div class="buttons">
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="route() === 'none'"
+      (click)="select('none')"
+    >
+      Bez putanje
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="route() === 'straight'"
+      (click)="select('straight')"
+    >
+      Prave linije
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="route() === 'streets'"
+      (click)="select('streets')"
+    >
+      Po ulicama
+    </button>
+  </div>
+
+  <div class="buttons">
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="maxPins() === null"
+      (click)="selectLimit(null)"
+    >
+      Bez granice
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="maxPins() === 5"
+      (click)="selectLimit(5)"
+    >
+      Najviše 5
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="maxPins() === 1"
+      (click)="selectLimit(1)"
+    >
+      Najviše 1
+    </button>
+  </div>
+
+  <div class="buttons">
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="clickMode() === 'sequence'"
+      (click)="clickMode.set('sequence')"
+    >
+      Biranje niza
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="clickMode() === 'position'"
+      (click)="clickMode.set('position')"
+    >
+      Postavljanje pozicije
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="clickMode() === 'circle'"
+      (click)="clickMode.set('circle')"
+    >
+      Biranje kruga
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="clickMode() === 'pin'"
+      (click)="clickMode.set('pin')"
+    >
+      Biranje pina
+    </button>
+  </div>
+
+  @if (pickingCircle()) {
+    <div class="field">
+      <label for="radius">Poluprečnik (m)</label>
+      <input id="radius" type="number" step="any" [formField]="radiusForm.radius" />
+      @for (message of radiusForm.radius().errors(); track $index) {
+        <p class="error">{{ message.message }}</p>
+      }
+    </div>
+
+    @if (circleCenter(); as center) {
+      <p>Centar kruga: {{ center.latitude.toFixed(5) }}, {{ center.longitude.toFixed(5) }}</p>
+    } @else {
+      <p>Centar nije izabran.</p>
+    }
+
+    <div class="buttons">
+      <button
+        class="button"
+        type="button"
+        [disabled]="circleCenter() === null"
+        (click)="circleCenter.set(null)"
+      >
+        Ukloni krug
+      </button>
+    </div>
+  }
+
+  @if (pickingPin()) {
+    @if (picked(); as picked) {
+      <p>
+        Izabrana lokacija {{ picked.number }}: {{ picked.location.latitude.toFixed(5) }},
+        {{ picked.location.longitude.toFixed(5) }}
+      </p>
+    } @else {
+      <p>Pin nije izabran.</p>
+    }
+
+    <div class="buttons">
+      <button class="button" type="button" (click)="showOtherLocations()">Druge lokacije</button>
+    </div>
+  }
+
+  @if (positionError()) {
+    <p class="error">{{ positionError() }}</p>
+  }
+
+  <h2>Izabrane lokacije</h2>
+  @if (locations().length === 0) {
+    <p>Nema izabranih lokacija.</p>
+  } @else {
+    <ol>
+      @for (location of locations(); track $index) {
+        <li>{{ location.latitude.toFixed(5) }}, {{ location.longitude.toFixed(5) }}</li>
+      }
+    </ol>
+  }
+</div>

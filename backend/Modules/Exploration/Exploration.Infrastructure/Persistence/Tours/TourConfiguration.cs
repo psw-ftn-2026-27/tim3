@@ -9,6 +9,7 @@ internal static class TourConfiguration
     public static void ConfigureTours(this ModelBuilder modelBuilder)
     {
         ConfigureTour(modelBuilder.Entity<Tour>());
+        ConfigureKeyPoint(modelBuilder.Entity<KeyPoint>());
     }
 
     private static void ConfigureTour(EntityTypeBuilder<Tour> builder)
@@ -17,10 +18,32 @@ internal static class TourConfiguration
         builder.Property(tour => tour.Difficulty).HasConversion<string>().HasMaxLength(20);
         builder.Property(tour => tour.Status).HasConversion<string>().HasMaxLength(20);
 
+        builder.OwnsOne(tour => tour.RecommendedGroupSize);
+
         builder.OwnsMany(tour => tour.TransportTimes, transportTimes =>
         {
             transportTimes.ToJson();
             transportTimes.Property(time => time.Transport).HasConversion<string>();
         });
+
+        builder.OwnsOne(tour => tour.Length);
+        builder.Navigation(tour => tour.Length).IsRequired();
+
+        builder.HasMany(tour => tour.KeyPoints)
+            .WithOne()
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(tour => tour.KeyPoints).AutoInclude();
+    }
+
+    private static void ConfigureKeyPoint(EntityTypeBuilder<KeyPoint> builder)
+    {
+        builder.ToTable("KeyPoints");
+        builder.Property(keyPoint => keyPoint.Id).ValueGeneratedNever();
+        builder.Property(keyPoint => keyPoint.Name).HasMaxLength(200);
+
+        builder.OwnsOne(keyPoint => keyPoint.Location);
+        builder.Navigation(keyPoint => keyPoint.Location).IsRequired();
     }
 }

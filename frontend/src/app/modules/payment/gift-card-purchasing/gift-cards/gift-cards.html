@@ -1,0 +1,224 @@
+<div class="stack">
+  <div class="page-head">
+    <h1>Poklon kartice</h1>
+  </div>
+
+  @if (!isExplorer()) {
+    <div class="empty-state">
+      <h2>Poklon kartice su dostupne turistima</h2>
+      <p>Za kupovinu poklon kartice potreban je turistički nalog.</p>
+      @if (!auth.isLoggedIn()) {
+        <div class="empty-state-actions">
+          <a class="button button--primary" routerLink="/login">Prijavi se</a>
+        </div>
+      }
+    </div>
+  } @else {
+    <app-payment-navigation current="gift-cards" />
+
+    <section class="card stack" aria-labelledby="buy-gift-card-title">
+      <div class="page-head">
+        <h2 id="buy-gift-card-title" tabindex="-1">Kupovina poklon kartice</h2>
+        @if (!wallet.isLoading() && wallet.hasValue()) {
+          <p>
+            Raspoloživo stanje: <strong class="amount">{{ balance() }} EC</strong>
+          </p>
+        }
+      </div>
+
+      <div role="status">
+        @if (confirmation(); as message) {
+          <p class="success">{{ message }}</p>
+        }
+      </div>
+
+      @if (wallet.isLoading()) {
+        <p class="loading" role="status">Učitavanje novčanika…</p>
+      } @else if (needsWallet()) {
+        <div class="empty-state">
+          <h3>Novčanik još nije otvoren</h3>
+          <p>Otvori svoj novčanik da vidiš raspoloživo stanje.</p>
+          <div class="empty-state-actions">
+            <a class="button" routerLink="/payment">Moj novčanik</a>
+          </div>
+        </div>
+      } @else if (wallet.error(); as failure) {
+        <app-gift-card-load-error
+          [failure]="failure"
+          title="Novčanik nije moguće učitati"
+          [busy]="pending()"
+          (retry)="wallet.reload()"
+        />
+      } @else if (!canBuy()) {
+        <p class="empty">Za kupovinu poklon kartice potrebno je najmanje 10 EC.</p>
+      }
+
+      @if (!showForm()) {
+        <div class="page-actions">
+          <button
+            class="button button--primary"
+            type="button"
+            [disabled]="writeBlocked() || !canBuy()"
+            (click)="openForm()"
+          >
+            Kupi poklon karticu
+          </button>
+        </div>
+      } @else {
+        <div class="gift-purchase">
+          <section class="stack" aria-labelledby="gift-recipient-title">
+            <h3 id="gift-recipient-title">Primalac</h3>
+            <form class="stack" (submit)="search($event)">
+              <div class="field">
+                <label for="gift-card-recipient-search">Korisničko ime primaoca</label>
+                <input
+                  id="gift-card-recipient-search"
+                  type="search"
+                  [formField]="searchForm.text"
+                />
+              </div>
+              <div class="page-actions">
+                <button class="button" type="submit" [disabled]="pending()">Pretraži</button>
+              </div>
+            </form>
+            @if (recipients.isLoading()) {
+              <p class="loading" role="status">Učitavanje korisnika…</p>
+            } @else if (recipients.error(); as failure) {
+              <app-gift-card-load-error
+                [failure]="failure"
+                title="Korisnike nije moguće učitati"
+                [busy]="pending()"
+                (retry)="recipients.reload()"
+              />
+            } @else if (recipients.value(); as recipientsResult) {
+              <app-recipient-list
+                [recipients]="recipientsResult.items"
+                [totalCount]="recipientsResult.totalCount"
+                [selectedId]="selectedRecipient()?.userId ?? null"
+                [disabled]="pending()"
+                (choose)="selectRecipient($event)"
+              />
+            }
+          </section>
+
+          <form
+            class="stack"
+            novalidate
+            (submit)="buy($event)"
+            aria-labelledby="gift-details-title"
+          >
+            <h3 id="gift-details-title">Detalji poklon kartice</h3>
+            <p role="status">
+              @if (selectedRecipient(); as recipient) {
+                Primalac: <strong>{{ recipient.displayName }}</strong>
+              } @else {
+                Izaberi primaoca iz rezultata pretrage.
+              }
+            </p>
+            <div class="field">
+              <label for="gift-card-amount">Iznos u EC</label>
+              <input
+                id="gift-card-amount"
+                type="number"
+                step="1"
+                [formField]="buyForm.amount"
+                aria-describedby="gift-card-amount-help"
+              />
+              <p class="meta" id="gift-card-amount-help">
+                @if (canBuy()) {
+                  Od 10 do {{ maxAmount() }} EC. Unesi ceo broj.
+                } @else {
+                  Najmanji iznos je 10 EC.
+                }
+              </p>
+              @if (canBuy() && buyForm.amount().dirty() && buyForm.amount().invalid()) {
+                @for (error of buyForm.amount().errors(); track error.kind) {
+                  <p class="error">{{ error.message }}</p>
+                }
+              }
+            </div>
+            <div class="field">
+              <label for="gift-card-message">Poruka (nije obavezna)</label>
+              <textarea id="gift-card-message" rows="3" [formField]="buyForm.message"></textarea>
+              @if (buyForm.message().dirty() && buyForm.message().invalid()) {
+                @for (error of buyForm.message().errors(); track error.kind) {
+                  <p class="error">{{ error.message }}</p>
+                }
+              }
+            </div>
+
+            @if (buyError(); as error) {
+              <p class="error" role="alert">{{ error }}</p>
+            }
+            <div class="page-actions">
+              <button
+                class="button button--primary"
+                type="submit"
+                [disabled]="
+                  writeBlocked() || !canBuy() || !selectedRecipient() || !buyForm().valid()
+                "
+              >
+                @if (pending()) {
+                  Kupovina…
+                } @else if (buyForm().valid() && buyForm.amount().value() !== null) {
+                  Kupi poklon karticu za {{ buyForm.amount().value() }} EC
+                } @else {
+                  Kupi poklon karticu
+                }
+              </button>
+              <button class="button" type="button" [disabled]="pending()" (click)="closeForm()">
+                Odustani
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+    </section>
+
+    <section class="card stack" aria-labelledby="purchased-gift-cards-title">
+      <h2 id="purchased-gift-cards-title">Kupljene kartice</h2>
+      @if (purchased.isLoading()) {
+        <p class="loading" role="status">Učitavanje kupljenih kartica…</p>
+      } @else if (purchased.error(); as failure) {
+        <app-gift-card-load-error
+          [failure]="failure"
+          title="Kupljene kartice nije moguće učitati"
+          [busy]="pending()"
+          (retry)="purchased.reload()"
+        />
+      } @else if (purchased.value(); as giftCards) {
+        <app-purchased-gift-card-list [giftCards]="giftCards.items" />
+        <app-wallet-pagination
+          label="Stranice kupljenih kartica"
+          [page]="purchasedPage()"
+          [pageSize]="purchasedPageSize"
+          [totalCount]="giftCards.totalCount"
+          [disabled]="pending()"
+          (pageChange)="purchasedPage.set($event)"
+        />
+      }
+    </section>
+
+    <section class="card stack" aria-labelledby="received-gift-cards-title">
+      <h2 id="received-gift-cards-title">Dobijene kartice</h2>
+      @if (received.isLoading()) {
+        <p class="loading" role="status">Učitavanje dobijenih kartica…</p>
+      } @else if (received.error(); as failure) {
+        <app-gift-card-load-error
+          [failure]="failure"
+          title="Dobijene kartice nije moguće učitati"
+          (retry)="received.reload()"
+        />
+      } @else if (received.value(); as giftCards) {
+        <app-received-gift-card-list [giftCards]="giftCards.items" />
+        <app-wallet-pagination
+          label="Stranice dobijenih kartica"
+          [page]="receivedPage()"
+          [pageSize]="receivedPageSize"
+          [totalCount]="giftCards.totalCount"
+          (pageChange)="receivedPage.set($event)"
+        />
+      }
+    </section>
+  }
+</div>

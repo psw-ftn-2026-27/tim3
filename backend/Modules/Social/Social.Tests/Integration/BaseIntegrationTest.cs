@@ -1,5 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Identity.Infrastructure;
+using Identity.Tests.Integration.Seeds;
 using Shared.Tests;
 using Social.Infrastructure.Persistence;
 using Social.Tests.Integration.Seeds;
@@ -26,5 +28,6 @@ public abstract class BaseIntegrationTest
     {
         Factory = factory;
         Factory.Reseed<SocialDbContext>(SocialSeed.All);
+        Factory.Reseed<IdentityModuleDbContext>(IdentitySeed.All);
     }
 }

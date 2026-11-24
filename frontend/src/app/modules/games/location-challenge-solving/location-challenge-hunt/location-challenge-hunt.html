@@ -1,0 +1,114 @@
+<div class="stack">
+  @if (hunt.isLoading()) {
+    <p class="loading">Loading challenge...</p>
+  } @else if (hunt.error()) {
+    @switch (huntErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to solve this challenge</h2>
+          <p>Location challenges are solved by explorers, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only explorers can solve challenges</h2>
+          <p>Explorers activate location challenges and look for their hidden points.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games">Games</a>
+          </div>
+        </div>
+      }
+      @case (404) {
+        <div class="empty-state" role="alert">
+          <h2>This challenge does not exist</h2>
+          <p>It may have been removed. Pick another challenge from the list.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games/location-challenges/play">
+              All location challenges
+            </a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the challenge</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="hunt.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if (hunt.value(); as value) {
+    <div class="page-head">
+      <h1>{{ value.name }}</h1>
+
+      <div class="page-actions">
+        <a class="button" routerLink="/games/location-challenges/play">All location challenges</a>
+      </div>
+    </div>
+
+    <div class="map-and-points">
+      <div class="stack">
+        <app-location-map
+          [locations]="discoveredLocations()"
+          [circle]="circle()"
+          [positionSettable]="true"
+          [settingPosition]="true"
+          [position]="position()"
+          [positionMissing]="positionMissing()"
+          (positionSet)="setPosition($event)"
+        />
+
+        <p class="meta">Click the map to set your position.</p>
+
+        @if (positionError()) {
+          <p class="error" role="alert">{{ positionError() }}</p>
+        }
+
+        @if (value.state === 'Solved') {
+          <p class="success" role="status">
+            Challenge solved! You gained {{ value.experienceGained }} XP.
+          </p>
+          <p><a routerLink="/games/location-challenges/play">Back to location challenges</a></p>
+        } @else {
+          @if (success()) {
+            <p class="success" role="status">{{ success() }}</p>
+          }
+
+          <div>
+            <button
+              class="button button--primary"
+              type="button"
+              [disabled]="pending()"
+              (click)="checkLocation()"
+            >
+              Check location
+            </button>
+          </div>
+
+          @if (error()) {
+            <p class="error" role="alert">{{ error() }}</p>
+          }
+        }
+      </div>
+
+      <div class="stack">
+        <h2>Hidden points</h2>
+        <ul class="points">
+          @for (point of value.hiddenPoints; track point.id) {
+            <li>
+              <img class="thumbnail" [src]="point.photo" alt="Photo of a hidden point" />
+              @if (point.discovered) {
+                <span class="badge">Discovered</span>
+              }
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  }
+</div>

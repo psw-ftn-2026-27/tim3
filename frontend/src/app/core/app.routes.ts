@@ -2,11 +2,19 @@ import { Routes } from '@angular/router';
 import { Home } from './home/home';
 import { Login } from './auth/login/login';
 import { Register } from './auth/register/register';
+import { Chat } from './chat/chat';
+import { Images } from './images/images';
+import { MapPage } from './map/map';
 
 export const routes: Routes = [
   { path: '', component: Home },
   { path: 'login', component: Login },
   { path: 'register', component: Register },
+  { path: 'images', component: Images },
+  { path: 'map', component: MapPage },
+  { path: 'chat/tours/:tourId', component: Chat },
+  { path: 'chat/challenges/:challengeId', component: Chat },
+  { path: 'chat/users/:firstUserId/:secondUserId', component: Chat },
   {
     path: 'exploration',
     loadChildren: () =>

@@ -1,0 +1,127 @@
+<form class="stack" (submit)="submitForm($event)">
+  <div class="field">
+    <label for="name">Name</label>
+    <input id="name" type="text" [formField]="form.name" />
+    @if (form.name().touched()) {
+      @for (message of form.name().errors(); track $index) {
+        <p class="error">{{ message.message }}</p>
+      }
+    }
+  </div>
+
+  <div class="field">
+    <label for="experienceGained">XP</label>
+    <input id="experienceGained" type="number" [formField]="form.experienceGained" />
+    @if (form.experienceGained().touched()) {
+      @for (message of form.experienceGained().errors(); track $index) {
+        <p class="error">{{ message.message }}</p>
+      }
+    }
+  </div>
+
+  <div class="buttons">
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="mode() === 'start'"
+      (click)="mode.set('start')"
+    >
+      Start location
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="mode() === 'point'"
+      (click)="mode.set('point')"
+    >
+      New point
+    </button>
+    <button
+      class="button"
+      type="button"
+      [class.button--primary]="mode() === 'overview'"
+      (click)="mode.set('overview')"
+    >
+      Overview
+    </button>
+  </div>
+
+  <div class="map-and-points">
+    <div class="stack">
+      <app-location-map
+        [locations]="mapLocations()"
+        [selectable]="mode() !== 'overview'"
+        [maxPins]="1"
+        (locationsChange)="changeMapLocations($event)"
+      />
+
+      @switch (mode()) {
+        @case ('start') {
+          <p class="meta">
+            @if (startLocation(); as start) {
+              Start location: {{ start.latitude.toFixed(5) }}, {{ start.longitude.toFixed(5) }}
+            } @else {
+              Click the map to pick the start location.
+            }
+          </p>
+        }
+        @case ('point') {
+          <p class="meta">
+            @if (newPin(); as pin) {
+              Point location: {{ pin.latitude.toFixed(5) }}, {{ pin.longitude.toFixed(5) }}
+            } @else {
+              Click the map to pick the location the photo was taken from.
+            }
+          </p>
+
+          <app-image-picker
+            [file]="selectedPhoto()"
+            [pending]="photoPending()"
+            (fileChange)="selectedPhoto.set($event)"
+            (send)="sendPhoto()"
+          />
+
+          @if (photoError()) {
+            <p class="error" role="alert">{{ photoError() }}</p>
+          }
+
+          @if (photoAddress()) {
+            <p class="meta">The photo is uploaded.</p>
+          } @else {
+            <p class="meta">Pick a photo and upload it before adding the point.</p>
+          }
+
+          <button class="button" type="button" [disabled]="!canAddPoint()" (click)="addPoint()">
+            Add point
+          </button>
+        }
+        @case ('overview') {
+          <p class="meta">The map shows the start location and all hidden points.</p>
+        }
+      }
+    </div>
+
+    <div class="stack">
+      <h2>Hidden points</h2>
+      <ul class="points">
+        @for (point of hiddenPoints(); track $index) {
+          <li>
+            <img class="thumbnail" [src]="point.photo" alt="Photo of the hidden point" />
+            <div class="stack">
+              <p class="meta">{{ point.latitude.toFixed(5) }}, {{ point.longitude.toFixed(5) }}</p>
+              <button class="button" type="button" (click)="removePoint($index)">Remove</button>
+            </div>
+          </li>
+        } @empty {
+          <li class="empty">No points yet. Add the first one in “New point” mode.</li>
+        }
+      </ul>
+    </div>
+  </div>
+
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+
+  <button class="button button--primary" type="submit" [disabled]="!canSave()">Save</button>
+</form>

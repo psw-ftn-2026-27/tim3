@@ -1,7 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { CreateTourDto, TourDto, TransportTimeDto } from '../api/exploration-api-types';
+import {
+  CreateTourDto,
+  DefineKeyPointsDto,
+  PublishTourDto,
+  TourDto,
+  TransportTimeDto,
+} from '../api/exploration-api-types';
 
 const BASE_URL = '/api/exploration/tours';
 
@@ -13,11 +19,23 @@ export class TourAuthoring {
     return firstValueFrom(this.http.post<TourDto>(BASE_URL, dto));
   }
 
-  async publish(id: string): Promise<void> {
-    await firstValueFrom(this.http.post<void>(`${BASE_URL}/${id}/publish`, {}));
+  async publish(id: string, dto: PublishTourDto): Promise<void> {
+    await firstValueFrom(this.http.post<void>(`${BASE_URL}/${id}/publish`, dto));
+  }
+
+  async archive(id: string): Promise<void> {
+    await firstValueFrom(this.http.post<void>(`${BASE_URL}/${id}/archive`, {}));
+  }
+
+  async reactivate(id: string): Promise<void> {
+    await firstValueFrom(this.http.post<void>(`${BASE_URL}/${id}/reactivate`, {}));
   }
 
   async addTransportTime(id: string, dto: TransportTimeDto): Promise<void> {
     await firstValueFrom(this.http.post<void>(`${BASE_URL}/${id}/transport-times`, dto));
+  }
+
+  async defineKeyPoints(id: string, dto: DefineKeyPointsDto): Promise<void> {
+    await firstValueFrom(this.http.put<void>(`${BASE_URL}/${id}/key-points`, dto));
   }
 }

@@ -1,0 +1,14 @@
+<div class="card stack">
+  <h1>New location challenge</h1>
+
+  <app-location-challenge-form
+    [pending]="pending()"
+    [error]="error()"
+    [photoAddress]="photoAddress()"
+    [photoPending]="photoPending()"
+    [photoError]="photoError()"
+    (save)="create($event)"
+    (photoSend)="uploadPhoto($event)"
+    (photoUsed)="photoAddress.set(null)"
+  />
+</div>

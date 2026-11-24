@@ -1,0 +1,252 @@
+<div class="stack">
+  @if (quiz.isLoading()) {
+    <p class="loading">Loading quiz...</p>
+  } @else if (quiz.error()) {
+    @switch (quizErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to edit this quiz</h2>
+          <p>Quizzes are managed by administrators, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only administrators can edit quizzes</h2>
+          <p>Administrators compose quizzes and publish them for players.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games">Games</a>
+          </div>
+        </div>
+      }
+      @case (404) {
+        <div class="empty-state" role="alert">
+          <h2>This quiz does not exist</h2>
+          <p>It may have been removed. Pick another quiz from the list.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games/quizzes">All quizzes</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the quiz</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="quiz.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if (quiz.value(); as current) {
+    <h1>{{ current.title }}</h1>
+    <p class="meta">Status: {{ current.status }}</p>
+
+    <div class="actions">
+      @if (current.status === 'Draft' || current.status === 'Retired') {
+        <button class="button button--primary" type="button" [disabled]="pending()" (click)="publish()">
+          Publish
+        </button>
+      }
+      @if (current.status === 'Published') {
+        <button class="button" type="button" [disabled]="pending()" (click)="retire()">
+          Retire
+        </button>
+      }
+      @if (current.status === 'Retired') {
+        <button class="button" type="button" [disabled]="pending()" (click)="archive()">
+          Archive
+        </button>
+      }
+      @if (current.status === 'Draft' || current.status === 'Archived') {
+        <button class="button" type="button" [disabled]="pending()" (click)="startDelete()">
+          Delete
+        </button>
+      }
+    </div>
+    @if (confirmingDelete()) {
+      <div class="card stack">
+        <p>Are you sure you want to delete the quiz {{ current.title }}? This cannot be undone.</p>
+        <div class="actions">
+          <button class="button button--primary" type="button" [disabled]="pending()" (click)="remove()">
+            Delete permanently
+          </button>
+          <button class="button" type="button" [disabled]="pending()" (click)="cancelDelete()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    }
+    @if (transitionMessage()) {
+      <p class="success" role="status">{{ transitionMessage() }}</p>
+    }
+    @if (transitionError()) {
+      <p class="error" role="alert">{{ transitionError() }}</p>
+    }
+
+    <div class="layout">
+      <div class="layout__side stack">
+        @if (isDraft()) {
+          <form class="card stack" (submit)="saveDetails($event)">
+            <h2>Quiz details</h2>
+
+            @if (detailsError()) {
+              <p class="error" role="alert">{{ detailsError() }}</p>
+            }
+
+            <div class="field">
+              <label for="title">Title</label>
+              <input id="title" type="text" [formField]="detailsForm.title" />
+              @if (detailsForm.title().touched()) {
+                @for (message of detailsForm.title().errors(); track $index) {
+                  <p class="error">{{ message.message }}</p>
+                }
+              }
+            </div>
+
+            <div class="field">
+              <label for="description">Short description</label>
+              <textarea id="description" rows="3" [formField]="detailsForm.description"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="experience-points">Experience points (XP)</label>
+              <input id="experience-points" type="number" [formField]="detailsForm.experiencePoints" />
+              @if (detailsForm.experiencePoints().touched()) {
+                @for (message of detailsForm.experiencePoints().errors(); track $index) {
+                  <p class="error">{{ message.message }}</p>
+                }
+              }
+            </div>
+
+            <p class="meta">Location: click the map to place or move the pin.</p>
+            <app-location-map
+              [locations]="locations()"
+              [selectable]="true"
+              [maxPins]="1"
+              (locationsChange)="location.set($event[0] ?? null)"
+            />
+
+            <button
+              class="button button--primary"
+              type="submit"
+              [disabled]="!detailsForm().valid() || pending()"
+            >
+              Save
+            </button>
+          </form>
+        } @else {
+          <p class="meta">A quiz can be changed only while it is a draft.</p>
+
+          <div class="card stack">
+            <h2>Quiz details</h2>
+            <p>{{ current.description }}</p>
+            <p>Experience points (XP): {{ current.experiencePoints }}</p>
+            @if (current.location) {
+              <app-location-map [locations]="savedLocations()" />
+            } @else {
+              <p class="empty">The quiz has no location.</p>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="layout__main stack">
+        @if (isDraft()) {
+          <form class="card stack" (submit)="saveQuestion($event)">
+            <h2>{{ selectedQuestionId() ? 'Edit question' : 'Add question' }}</h2>
+
+            @if (questionError()) {
+              <p class="error" role="alert">{{ questionError() }}</p>
+            }
+
+            <div class="field">
+              <label for="question-text">Question</label>
+              <textarea id="question-text" rows="2" [formField]="questionForm.text"></textarea>
+              @if (questionForm.text().touched()) {
+                @for (message of questionForm.text().errors(); track $index) {
+                  <p class="error">{{ message.message }}</p>
+                }
+              }
+            </div>
+
+            @for (answer of questionForm.answers; track $index) {
+              <div class="answer">
+                <div class="field">
+                  <label [for]="'answer-' + $index">Answer {{ $index + 1 }}</label>
+                  <input [id]="'answer-' + $index" type="text" [formField]="answer.text" />
+                </div>
+                <label class="correct">
+                  <input type="checkbox" [formField]="answer.isCorrect" />
+                  Correct
+                </label>
+              </div>
+            }
+
+            <div class="actions">
+              <button
+                class="button button--primary"
+                type="submit"
+                [disabled]="!questionForm().valid() || pending()"
+              >
+                Save
+              </button>
+              @if (selectedQuestionId()) {
+                <button class="button" type="button" (click)="cancelQuestionEdit()">Cancel</button>
+              }
+            </div>
+          </form>
+        }
+
+        <h2>Questions ({{ current.questions.length }})</h2>
+
+        <ol class="questions">
+          @for (question of current.questions; track question.id) {
+            <li class="card stack" [class.selected]="question.id === selectedQuestionId()">
+              <p>{{ $index + 1 }}. {{ question.text }}</p>
+              <ul>
+                @for (answer of question.answers; track $index) {
+                  <li>
+                    {{ answer.text }}
+                    @if (answer.isCorrect) {
+                      <span class="meta">(correct)</span>
+                    }
+                  </li>
+                }
+              </ul>
+              @if (isDraft()) {
+                <div class="actions">
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="selectQuestion(question)"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    class="button"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="removeQuestion(question.id)"
+                  >
+                    Remove
+                  </button>
+                </div>
+              }
+            </li>
+          } @empty {
+            <li class="empty">
+              The quiz has no questions yet.
+              @if (isDraft()) {
+                Add the first one with the question form.
+              }
+            </li>
+          }
+        </ol>
+      </div>
+    </div>
+  }
+</div>

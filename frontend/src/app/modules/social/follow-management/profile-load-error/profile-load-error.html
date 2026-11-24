@@ -1,0 +1,29 @@
+@switch (status()) {
+  @case (401) {
+    <div class="empty-state" role="alert">
+      <h2>Log in to see your {{ what() }}</h2>
+      <p>Your profile is for logged-in explorers, and your session may have expired.</p>
+      <div class="empty-state-actions">
+        <a class="button button--primary" routerLink="/login">Log in</a>
+      </div>
+    </div>
+  }
+  @case (403) {
+    <div class="empty-state" role="alert">
+      <h2>Only explorers have a profile</h2>
+      <p>Explorers follow each other and see their followers here.</p>
+      <div class="empty-state-actions">
+        <a class="button button--primary" routerLink="/social">Blogs</a>
+      </div>
+    </div>
+  }
+  @default {
+    <div class="empty-state" role="alert">
+      <h2>Could not load {{ what() }}</h2>
+      <p>Something went wrong on our side. Try again in a moment.</p>
+      <div class="empty-state-actions">
+        <button class="button" type="button" (click)="retry.emit()">Try again</button>
+      </div>
+    </div>
+  }
+}

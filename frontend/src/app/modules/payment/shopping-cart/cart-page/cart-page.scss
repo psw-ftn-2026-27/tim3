@@ -1,0 +1,90 @@
+.cart-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: start;
+  gap: var(--space-5);
+}
+
+.cart-items {
+  padding: 0;
+  list-style: none;
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.tour-name {
+  overflow-wrap: anywhere;
+}
+
+.cart-coupons {
+  padding: 0;
+  list-style: none;
+}
+
+.cart-coupon {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  overflow-wrap: anywhere;
+}
+
+.cart-coupon p {
+  margin: 0;
+}
+
+.original-price {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.totals > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.totals dd {
+  margin: 0;
+}
+
+.total {
+  border-bottom: var(--border);
+  padding-bottom: var(--space-3);
+  font-weight: 700;
+}
+
+.shortfall {
+  color: var(--color-warning);
+}
+
+.checkout-button {
+  width: 100%;
+}
+
+@media (max-width: 48rem) {
+  .cart-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 36rem) {
+  .cart-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .cart-item .tour-name {
+    grid-column: 1 / -1;
+  }
+}

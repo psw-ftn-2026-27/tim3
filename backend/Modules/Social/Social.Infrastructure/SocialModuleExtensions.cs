@@ -5,9 +5,20 @@ using Social.Application;
 using Social.Application.BlogAuthoring;
 using Social.Application.BlogCommenting;
 using Social.Application.BlogReading;
+using Social.Application.BlogVoting;
 using Social.Application.Blogs;
+using Social.Application.ClubManagement;
+using Social.Application.ClubMembership;
+using Social.Application.ClubRoles;
+using Social.Application.ClubRoster;
+using Social.Application.Clubs;
+using Social.Application.FollowManagement;
+using Social.Application.FollowRequesting;
+using Social.Application.Profiles;
 using Social.Infrastructure.Persistence;
 using Social.Infrastructure.Persistence.Blogs;
+using Social.Infrastructure.Persistence.Clubs;
+using Social.Infrastructure.Persistence.Profiles;
 
 namespace Social.Infrastructure;
 
@@ -22,11 +33,27 @@ public static class SocialModuleExtensions
         services.AddScoped<IBlogRepository, BlogRepository>();
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<SocialDbContext>());
         services.AddScoped<IBlogReadRepository, BlogReadRepository>();
+        services.AddScoped<IClubRepository, ClubRepository>();
+        services.AddScoped<IClubReadRepository, ClubReadRepository>();
+        services.AddScoped<IProfileRepository, ProfileRepository>();
+        services.AddScoped<IProfileReadRepository, ProfileReadRepository>();
 
         services.AddScoped<BlogAuthoringService>();
         services.AddScoped<BlogAuthoringQueries>();
         services.AddScoped<BlogReadingQueries>();
         services.AddScoped<BlogCommentingService>();
+        services.AddScoped<BlogVotingService>();
+        services.AddScoped<ClubManagementService>();
+        services.AddScoped<ClubManagementQueries>();
+        services.AddScoped<ClubMembershipService>();
+        services.AddScoped<ClubMembershipQueries>();
+        services.AddScoped<ClubRosterService>();
+        services.AddScoped<ClubRosterQueries>();
+        services.AddScoped<ClubRolesService>();
+        services.AddScoped<FollowRequestingService>();
+        services.AddScoped<FollowRequestingQueries>();
+        services.AddScoped<FollowManagementService>();
+        services.AddScoped<FollowManagementQueries>();
 
         return services;
     }

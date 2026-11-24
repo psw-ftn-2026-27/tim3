@@ -1,0 +1,23 @@
+<div class="card stack">
+  <h1>Images</h1>
+
+  <app-image-picker
+    [file]="selected()"
+    [pending]="pending()"
+    (fileChange)="select($event)"
+    (send)="send()"
+  />
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (address()) {
+    @if (imageMissing()) {
+      <p class="error">Image not found.</p>
+    } @else {
+      <p>Image uploaded successfully.</p>
+      <img class="saved" [src]="address()" alt="Uploaded image" (error)="imageMissing.set(true)" />
+    }
+  }
+</div>
