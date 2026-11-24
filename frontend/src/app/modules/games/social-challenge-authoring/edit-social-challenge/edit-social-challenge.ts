@@ -43,6 +43,10 @@ export class EditSocialChallenge {
       gatheringRadius: challenge.gatheringRadius,
       experienceGained: challenge.experienceGained,
       endMessage: challenge.endMessage,
+      location:
+        challenge.latitude === null || challenge.longitude === null
+          ? null
+          : { latitude: challenge.latitude, longitude: challenge.longitude },
     };
   }
 

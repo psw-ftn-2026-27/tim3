@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Games.Application.SocialChallengeAuthoring;
+using Games.Domain.Locations;
 using Games.Domain.SocialChallenges;
 using Games.Infrastructure.Persistence;
 using Games.Tests.Integration.Seeds;
@@ -18,7 +19,7 @@ public class SocialChallengeAuthoringCommandTests : BaseIntegrationTest
     public async Task Administrator_creates_a_draft_social_challenge()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
-        var request = new CreateSocialChallengeDto("Jutro na keju", new TimeOnly(7, 0), new TimeOnly(9, 0), 4, 5, 150, "Dobro jutro, ekipo!");
+        var request = new CreateSocialChallengeDto("Jutro na keju", new TimeOnly(7, 0), new TimeOnly(9, 0), 4, 5, 150, "Dobro jutro, ekipo!", 45.2522, 19.8622);
         using var arrangeContext = Factory.CreateContext<GamesDbContext>();
         var challengeCountBefore = arrangeContext.SocialChallenges.Count();
 
@@ -28,19 +29,22 @@ public class SocialChallengeAuthoringCommandTests : BaseIntegrationTest
         var created = await response.Content.ReadFromJsonAsync<SocialChallengeDto>(JsonOptions);
         created!.Status.Should().Be(SocialChallengeStatus.Draft);
         created.Name.Should().Be("Jutro na keju");
+        created.Latitude.Should().Be(45.2522);
+        created.Longitude.Should().Be(19.8622);
         using var assertContext = Factory.CreateContext<GamesDbContext>();
         assertContext.SocialChallenges.Count().Should().Be(challengeCountBefore + 1);
         var stored = assertContext.SocialChallenges.Single(challenge => challenge.Id == created.Id);
         stored.Status.Should().Be(SocialChallengeStatus.Draft);
         stored.ActivePeriod.Should().Be(new ActivePeriod(new TimeOnly(7, 0), new TimeOnly(9, 0)));
         stored.PeopleRequired.Should().Be(4);
+        stored.Location.Should().Be(new Location(45.2522, 19.8622));
     }
 
     [Fact]
     public async Task Invalid_social_challenge_is_not_saved()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
-        var request = new CreateSocialChallengeDto("Gužva na trgu", new TimeOnly(12, 0), new TimeOnly(13, 0), 71, 15, 150, "Uspeli ste!");
+        var request = new CreateSocialChallengeDto("Gužva na trgu", new TimeOnly(12, 0), new TimeOnly(13, 0), 71, 15, 150, "Uspeli ste!", 45.2551, 19.8452);
         using var arrangeContext = Factory.CreateContext<GamesDbContext>();
         var challengeCountBefore = arrangeContext.SocialChallenges.Count();
 
@@ -55,7 +59,7 @@ public class SocialChallengeAuthoringCommandTests : BaseIntegrationTest
     public async Task Anonymous_user_cannot_create_a_social_challenge()
     {
         var client = Factory.CreateClient();
-        var request = new CreateSocialChallengeDto("Jutro na keju", new TimeOnly(7, 0), new TimeOnly(9, 0), 4, 5, 150, "Dobro jutro, ekipo!");
+        var request = new CreateSocialChallengeDto("Jutro na keju", new TimeOnly(7, 0), new TimeOnly(9, 0), 4, 5, 150, "Dobro jutro, ekipo!", 45.2522, 19.8622);
 
         var response = await client.PostAsJsonAsync("/api/games/social-challenges", request);
 
@@ -66,7 +70,7 @@ public class SocialChallengeAuthoringCommandTests : BaseIntegrationTest
     public async Task Explorer_cannot_create_a_social_challenge()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
-        var request = new CreateSocialChallengeDto("Jutro na keju", new TimeOnly(7, 0), new TimeOnly(9, 0), 4, 5, 150, "Dobro jutro, ekipo!");
+        var request = new CreateSocialChallengeDto("Jutro na keju", new TimeOnly(7, 0), new TimeOnly(9, 0), 4, 5, 150, "Dobro jutro, ekipo!", 45.2522, 19.8622);
 
         var response = await client.PostAsJsonAsync("/api/games/social-challenges", request);
 
@@ -77,7 +81,7 @@ public class SocialChallengeAuthoringCommandTests : BaseIntegrationTest
     public async Task Administrator_updates_a_draft_social_challenge()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
-        var request = new UpdateSocialChallengeDto("Zalazak na bedemu", new TimeOnly(19, 0), new TimeOnly(21, 0), 8, 12, 500, "Zalazak je vaš!");
+        var request = new UpdateSocialChallengeDto("Zalazak na bedemu", new TimeOnly(19, 0), new TimeOnly(21, 0), 8, 12, 500, "Zalazak je vaš!", 45.2530, 19.8630);
 
         var response = await client.PutAsJsonAsync($"/api/games/social-challenges/{SocialChallengeSeed.SunsetOnTheFortress.Id}", request);
 
@@ -90,13 +94,30 @@ public class SocialChallengeAuthoringCommandTests : BaseIntegrationTest
         stored.GatheringRadius.Should().Be(12);
         stored.ExperienceGained.Should().Be(500);
         stored.EndMessage.Should().Be("Zalazak je vaš!");
+        stored.Location.Should().Be(new Location(45.2530, 19.8630));
+    }
+
+    [Fact]
+    public async Task Administrator_removes_the_location_from_a_draft_social_challenge()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+        var seeded = SocialChallengeSeed.SunsetOnTheFortress;
+        var request = new UpdateSocialChallengeDto(seeded.Name, seeded.ActivePeriod.Start, seeded.ActivePeriod.End,
+            seeded.PeopleRequired, seeded.GatheringRadius, seeded.ExperienceGained, seeded.EndMessage, null, null);
+
+        var response = await client.PutAsJsonAsync($"/api/games/social-challenges/{seeded.Id}", request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var assertContext = Factory.CreateContext<GamesDbContext>();
+        var stored = assertContext.SocialChallenges.Single(challenge => challenge.Id == seeded.Id);
+        stored.Location.Should().BeNull();
     }
 
     [Fact]
     public async Task Updating_an_unknown_social_challenge_changes_nothing()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
-        var request = new UpdateSocialChallengeDto("Nepostojeći izazov", new TimeOnly(19, 0), new TimeOnly(21, 0), 8, 12, 500, "Kraj.");
+        var request = new UpdateSocialChallengeDto("Nepostojeći izazov", new TimeOnly(19, 0), new TimeOnly(21, 0), 8, 12, 500, "Kraj.", 45.2530, 19.8630);
         using var arrangeContext = Factory.CreateContext<GamesDbContext>();
         var challengeCountBefore = arrangeContext.SocialChallenges.Count();
 
@@ -112,7 +133,7 @@ public class SocialChallengeAuthoringCommandTests : BaseIntegrationTest
     public async Task Anonymous_user_cannot_update_a_social_challenge()
     {
         var client = Factory.CreateClient();
-        var request = new UpdateSocialChallengeDto("Zalazak na bedemu", new TimeOnly(19, 0), new TimeOnly(21, 0), 8, 12, 500, "Zalazak je vaš!");
+        var request = new UpdateSocialChallengeDto("Zalazak na bedemu", new TimeOnly(19, 0), new TimeOnly(21, 0), 8, 12, 500, "Zalazak je vaš!", 45.2530, 19.8630);
 
         var response = await client.PutAsJsonAsync($"/api/games/social-challenges/{SocialChallengeSeed.SunsetOnTheFortress.Id}", request);
 
@@ -123,7 +144,7 @@ public class SocialChallengeAuthoringCommandTests : BaseIntegrationTest
     public async Task Explorer_cannot_update_a_social_challenge()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Explorer, "explorer");
-        var request = new UpdateSocialChallengeDto("Zalazak na bedemu", new TimeOnly(19, 0), new TimeOnly(21, 0), 8, 12, 500, "Zalazak je vaš!");
+        var request = new UpdateSocialChallengeDto("Zalazak na bedemu", new TimeOnly(19, 0), new TimeOnly(21, 0), 8, 12, 500, "Zalazak je vaš!", 45.2530, 19.8630);
 
         var response = await client.PutAsJsonAsync($"/api/games/social-challenges/{SocialChallengeSeed.SunsetOnTheFortress.Id}", request);
 

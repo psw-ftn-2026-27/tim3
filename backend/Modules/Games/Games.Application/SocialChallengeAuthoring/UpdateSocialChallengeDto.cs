@@ -7,4 +7,6 @@ public sealed record UpdateSocialChallengeDto(
     int PeopleRequired,
     double GatheringRadius,
     int ExperienceGained,
-    string EndMessage);
+    string EndMessage,
+    double? Latitude,
+    double? Longitude);

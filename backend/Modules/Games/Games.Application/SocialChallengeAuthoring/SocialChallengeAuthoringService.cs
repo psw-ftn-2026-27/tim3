@@ -1,5 +1,6 @@
 using AutoMapper;
 using Games.Application.SocialChallenges;
+using Games.Domain.Locations;
 using Games.Domain.SocialChallenges;
 using Shared.Domain.Exceptions;
 
@@ -24,8 +25,9 @@ public sealed class SocialChallengeAuthoringService
     public async Task<SocialChallengeDto> CreateAsync(CreateSocialChallengeDto dto)
     {
         var activePeriod = new ActivePeriod(dto.ActivePeriodStart, dto.ActivePeriodEnd);
+        var location = Location.FromOptionalCoordinates(dto.Latitude, dto.Longitude);
         var socialChallenge = new SocialChallenge(dto.Name, activePeriod,
-            dto.PeopleRequired, dto.GatheringRadius, dto.ExperienceGained, dto.EndMessage);
+            dto.PeopleRequired, dto.GatheringRadius, dto.ExperienceGained, dto.EndMessage, location);
 
         _socialChallengeRepository.Add(socialChallenge);
         await _unitOfWork.SaveChangesAsync();
@@ -38,8 +40,9 @@ public sealed class SocialChallengeAuthoringService
         var socialChallenge = await GetSocialChallengeAsync(socialChallengeId);
 
         var activePeriod = new ActivePeriod(dto.ActivePeriodStart, dto.ActivePeriodEnd);
+        var location = Location.FromOptionalCoordinates(dto.Latitude, dto.Longitude);
         socialChallenge.Update(dto.Name, activePeriod,
-            dto.PeopleRequired, dto.GatheringRadius, dto.ExperienceGained, dto.EndMessage);
+            dto.PeopleRequired, dto.GatheringRadius, dto.ExperienceGained, dto.EndMessage, location);
         await _unitOfWork.SaveChangesAsync();
     }
 

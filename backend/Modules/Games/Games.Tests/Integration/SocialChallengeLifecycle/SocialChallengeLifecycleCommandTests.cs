@@ -26,6 +26,19 @@ public class SocialChallengeLifecycleCommandTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task Draft_social_challenge_without_a_location_cannot_be_published()
+    {
+        var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
+
+        var response = await client.PostAsync($"/api/games/social-challenges/{SocialChallengeSeed.DawnOnTheBeachWithoutLocation.Id}/publish", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var assertContext = Factory.CreateContext<GamesDbContext>();
+        var stored = assertContext.SocialChallenges.Single(challenge => challenge.Id == SocialChallengeSeed.DawnOnTheBeachWithoutLocation.Id);
+        stored.Status.Should().Be(SocialChallengeStatus.Draft);
+    }
+
+    [Fact]
     public async Task Published_social_challenge_cannot_be_published_again()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");

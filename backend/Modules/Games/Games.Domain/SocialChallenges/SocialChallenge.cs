@@ -1,3 +1,4 @@
+using Games.Domain.Locations;
 using Shared.Domain;
 using Shared.Domain.Exceptions;
 
@@ -17,6 +18,7 @@ public sealed class SocialChallenge : AggregateRoot
     public double GatheringRadius { get; private set; }
     public int ExperienceGained { get; private set; }
     public string EndMessage { get; private set; }
+    public Location? Location { get; private set; }
 
     private SocialChallenge()
     {
@@ -26,7 +28,7 @@ public sealed class SocialChallenge : AggregateRoot
     }
 
     public SocialChallenge(string name, ActivePeriod activePeriod, int peopleRequired,
-        double gatheringRadius, int experienceGained, string endMessage)
+        double gatheringRadius, int experienceGained, string endMessage, Location? location)
         : base(Guid.NewGuid())
     {
         EnsureValid(name, peopleRequired, gatheringRadius, experienceGained, endMessage);
@@ -38,10 +40,11 @@ public sealed class SocialChallenge : AggregateRoot
         GatheringRadius = gatheringRadius;
         ExperienceGained = experienceGained;
         EndMessage = endMessage;
+        Location = location;
     }
 
     public void Update(string name, ActivePeriod activePeriod, int peopleRequired,
-        double gatheringRadius, int experienceGained, string endMessage)
+        double gatheringRadius, int experienceGained, string endMessage, Location? location)
     {
         if (Status != SocialChallengeStatus.Draft)
         {
@@ -55,11 +58,20 @@ public sealed class SocialChallenge : AggregateRoot
         GatheringRadius = gatheringRadius;
         ExperienceGained = experienceGained;
         EndMessage = endMessage;
+        Location = location;
     }
 
-    public void Publish() => TransitionTo(SocialChallengeStatus.Published,
-        "Only a draft social challenge can be published.",
-        SocialChallengeStatus.Draft);
+    public void Publish()
+    {
+        if (Location is null)
+        {
+            throw new DomainException("A social challenge requires a location to be published.");
+        }
+
+        TransitionTo(SocialChallengeStatus.Published,
+            "Only a draft social challenge can be published.",
+            SocialChallengeStatus.Draft);
+    }
 
     public void Retire() => TransitionTo(SocialChallengeStatus.Retired,
         "Only a published social challenge can be retired.",

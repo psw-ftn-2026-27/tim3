@@ -11,6 +11,8 @@ export interface SocialChallengeDto {
   gatheringRadius: number;
   experienceGained: number;
   endMessage: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface CreateSocialChallengeDto {
@@ -21,6 +23,8 @@ export interface CreateSocialChallengeDto {
   gatheringRadius: number;
   experienceGained: number;
   endMessage: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface UpdateSocialChallengeDto {
@@ -31,6 +35,8 @@ export interface UpdateSocialChallengeDto {
   gatheringRadius: number;
   experienceGained: number;
   endMessage: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface AnswerDto {
