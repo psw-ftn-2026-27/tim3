@@ -2,11 +2,13 @@ using Games.Application;
 using Games.Domain.LocationChallenges;
 using Games.Domain.QuizParticipations;
 using Games.Domain.Quizzes;
+using Games.Domain.SocialChallengeExecutions;
 using Games.Domain.SocialChallenges;
 using Games.Infrastructure.Persistence.LocationChallengeParticipations;
 using Games.Infrastructure.Persistence.LocationChallenges;
 using Games.Infrastructure.Persistence.QuizParticipations;
 using Games.Infrastructure.Persistence.Quizzes;
+using Games.Infrastructure.Persistence.SocialChallengeExecutions;
 using Games.Infrastructure.Persistence.SocialChallenges;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +23,7 @@ internal sealed class GamesDbContext : DbContext, IUnitOfWork
     public DbSet<LocationChallenge> LocationChallenges => Set<LocationChallenge>();
     public DbSet<LocationChallengeParticipation> LocationChallengeParticipations => Set<LocationChallengeParticipation>();
     public DbSet<QuizParticipation> QuizParticipations => Set<QuizParticipation>();
+    public DbSet<SocialChallengeExecution> SocialChallengeExecutions => Set<SocialChallengeExecution>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -30,5 +33,6 @@ internal sealed class GamesDbContext : DbContext, IUnitOfWork
         builder.ConfigureLocationChallenges();
         builder.ConfigureLocationChallengeParticipations();
         builder.ConfigureQuizParticipations();
+        builder.ConfigureSocialChallengeExecutions();
     }
 }

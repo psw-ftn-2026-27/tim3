@@ -154,7 +154,105 @@
             <p class="meta">A challenge where players gather at the same place at the same time of day.</p>
           </a>
         </div>
-      } @else {
+      }
+      @if (isExplorer()) {
+        <div class="map-bar">
+          <p class="meta">
+            @if (positionMissing()) {
+              Set your position on the map. A challenge activates when you are in its gathering circle during its time of day.
+            } @else {
+              A challenge activates when you are in its gathering circle during its time of day.
+            }
+          </p>
+          <button
+            class="button"
+            type="button"
+            [attr.aria-expanded]="mapOpen()"
+            (click)="mapOpen.set(!mapOpen())"
+          >
+            {{ mapOpen() ? 'Hide map' : 'Show map' }}
+          </button>
+        </div>
+        @if (mapOpen()) {
+          <p class="meta">Zoom in and click on the map to set your position.</p>
+          <app-location-map
+            [locations]="socialChallengeLocations()"
+            [positionSettable]="true"
+            [settingPosition]="true"
+            [position]="position()"
+            [positionMissing]="positionMissing()"
+            (positionSet)="setPosition($event)"
+          />
+        }
+        @if (positionError()) {
+          <p class="error" role="alert">{{ positionError() }}</p>
+        }
+
+        @if (socialChallenges.isLoading()) {
+          <p class="loading">Loading social challenges...</p>
+        } @else if (socialChallenges.error()) {
+          @switch (socialChallengesErrorStatus()) {
+            @case (401) {
+              <div class="empty-state" role="alert">
+                <h2>Log in to play social challenges</h2>
+                <p>Social challenges are played by logged-in explorers, and your session may have expired.</p>
+                <div class="empty-state-actions">
+                  <a class="button button--primary" routerLink="/login">Log in</a>
+                </div>
+              </div>
+            }
+            @case (403) {
+              <div class="empty-state" role="alert">
+                <h2>Only explorers can play social challenges</h2>
+                <p>Explorers gather on location to solve published social challenges.</p>
+              </div>
+            }
+            @default {
+              <div class="empty-state" role="alert">
+                <h2>Could not load the social challenges</h2>
+                <p>Something went wrong on our side. Try again in a moment.</p>
+                <div class="empty-state-actions">
+                  <button class="button" type="button" (click)="socialChallenges.reload()">Try again</button>
+                </div>
+              </div>
+            }
+          }
+        } @else if (socialChallengeList().length === 0) {
+          <div class="empty-state">
+            <h2>No social challenges published yet</h2>
+            <p>Social challenges appear here when administrators publish them.</p>
+          </div>
+        } @else {
+          <div class="grid quiz-grid">
+            @for (challenge of socialChallengeList(); track challenge.id) {
+              <article class="card stack quiz-card">
+                <div class="quiz-card-head">
+                  <h2>{{ challenge.name }}</h2>
+                  <span class="badge">Solved {{ challenge.solvedCount }} {{ challenge.solvedCount === 1 ? 'time' : 'times' }}</span>
+                </div>
+                <p class="meta">
+                  {{ challenge.activePeriodStart.slice(0, 5) }} – {{ challenge.activePeriodEnd.slice(0, 5) }} ·
+                  {{ challenge.peopleRequired }} people required
+                </p>
+                <div class="quiz-card-actions stack">
+                  @if (activateError()?.challengeId === challenge.id) {
+                    <p class="error" role="alert">{{ activateError()?.message }}</p>
+                  }
+                  <button
+                    class="button button--primary"
+                    type="button"
+                    [disabled]="pending()"
+                    (click)="activate(challenge.id)"
+                  >
+                    Activate
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      }
+      @if (!isAdministrator() && !isExplorer()) {
         <div class="empty-state empty-card">
           <span class="rings" aria-hidden="true"></span>
           <h2>No challenges to show</h2>
