@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Games.Domain.Locations;
 using Games.Domain.SocialChallenges;
 using Shared.Domain.Exceptions;
 using Xunit;
@@ -8,10 +9,14 @@ namespace Games.Tests.Unit.SocialChallenges;
 public class SocialChallengeTests
 {
     private static readonly ActivePeriod Evening = new(new TimeOnly(18, 0), new TimeOnly(20, 0));
+    private static readonly Location Fortress = new(45.2517, 19.8616);
 
     private static SocialChallenge CreateChallenge(string name = "Zalazak na tvrđavi", int peopleRequired = 5,
         double gatheringRadius = 10, int experienceGained = 300, string endMessage = "Bravo!") =>
-        new(name, Evening, peopleRequired, gatheringRadius, experienceGained, endMessage);
+        new(name, Evening, peopleRequired, gatheringRadius, experienceGained, endMessage, Fortress);
+
+    private static SocialChallenge CreateChallengeWithoutLocation() =>
+        new("Zalazak na tvrđavi", Evening, 5, 10, 300, "Bravo!", null);
 
     private static SocialChallenge CreateChallengeIn(SocialChallengeStatus status)
     {
@@ -109,13 +114,44 @@ public class SocialChallengeTests
     {
         var challenge = CreateChallenge();
 
-        var update = () => challenge.Update(name, Evening, peopleRequired, gatheringRadius, experienceGained, endMessage);
+        var update = () => challenge.Update(name, Evening, peopleRequired, gatheringRadius, experienceGained, endMessage, Fortress);
 
         update.Should().Throw<DomainException>();
     }
 
     [Fact]
-    public void Draft_challenge_is_published()
+    public void Draft_challenge_is_created_without_a_location()
+    {
+        var challenge = CreateChallengeWithoutLocation();
+
+        challenge.Status.Should().Be(SocialChallengeStatus.Draft);
+        challenge.Location.Should().BeNull();
+    }
+
+    [Fact]
+    public void Draft_challenge_is_updated_without_a_location()
+    {
+        var challenge = CreateChallenge();
+
+        challenge.Update("Zalazak na bedemu", Evening, 8, 12, 500, "Zalazak je vaš!", null);
+
+        challenge.Name.Should().Be("Zalazak na bedemu");
+        challenge.Location.Should().BeNull();
+    }
+
+    [Fact]
+    public void Challenge_without_a_location_cannot_be_published()
+    {
+        var challenge = CreateChallengeWithoutLocation();
+
+        var publishing = () => challenge.Publish();
+
+        publishing.Should().Throw<DomainException>();
+        challenge.Status.Should().Be(SocialChallengeStatus.Draft);
+    }
+
+    [Fact]
+    public void Draft_challenge_with_a_location_is_published()
     {
         var challenge = CreateChallengeIn(SocialChallengeStatus.Draft);
 
@@ -243,7 +279,7 @@ public class SocialChallengeTests
     {
         var challenge = CreateChallengeIn(status);
 
-        var update = () => challenge.Update("Zalazak na bedemu", Evening, 8, 12, 500, "Zalazak je vaš!");
+        var update = () => challenge.Update("Zalazak na bedemu", Evening, 8, 12, 500, "Zalazak je vaš!", Fortress);
 
         update.Should().Throw<DomainException>();
         challenge.Name.Should().Be("Zalazak na tvrđavi");

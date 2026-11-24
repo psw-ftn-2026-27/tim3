@@ -48,6 +48,8 @@ internal sealed class SocialChallengeReadRepository : ISocialChallengeReadReposi
                 socialChallenge.PeopleRequired,
                 socialChallenge.GatheringRadius,
                 socialChallenge.ExperienceGained,
-                socialChallenge.EndMessage));
+                socialChallenge.EndMessage,
+                socialChallenge.Location == null ? null : socialChallenge.Location.Latitude,
+                socialChallenge.Location == null ? null : socialChallenge.Location.Longitude));
     }
 }

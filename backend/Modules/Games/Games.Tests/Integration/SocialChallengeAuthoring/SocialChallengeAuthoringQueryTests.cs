@@ -24,7 +24,7 @@ public class SocialChallengeAuthoringQueryTests : BaseIntegrationTest
     }
 
     [Fact]
-    public async Task Administrator_fetches_a_social_challenge_to_edit()
+    public async Task Administrator_fetches_a_social_challenge_with_its_location_to_edit()
     {
         var client = Factory.CreateClientFor(WellKnownUsers.Administrator, "administrator");
         var seeded = SocialChallengeSeed.MidnightOnTheBridge;
@@ -32,6 +32,7 @@ public class SocialChallengeAuthoringQueryTests : BaseIntegrationTest
         var challenge = await client.GetFromJsonAsync<SocialChallengeDto>($"/api/games/social-challenges/{seeded.Id}", JsonOptions);
 
         challenge.Should().Be(new SocialChallengeDto(seeded.Id, seeded.Name, seeded.Status, seeded.ActivePeriod.Start,
-            seeded.ActivePeriod.End, seeded.PeopleRequired, seeded.GatheringRadius, seeded.ExperienceGained, seeded.EndMessage));
+            seeded.ActivePeriod.End, seeded.PeopleRequired, seeded.GatheringRadius, seeded.ExperienceGained, seeded.EndMessage,
+            seeded.Location!.Latitude, seeded.Location.Longitude));
     }
 }

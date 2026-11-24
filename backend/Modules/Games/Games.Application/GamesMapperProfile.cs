@@ -8,6 +8,10 @@ public sealed class GamesMapperProfile : Profile
 {
     public GamesMapperProfile()
     {
-        CreateMap<SocialChallenge, SocialChallengeDto>();
+        CreateMap<SocialChallenge, SocialChallengeDto>()
+            .ForCtorParam(nameof(SocialChallengeDto.Latitude), options => options.MapFrom(socialChallenge =>
+                socialChallenge.Location == null ? (double?)null : socialChallenge.Location.Latitude))
+            .ForCtorParam(nameof(SocialChallengeDto.Longitude), options => options.MapFrom(socialChallenge =>
+                socialChallenge.Location == null ? (double?)null : socialChallenge.Location.Longitude));
     }
 }

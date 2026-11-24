@@ -49,6 +49,25 @@
     }
   </div>
 
+  <div class="stack">
+    <app-location-map
+      [locations]="mapLocations()"
+      [selectable]="true"
+      [maxPins]="1"
+      [circle]="circle()"
+      (locationsChange)="changeMapLocations($event)"
+    />
+    <p class="meta">
+      @if (location(); as picked) {
+        Location: {{ picked.latitude.toFixed(5) }}, {{ picked.longitude.toFixed(5) }}.
+        Click the pin to remove it.
+      } @else {
+        Click the map to pick where the players gather. A draft may be saved without it,
+        but a challenge without a location cannot be published.
+      }
+    </p>
+  </div>
+
   <div class="field">
     <label for="experienceGained">XP</label>
     <input id="experienceGained" type="number" [formField]="form.experienceGained" />

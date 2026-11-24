@@ -1,5 +1,10 @@
-import { Component, effect, input, output, signal } from '@angular/core';
+import { Component, computed, effect, input, output, signal } from '@angular/core';
 import { FormField, form, max, min, required } from '@angular/forms/signals';
+import {
+  LocationMap,
+  MapCircle,
+  MapLocation,
+} from '../../../../shared/map/location-map/location-map';
 import { CreateSocialChallengeDto } from '../../api/games-api-types';
 
 export interface SocialChallengeFormValue {
@@ -10,10 +15,11 @@ export interface SocialChallengeFormValue {
   gatheringRadius: number;
   experienceGained: number;
   endMessage: string;
+  location: MapLocation | null;
 }
 
 @Component({
-  imports: [FormField],
+  imports: [FormField, LocationMap],
   selector: 'app-social-challenge-form',
   styleUrl: './social-challenge-form.scss',
   templateUrl: './social-challenge-form.html',
@@ -26,7 +32,7 @@ export class SocialChallengeForm {
   readonly save = output<CreateSocialChallengeDto>();
 
   protected readonly form = form(
-    signal<SocialChallengeFormValue>({
+    signal({
       name: '',
       activePeriodStart: '',
       activePeriodEnd: '',
@@ -50,6 +56,23 @@ export class SocialChallengeForm {
     },
   );
 
+  // The centre of the gathering circle. A draft may be saved without it; publishing needs it.
+  protected readonly location = signal<MapLocation | null>(null);
+
+  // The map draws the gathering circle around the picked location, while the radius is valid.
+  protected readonly circle = computed<MapCircle | null>(() => {
+    const center = this.location();
+    if (center === null || !this.form.gatheringRadius().valid()) {
+      return null;
+    }
+    return { center, radiusInMetres: this.form.gatheringRadius().value() };
+  });
+
+  protected readonly mapLocations = computed<MapLocation[]>(() => {
+    const location = this.location();
+    return location === null ? [] : [location];
+  });
+
   private prefilled = false;
 
   constructor() {
@@ -58,13 +81,28 @@ export class SocialChallengeForm {
       const initial = this.initial();
       if (initial && !this.prefilled) {
         this.prefilled = true;
-        this.form().reset(initial);
+        this.form().reset({
+          name: initial.name,
+          activePeriodStart: initial.activePeriodStart,
+          activePeriodEnd: initial.activePeriodEnd,
+          peopleRequired: initial.peopleRequired,
+          gatheringRadius: initial.gatheringRadius,
+          experienceGained: initial.experienceGained,
+          endMessage: initial.endMessage,
+        });
+        this.location.set(initial.location);
       }
     });
   }
 
+  // With one pin allowed, the map reports either that pin or, after a click on it, nothing.
+  protected changeMapLocations(locations: MapLocation[]): void {
+    this.location.set(locations[0] ?? null);
+  }
+
   protected submitForm(event: Event): void {
     event.preventDefault();
+    const location = this.location();
     // The time inputs give "HH:mm"; the server expects "HH:mm:ss".
     this.save.emit({
       name: this.form.name().value(),
@@ -74,6 +112,8 @@ export class SocialChallengeForm {
       gatheringRadius: this.form.gatheringRadius().value(),
       experienceGained: this.form.experienceGained().value(),
       endMessage: this.form.endMessage().value(),
+      latitude: location?.latitude ?? null,
+      longitude: location?.longitude ?? null,
     });
   }
 }

@@ -430,8 +430,29 @@ namespace Games.Infrastructure.Persistence.Migrations
                                 .HasForeignKey("SocialChallengeId");
                         });
 
+                    b.OwnsOne("Games.Domain.Locations.Location", "Location", b1 =>
+                        {
+                            b1.Property<Guid>("SocialChallengeId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<double>("Latitude")
+                                .HasColumnType("double precision");
+
+                            b1.Property<double>("Longitude")
+                                .HasColumnType("double precision");
+
+                            b1.HasKey("SocialChallengeId");
+
+                            b1.ToTable("SocialChallenges", "games");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SocialChallengeId");
+                        });
+
                     b.Navigation("ActivePeriod")
                         .IsRequired();
+
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("Games.Domain.LocationChallenges.LocationChallenge", b =>

@@ -26,6 +26,21 @@ public sealed record Location
         Longitude = longitude;
     }
 
+    // A location given as two optional coordinates: both or neither, never only one.
+    public static Location? FromOptionalCoordinates(double? latitude, double? longitude)
+    {
+        if (latitude is null && longitude is null)
+        {
+            return null;
+        }
+        if (latitude is null || longitude is null)
+        {
+            throw new DomainException("A location requires both a latitude and a longitude.");
+        }
+
+        return new Location(latitude.Value, longitude.Value);
+    }
+
     // The great-circle distance in metres (haversine formula on a spherical Earth).
     public double DistanceTo(Location other)
     {

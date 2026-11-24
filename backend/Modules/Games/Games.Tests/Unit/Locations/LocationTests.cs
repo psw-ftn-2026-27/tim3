@@ -31,6 +31,16 @@ public class LocationTests
     }
 
     [Theory]
+    [InlineData(45.2517, null)]
+    [InlineData(null, 19.8616)]
+    public void Location_with_only_one_of_its_coordinates_cannot_be_created(double? latitude, double? longitude)
+    {
+        var creation = () => Location.FromOptionalCoordinates(latitude, longitude);
+
+        creation.Should().Throw<DomainException>();
+    }
+
+    [Theory]
     [InlineData(45.0, 19.0, 46.0, 19.0, 111195)]
     [InlineData(0.0, 19.0, 0.0, 20.0, 111195)]
     [InlineData(45.2517, 19.8634, 45.2522, 19.8634, 56)]
