@@ -29,12 +29,17 @@ public sealed class LocationChallengeParticipation : AggregateRoot
         Status = LocationChallengeParticipationStatus.Active;
     }
 
-    public void Discover(Guid hiddenPointId, int pointCount, int experienceGained, DateTime time)
+    public void EnsureCanContinue()
     {
         if (Status == LocationChallengeParticipationStatus.Solved)
         {
             throw new DomainException("A solved location challenge cannot be continued.");
         }
+    }
+
+    public void Discover(Guid hiddenPointId, int pointCount, int experienceGained, DateTime time)
+    {
+        EnsureCanContinue();
         if (_discoveredPointIds.Contains(hiddenPointId))
         {
             throw new DomainException("This hidden point is already discovered.");

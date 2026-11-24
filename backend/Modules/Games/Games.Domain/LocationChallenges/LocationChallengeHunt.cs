@@ -44,10 +44,7 @@ public sealed class LocationChallengeHunt
         {
             throw new DomainException("The participation does not belong to this location challenge.");
         }
-        if (participation.Status == LocationChallengeParticipationStatus.Solved)
-        {
-            throw new DomainException("A solved location challenge cannot be continued.");
-        }
+        participation.EnsureCanContinue();
 
         var discoveredPoint = challenge.HiddenPoints.FirstOrDefault(hiddenPoint =>
             !participation.DiscoveredPointIds.Contains(hiddenPoint.Id)

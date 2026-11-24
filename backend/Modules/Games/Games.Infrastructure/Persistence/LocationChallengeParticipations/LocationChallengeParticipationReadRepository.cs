@@ -83,18 +83,20 @@ internal sealed class LocationChallengeParticipationReadRepository : ILocationCh
             .ToDictionaryAsync(participation => participation.LocationChallengeId, participation => participation.Status);
     }
 
-    // P6: the query selects coordinates only for discovered points, so undiscovered locations never leave the database.
+    // The explorer must not learn where a hidden point is before discovering it, so the query
+    // selects coordinates only for discovered points and an undiscovered location never leaves the database.
     private async Task<List<HiddenPointClueDto>> GetHiddenPointCluesAsync(Guid locationChallengeId, List<Guid> discoveredPointIds)
     {
         return await _dbContext.LocationChallenges
             .Where(locationChallenge => locationChallenge.Id == locationChallengeId)
             .SelectMany(locationChallenge => locationChallenge.HiddenPoints)
-            .Select(hiddenPoint => new HiddenPointClueDto(
-                hiddenPoint.Id,
-                hiddenPoint.Photo,
-                discoveredPointIds.Contains(hiddenPoint.Id),
-                discoveredPointIds.Contains(hiddenPoint.Id) ? hiddenPoint.Location.Latitude : null,
-                discoveredPointIds.Contains(hiddenPoint.Id) ? hiddenPoint.Location.Longitude : null))
+            .Select(hiddenPoint => new { HiddenPoint = hiddenPoint, Discovered = discoveredPointIds.Contains(hiddenPoint.Id) })
+            .Select(clue => new HiddenPointClueDto(
+                clue.HiddenPoint.Id,
+                clue.HiddenPoint.Photo,
+                clue.Discovered,
+                clue.Discovered ? clue.HiddenPoint.Location.Latitude : null,
+                clue.Discovered ? clue.HiddenPoint.Location.Longitude : null))
             .ToListAsync();
     }
 

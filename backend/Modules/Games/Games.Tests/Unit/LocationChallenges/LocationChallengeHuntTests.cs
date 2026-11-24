@@ -110,6 +110,22 @@ public class LocationChallengeHuntTests
     }
 
     [Fact]
+    public void Check_in_a_solved_challenge_is_rejected_and_the_solution_stays_unchanged()
+    {
+        var challenge = CreateChallenge();
+        var solved = CreateParticipation(challenge);
+        solved.Discover(challenge.HiddenPoints[0].Id, 2, 300, Now);
+        solved.Discover(challenge.HiddenPoints[1].Id, 2, 300, Now);
+
+        var check = () => new LocationChallengeHunt().CheckLocation(challenge, solved, NorthOfStart(120), Now.AddMinutes(5));
+
+        check.Should().Throw<DomainException>();
+        solved.Status.Should().Be(LocationChallengeParticipationStatus.Solved);
+        solved.SolvedAt.Should().Be(Now);
+        solved.DiscoveredPointIds.Should().HaveCount(2);
+    }
+
+    [Fact]
     public void Discovering_the_last_point_records_the_solution_with_its_time_and_experience()
     {
         var challenge = CreateChallenge();
