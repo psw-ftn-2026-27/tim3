@@ -182,6 +182,67 @@ namespace Games.Infrastructure.Persistence.Migrations
                     b.ToTable("Quizzes", "games");
                 });
 
+            modelBuilder.Entity("Games.Domain.SocialChallengeExecutions.SocialChallengeExecution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ChallengeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("SolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChallengeId", "Status");
+
+                    b.ToTable("SocialChallengeExecutions", "games");
+                });
+
+            modelBuilder.Entity("Games.Domain.SocialChallengeExecutions.SocialChallengeParticipant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<TimeSpan>("ActiveTime")
+                        .HasColumnType("interval");
+
+                    b.Property<int?>("ExperienceGained")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ExplorerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("LastReportAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("LastReportInRange")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("SocialChallengeExecutionId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExplorerId");
+
+                    b.HasIndex("SocialChallengeExecutionId");
+
+                    b.ToTable("SocialChallengeParticipants", "games");
+                });
+
             modelBuilder.Entity("Games.Domain.SocialChallenges.SocialChallenge", b =>
                 {
                     b.Property<Guid>("Id")
@@ -409,6 +470,15 @@ namespace Games.Infrastructure.Persistence.Migrations
                     b.Navigation("Location");
                 });
 
+            modelBuilder.Entity("Games.Domain.SocialChallengeExecutions.SocialChallengeParticipant", b =>
+                {
+                    b.HasOne("Games.Domain.SocialChallengeExecutions.SocialChallengeExecution", null)
+                        .WithMany("Participants")
+                        .HasForeignKey("SocialChallengeExecutionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Games.Domain.SocialChallenges.SocialChallenge", b =>
                 {
                     b.OwnsOne("Games.Domain.SocialChallenges.ActivePeriod", "ActivePeriod", b1 =>
@@ -463,6 +533,11 @@ namespace Games.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Games.Domain.Quizzes.Quiz", b =>
                 {
                     b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("Games.Domain.SocialChallengeExecutions.SocialChallengeExecution", b =>
+                {
+                    b.Navigation("Participants");
                 });
 #pragma warning restore 612, 618
         }

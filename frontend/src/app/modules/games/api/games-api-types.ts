@@ -205,3 +205,24 @@ export interface SubmitAnswerDto {
   questionId: string;
   answerIndex: number;
 }
+
+export interface PublishedSocialChallengeDto {
+  id: string;
+  name: string;
+  activePeriodStart: string;
+  activePeriodEnd: string;
+  peopleRequired: number;
+  latitude: number;
+  longitude: number;
+  solvedCount: number;
+}
+
+export type SocialChallengeExecutionStatus = 'Active' | 'Solved' | 'Expired';
+
+export interface SocialChallengeExecutionDto {
+  status: SocialChallengeExecutionStatus;
+  activeCount: number;
+  peopleRequired: number;
+  endMessage: string | null;
+  experienceGained: number | null;
+}

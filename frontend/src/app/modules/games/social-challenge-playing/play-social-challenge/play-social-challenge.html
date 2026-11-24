@@ -1,0 +1,94 @@
+<div class="stack">
+  @if (execution.isLoading() && !execution.hasValue()) {
+    <p class="loading">Loading the challenge...</p>
+  } @else if (execution.error()) {
+    @switch (executionErrorStatus()) {
+      @case (401) {
+        <div class="empty-state" role="alert">
+          <h2>Log in to play the challenge</h2>
+          <p>Social challenges are played by logged-in explorers, and your session may have expired.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/login">Log in</a>
+          </div>
+        </div>
+      }
+      @case (403) {
+        <div class="empty-state" role="alert">
+          <h2>Only explorers can play social challenges</h2>
+          <p>Explorers gather on location to solve published social challenges.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games">Games</a>
+          </div>
+        </div>
+      }
+      @case (404) {
+        <div class="empty-state" role="alert">
+          <h2>This challenge is not activated</h2>
+          <p>Activate the challenge from its card when you are in its gathering circle.</p>
+          <div class="empty-state-actions">
+            <a class="button button--primary" routerLink="/games">Back to challenges</a>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="empty-state" role="alert">
+          <h2>Could not load the challenge</h2>
+          <p>Something went wrong on our side. Try again in a moment.</p>
+          <div class="empty-state-actions">
+            <button class="button" type="button" (click)="execution.reload()">Try again</button>
+          </div>
+        </div>
+      }
+    }
+  } @else if (execution.value(); as state) {
+    <div class="page-head">
+      <h1>Social challenge</h1>
+
+      <div class="page-actions">
+        <a class="button" routerLink="/games">Back to challenges</a>
+      </div>
+    </div>
+
+    @switch (state.status) {
+      @case ('Active') {
+        <div class="card stack">
+          <h2>{{ state.activeCount }} / {{ state.peopleRequired }} active</h2>
+          <p class="meta">
+            Waiting for explorers, please stay in the gathering circle.
+          </p>
+        </div>
+
+        <p class="meta">Click the map to move your position.</p>
+        <app-location-map
+          [positionSettable]="true"
+          [settingPosition]="true"
+          [position]="position()"
+          [positionMissing]="positionMissing()"
+          (positionSet)="setPosition($event)"
+        />
+        @if (positionError()) {
+          <p class="error" role="alert">{{ positionError() }}</p>
+        }
+      }
+      @case ('Solved') {
+        <div class="card stack">
+          <h2>Challenge solved</h2>
+          <p>{{ state.endMessage }}</p>
+          <p>You gained {{ state.experienceGained }} XP.</p>
+          <div>
+            <a class="button button--primary" routerLink="/games">Back to challenges</a>
+          </div>
+        </div>
+      }
+      @case ('Expired') {
+        <div class="card stack">
+          <h2>The execution has expired</h2>
+          <p>Nobody reported a position for 5 minutes. Activate the challenge again to start a new one.</p>
+          <div>
+            <a class="button button--primary" routerLink="/games">Back to challenges</a>
+          </div>
+        </div>
+      }
+    }
+  }
+</div>

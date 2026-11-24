@@ -12,6 +12,7 @@ import { PlayQuiz } from './quiz-playing/play-quiz/play-quiz';
 import { CreateSocialChallenge } from './social-challenge-authoring/create-social-challenge/create-social-challenge';
 import { EditSocialChallenge } from './social-challenge-authoring/edit-social-challenge/edit-social-challenge';
 import { SocialChallengeList } from './social-challenge-authoring/social-challenge-list/social-challenge-list';
+import { PlaySocialChallenge } from './social-challenge-playing/play-social-challenge/play-social-challenge';
 
 export const gamesRoutes: Routes = [
   { path: '', component: GamesHome },
@@ -22,6 +23,7 @@ export const gamesRoutes: Routes = [
   { path: 'challenges', component: SocialChallengeList },
   { path: 'challenges/create', component: CreateSocialChallenge },
   { path: 'challenges/:id/edit', component: EditSocialChallenge },
+  { path: 'challenges/:id/play', component: PlaySocialChallenge },
   { path: 'location-challenges', component: LocationChallengeList },
   { path: 'location-challenges/create', component: CreateLocationChallenge },
   { path: 'location-challenges/:id/edit', component: EditLocationChallenge },

@@ -9,15 +9,19 @@ using Games.Application.QuizParticipations;
 using Games.Application.QuizPlaying;
 using Games.Application.Quizzes;
 using Games.Application.SocialChallengeAuthoring;
+using Games.Application.SocialChallengeExecutions;
 using Games.Application.SocialChallengeLifecycle;
+using Games.Application.SocialChallengePlaying;
 using Games.Application.SocialChallenges;
 using Games.Domain.LocationChallenges;
 using Games.Domain.QuizParticipations;
+using Games.Domain.SocialChallengeExecutions;
 using Games.Infrastructure.Persistence;
 using Games.Infrastructure.Persistence.LocationChallengeParticipations;
 using Games.Infrastructure.Persistence.LocationChallenges;
 using Games.Infrastructure.Persistence.QuizParticipations;
 using Games.Infrastructure.Persistence.Quizzes;
+using Games.Infrastructure.Persistence.SocialChallengeExecutions;
 using Games.Infrastructure.Persistence.SocialChallenges;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +42,7 @@ public static class GamesModuleExtensions
         services.AddScoped<ILocationChallengeRepository, LocationChallengeRepository>();
         services.AddScoped<ILocationChallengeParticipationRepository, LocationChallengeParticipationRepository>();
         services.AddScoped<IQuizParticipationRepository, QuizParticipationRepository>();
+        services.AddScoped<ISocialChallengeExecutionRepository, SocialChallengeExecutionRepository>();
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<GamesDbContext>());
         services.AddScoped<IQuizReadRepository, QuizReadRepository>();
         services.AddScoped<ISocialChallengeReadRepository, SocialChallengeReadRepository>();
@@ -58,6 +63,9 @@ public static class GamesModuleExtensions
         services.AddScoped<QuizPlay>();
         services.AddScoped<QuizPlayingService>();
         services.AddScoped<QuizPlayingQueries>();
+        services.AddScoped<SocialChallengePlay>();
+        services.AddScoped<SocialChallengePlayingService>();
+        services.AddScoped<SocialChallengePlayingQueries>();
 
         return services;
     }
