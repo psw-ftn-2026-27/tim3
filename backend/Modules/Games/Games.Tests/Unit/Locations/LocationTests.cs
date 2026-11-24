@@ -30,13 +30,18 @@ public class LocationTests
         location.Longitude.Should().Be(longitude);
     }
 
-    [Fact]
-    public void One_degree_of_latitude_along_a_meridian_is_about_111_kilometres()
+    [Theory]
+    [InlineData(45.0, 19.0, 46.0, 19.0, 111195)]
+    [InlineData(0.0, 19.0, 0.0, 20.0, 111195)]
+    [InlineData(45.2517, 19.8634, 45.2522, 19.8634, 56)]
+    public void Distance_between_two_known_locations_is_accurate_to_a_few_metres(
+        double fromLatitude, double fromLongitude, double toLatitude, double toLongitude, double expectedMetres)
     {
-        var equator = new Location(0, 0);
+        var from = new Location(fromLatitude, fromLongitude);
+        var to = new Location(toLatitude, toLongitude);
 
-        var distance = equator.DistanceTo(new Location(1, 0));
+        var distance = from.DistanceTo(to);
 
-        distance.Should().BeApproximately(111_195, 1);
+        distance.Should().BeApproximately(expectedMetres, 3);
     }
 }

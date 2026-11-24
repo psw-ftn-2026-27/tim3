@@ -62,6 +62,41 @@ namespace Games.Infrastructure.Persistence.Migrations
                     b.ToTable("LocationChallenges", "games");
                 });
 
+            modelBuilder.Entity("Games.Domain.LocationChallenges.LocationChallengeParticipation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<Guid[]>("DiscoveredPointIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]");
+
+                    b.Property<int?>("ExperienceGained")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ExplorerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("LocationChallengeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("SolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExplorerId", "LocationChallengeId")
+                        .IsUnique();
+
+                    b.ToTable("LocationChallengeParticipations", "games");
+                });
+
             modelBuilder.Entity("Games.Domain.QuizParticipations.QuizParticipation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -234,6 +269,50 @@ namespace Games.Infrastructure.Persistence.Migrations
                         });
 
                     b.Navigation("StartLocation")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Games.Domain.LocationChallenges.LocationChallengeParticipation", b =>
+                {
+                    b.OwnsOne("Games.Domain.LocationChallenges.SearchCircle", "SearchCircle", b1 =>
+                        {
+                            b1.Property<Guid>("LocationChallengeParticipationId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<double>("Radius")
+                                .HasColumnType("double precision");
+
+                            b1.HasKey("LocationChallengeParticipationId");
+
+                            b1.ToTable("LocationChallengeParticipations", "games");
+
+                            b1.WithOwner()
+                                .HasForeignKey("LocationChallengeParticipationId");
+
+                            b1.OwnsOne("Games.Domain.Locations.Location", "Center", b2 =>
+                                {
+                                    b2.Property<Guid>("SearchCircleLocationChallengeParticipationId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<double>("Latitude")
+                                        .HasColumnType("double precision");
+
+                                    b2.Property<double>("Longitude")
+                                        .HasColumnType("double precision");
+
+                                    b2.HasKey("SearchCircleLocationChallengeParticipationId");
+
+                                    b2.ToTable("LocationChallengeParticipations", "games");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("SearchCircleLocationChallengeParticipationId");
+                                });
+
+                            b1.Navigation("Center")
+                                .IsRequired();
+                        });
+
+                    b.Navigation("SearchCircle")
                         .IsRequired();
                 });
 
